@@ -72,6 +72,18 @@ pub enum Error {
     #[error("model assignment names inactive role `{role_identifier}`")]
     StaleRoleModelAssignment { role_identifier: String },
 
+    #[error("named role-model profile `{profile_identifier}` is listed more than once")]
+    DuplicateNamedRoleModelProfile { profile_identifier: String },
+
+    #[error("role `{role_identifier}` names unknown role-model profile `{profile_identifier}`")]
+    UnknownNamedRoleModelProfile {
+        role_identifier: String,
+        profile_identifier: String,
+    },
+
+    #[error("named role-model profile `{profile_identifier}` has no active role assignment")]
+    StaleNamedRoleModelProfile { profile_identifier: String },
+
     #[error("role `{role_identifier}` assigns unsupported model `{model_identifier}`")]
     UnsupportedRoleModel {
         role_identifier: String,

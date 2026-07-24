@@ -2,7 +2,7 @@
 ;; This file lists active outputs only; absence means inactive.
 ;; Skill fields: output id, module id, category, tier, description, target surfaces.
 ;; Role fields: output id, role source module id, ordered preloaded module ids, description, target surfaces.
-;; Model assignments and optional skills live in role-model-assignments.nota and role-optional-skills.nota.
+;; Model assignments, named profiles, and optional skills live in role-model-assignments.nota, role-model-profiles.nota, and role-optional-skills.nota.
 ;; Dependency data lives in module-dependencies.nota; universal role modules live in universal-role-modules.nota.
 
 [
@@ -55,7 +55,7 @@
   (Skill (work-tracking work-tracking Workflow Mechanism [|Work tracking rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (repository-publication repository-publication Workflow Mechanism [|Repository publication rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (repository-management repository-management Workflow Mechanism [|Repository management rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (skill-editor skill-editor Workflow Mechanism [|Skill editor rules.|] [AgentsSkill ClaudeSkill]))
+  (Skill (skill-designing skill-designing Workflow Mechanism [|Use when designing a skill.|] [AgentsSkill ClaudeSkill]))
   (Skill (helper-context-transfer helper-context-transfer Meta Mechanism [|Helper context transfer rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (management management Meta Mechanism [|Management rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (spirit-query spirit-query Meta Topic [|Spirit query rules.|] [AgentsSkill ClaudeSkill]))
@@ -80,7 +80,8 @@
   (Role (operating-system-implementer role-operating-system-implementer [edit-coordination-core editing-closeout code-implementation-core nix-core operating-system-operations nixos-vm-testing non-ideal-registry] [|Implements system changes.|] [ClaudeAgent CodexAgent PiAgent]))
   (Role (rust-auditor role-rust-auditor [edit-coordination-core editing-closeout rust-core architectural-truth-tests non-ideal-registry] [|Reviews Rust changes.|] [ClaudeAgent CodexAgent PiAgent]))
   (Role (nix-auditor role-nix-auditor [edit-coordination-core editing-closeout nix-core nixos-vm-testing non-ideal-registry] [|Reviews Nix changes.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (skill-editor role-skill-editor [] [|Maintains skill source.|] [ClaudeAgent CodexAgent PiAgent]))
+  (Role (skill-maintainer role-skill-maintainer [skill-designing] [|Use when applying an approved skill change.|] [ClaudeAgent CodexAgent PiAgent]))
+  (Role (trivial-task role-trivial-task [] [|Performs one explicitly bounded minimal task.|] [ClaudeAgent CodexAgent PiAgent]))
   (Role (intent-curator role-intent-curator [edit-coordination-core editing-closeout intent-core] [|Maintains approved intent.|] [ClaudeAgent CodexAgent PiAgent]))
   (Role (repository-closeout role-repository-closeout [edit-coordination-core editing-closeout repo-operation-core] [|Closes validated repositories.|] [ClaudeAgent CodexAgent PiAgent]))
   (Role (tracker-weaver role-tracker-weaver [edit-coordination-core editing-closeout bead-weaver] [|Advances authorized tracker work.|] [ClaudeAgent CodexAgent PiAgent]))

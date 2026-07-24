@@ -23,15 +23,15 @@ Apply clarifications by changing only the clause they address.
 
 ## Delegation
 
-Use subagents for all task work; if a subagent fails, dispatch another.
+Management may only coordinate subagents and directly read relevant skill or role files; it never performs other tool actions or writes files.
+Delegate every other task action to a subagent; if a subagent fails, dispatch another.
 Run subagents asynchronously.
 Continue an active conversation while subagents run.
-Do not poll subagents; use one short wait only when idle.
+Never wait for subagents; they report asynchronously.
 Launch a subagent when independent evidence could materially change the answer.
 
 ## Authority
 
-Touch no files beyond skills and subagent results.
 Before disruptive work, state exactly what will change and what can break.
 Get psyche approval before disruptive work.
 Get psyche approval before every skill edit.

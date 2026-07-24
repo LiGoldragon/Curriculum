@@ -26,7 +26,8 @@ workers do not discover doctrine through a runtime index.
 - `manifests/target-module-insertions.nota`: target-specific module overlays keyed by base module and output surface.
 - `manifests/universal-role-modules.nota`: the sole `general-instructions` module included in every generated role packet.
 - `manifests/model-catalog.nota`: canonical Claude and ChatGPT-family model+effort profiles with explicit total-order strengths.
-- `manifests/role-model-assignments.nota`: exactly one Claude and one shared ChatGPT-family profile per active role.
+- `manifests/role-model-profiles.nota`: repository-owned semantic profiles that resolve to target model assignments.
+- `manifests/role-model-assignments.nota`: exactly one direct or named profile assignment per active role.
 - `manifests/role-optional-skills.nota`: validated active skill identifiers available for each role to load without preloading their bodies.
 - `manifests/nested-role-relations.nota`: typed nested roles, target-relative minimum models, and exclusive allowed leaf-role edges.
 - `schema/assembly.schema`: schema-authored generator interface source.

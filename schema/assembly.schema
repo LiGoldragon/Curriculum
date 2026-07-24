@@ -54,7 +54,12 @@
   ModelStrength Integer {| Display PartialEq PartialOrd |}
   EffortLevel [Medium High Xhigh]
   RoleModelAssignments (Vector RoleModelAssignment)
-  RoleModelAssignment { OutputIdentifier ChatGptModelAssignment ClaudeModelAssignment }
+  RoleModelAssignment [(Direct DirectRoleModelAssignment) (Profile ProfileRoleModelAssignment)]
+  DirectRoleModelAssignment { OutputIdentifier ChatGptModelAssignment ClaudeModelAssignment }
+  ProfileRoleModelAssignment { OutputIdentifier RoleModelProfileIdentifier }
+  NamedRoleModelProfiles (Vector NamedRoleModelProfile)
+  NamedRoleModelProfile { RoleModelProfileIdentifier ChatGptModelAssignment ClaudeModelAssignment }
+  RoleModelProfileIdentifier String {| Display AsRef PartialEq Ord |}
   ChatGptModelAssignment { ModelIdentifier EffortLevel }
   ClaudeModelAssignment { ModelIdentifier EffortLevel }
   RoleOptionalSkills (Vector RoleOptionalSkill)

@@ -11,18 +11,19 @@ use crate::{
     markdown::{MarkdownAssembly, MarkdownFragment},
     schema::assembly::{
         ActiveOutput, ActiveOutputs, ActiveRole, ActiveSkill, ByteCount, ChatGptModelAssignment,
-        ClaudeModelAssignment, EffortLevel, Frontmatter, FrontmatterEntry, FrontmatterKey,
-        FrontmatterValue, GeneratedFile, GeneratedFiles, GeneratedOutputVisualization,
-        GeneratedOutputVisualizations, GeneratedRoleOutputs, GenerationMode, GenerationOutcome,
-        GenerationReport, GenerationRequest, LineCount, Manifest, ManifestPath, ModelCatalog,
-        ModelCatalogEntry, ModelEffortStrength, ModelIdentifier, ModelStrength, ModuleDependencies,
-        ModuleDependency, ModuleIdentifier, ModuleKind, ModulePath, Modules,
+        ClaudeModelAssignment, DirectRoleModelAssignment, EffortLevel, Frontmatter,
+        FrontmatterEntry, FrontmatterKey, FrontmatterValue, GeneratedFile, GeneratedFiles,
+        GeneratedOutputVisualization, GeneratedOutputVisualizations, GeneratedRoleOutputs,
+        GenerationMode, GenerationOutcome, GenerationReport, GenerationRequest, LineCount,
+        Manifest, ManifestPath, ModelCatalog, ModelCatalogEntry, ModelEffortStrength,
+        ModelIdentifier, ModelStrength, ModuleDependencies, ModuleDependency, ModuleIdentifier,
+        ModuleKind, ModulePath, Modules, NamedRoleModelProfile, NamedRoleModelProfiles,
         NestedRoleMinimumModel, NestedRoleRelations, Operation, OptionalSkills, OutputIdentifier,
         OutputKind, OutputPath, OutputSurface, RoleGenerationKind, RoleModelAssignment,
-        RoleModelAssignments, RoleOptionalSkills, RolePacketComposition, RolePacketCompositions,
-        RoleTargetSurface, RoleVisualization, RoleVisualizations, TargetModuleInsertion,
-        TargetModuleInsertions, TargetSurface, UniversalRoleModules, VisualizationReport,
-        VisualizationRequest,
+        RoleModelAssignments, RoleModelProfileIdentifier, RoleOptionalSkills,
+        RolePacketComposition, RolePacketCompositions, RoleTargetSurface, RoleVisualization,
+        RoleVisualizations, TargetModuleInsertion, TargetModuleInsertions, TargetSurface,
+        UniversalRoleModules, VisualizationReport, VisualizationRequest,
     },
     trunk_guard::TrunkDescendantGuard,
     workspace_path::WorkspacePath,
@@ -272,6 +273,11 @@ impl GenerationSource {
             SourceFile::new(self.source_root.clone(), role_model_assignments_path)
                 .read_optional()?
                 .unwrap_or_else(|| RoleModelAssignments::new(Vec::new()));
+        let named_role_model_profiles_path = manifest_directory.join("role-model-profiles.nota");
+        let named_role_model_profiles: NamedRoleModelProfiles =
+            SourceFile::new(self.source_root.clone(), named_role_model_profiles_path)
+                .read_optional()?
+                .unwrap_or_else(|| NamedRoleModelProfiles::new(Vec::new()));
         let role_optional_skills_path = manifest_directory.join("role-optional-skills.nota");
         let role_optional_skills: RoleOptionalSkills =
             SourceFile::new(self.source_root.clone(), role_optional_skills_path)
@@ -290,6 +296,7 @@ impl GenerationSource {
             RoleMetadataSources {
                 model_catalog,
                 role_model_assignments,
+                named_role_model_profiles,
                 role_optional_skills,
                 nested_role_relations,
             },
@@ -407,6 +414,7 @@ impl RoleMetadataIndex {
         active_outputs: &ActiveOutputs,
         model_catalog: ModelCatalog,
         role_model_assignments: RoleModelAssignments,
+        named_role_model_profiles: NamedRoleModelProfiles,
         role_optional_skills: RoleOptionalSkills,
         nested_role_relations: NestedRoleRelations,
     ) -> Result<Self> {
@@ -430,7 +438,10 @@ impl RoleMetadataIndex {
             .collect();
         let catalog = ModelCatalogIndex::new(model_catalog)?;
         let nested_roles = NestedRoleIndex::new(nested_role_relations, &active_roles, &catalog)?;
-        let assignments = RoleModelAssignmentIndex::new(role_model_assignments, &active_roles)?;
+        let profiles = NamedRoleModelProfileIndex::new(named_role_model_profiles)?;
+        let assignments =
+            RoleModelAssignmentIndex::new(role_model_assignments, &active_roles, &profiles)?;
+        profiles.validate_references(&assignments.profile_references)?;
         let optional_skills =
             RoleOptionalSkillIndex::new(role_optional_skills, &active_roles, &active_skills)?;
         let mut entries = BTreeMap::new();
@@ -606,7 +617,7 @@ impl ModelCatalogIndex {
     fn profile(
         &self,
         role_identifier: &str,
-        assignment: &RoleModelAssignment,
+        assignment: &DirectRoleModelAssignment,
     ) -> Result<RoleModelProfile> {
         let (chat_gpt_model, pi_provider, chat_gpt_effort, chat_gpt_strength) =
             self.chat_gpt_assignment(role_identifier, &assignment.chat_gpt_model_assignment)?;
@@ -924,21 +935,46 @@ impl NestedRoleMetadata {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct RoleModelAssignmentIndex {
-    entries: BTreeMap<OutputIdentifier, RoleModelAssignment>,
+    entries: BTreeMap<OutputIdentifier, DirectRoleModelAssignment>,
+    profile_references: BTreeSet<RoleModelProfileIdentifier>,
 }
 
 impl RoleModelAssignmentIndex {
     fn new(
         assignments: RoleModelAssignments,
         active_roles: &BTreeMap<OutputIdentifier, ActiveRole>,
+        profiles: &NamedRoleModelProfileIndex,
     ) -> Result<Self> {
         let mut entries = BTreeMap::new();
+        let mut profile_references = BTreeSet::new();
         for assignment in assignments.into_payload() {
-            let role_identifier = assignment.output_identifier.clone();
+            let (role_identifier, assignment, profile_reference) = match assignment {
+                RoleModelAssignment::Direct(assignment) => {
+                    (assignment.output_identifier.clone(), assignment, None)
+                }
+                RoleModelAssignment::Profile(assignment) => {
+                    let role_identifier = assignment.output_identifier.clone();
+                    let profile_identifier = assignment.role_model_profile_identifier;
+                    let profile =
+                        profiles.profile(role_identifier.as_ref(), &profile_identifier)?;
+                    (
+                        role_identifier.clone(),
+                        DirectRoleModelAssignment {
+                            output_identifier: role_identifier,
+                            chat_gpt_model_assignment: profile.chat_gpt_model_assignment.clone(),
+                            claude_model_assignment: profile.claude_model_assignment.clone(),
+                        },
+                        Some(profile_identifier),
+                    )
+                }
+            };
             if !active_roles.contains_key(&role_identifier) {
                 return Err(Error::StaleRoleModelAssignment {
                     role_identifier: role_identifier.into_payload(),
                 });
+            }
+            if let Some(profile_identifier) = profile_reference {
+                profile_references.insert(profile_identifier);
             }
             if entries
                 .insert(role_identifier.clone(), assignment)
@@ -949,7 +985,60 @@ impl RoleModelAssignmentIndex {
                 });
             }
         }
+        Ok(Self {
+            entries,
+            profile_references,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct NamedRoleModelProfileIndex {
+    entries: BTreeMap<RoleModelProfileIdentifier, NamedRoleModelProfile>,
+}
+
+impl NamedRoleModelProfileIndex {
+    fn new(profiles: NamedRoleModelProfiles) -> Result<Self> {
+        let mut entries = BTreeMap::new();
+        for profile in profiles.into_payload() {
+            let profile_identifier = profile.role_model_profile_identifier.clone();
+            if entries
+                .insert(profile_identifier.clone(), profile)
+                .is_some()
+            {
+                return Err(Error::DuplicateNamedRoleModelProfile {
+                    profile_identifier: profile_identifier.into_payload(),
+                });
+            }
+        }
         Ok(Self { entries })
+    }
+
+    fn profile(
+        &self,
+        role_identifier: &str,
+        profile_identifier: &RoleModelProfileIdentifier,
+    ) -> Result<&NamedRoleModelProfile> {
+        self.entries
+            .get(profile_identifier)
+            .ok_or_else(|| Error::UnknownNamedRoleModelProfile {
+                role_identifier: role_identifier.to_owned(),
+                profile_identifier: profile_identifier.as_ref().to_owned(),
+            })
+    }
+
+    fn validate_references(
+        &self,
+        referenced_profiles: &BTreeSet<RoleModelProfileIdentifier>,
+    ) -> Result<()> {
+        for profile_identifier in self.entries.keys() {
+            if !referenced_profiles.contains(profile_identifier) {
+                return Err(Error::StaleNamedRoleModelProfile {
+                    profile_identifier: profile_identifier.as_ref().to_owned(),
+                });
+            }
+        }
+        Ok(())
     }
 }
 
@@ -1038,6 +1127,7 @@ impl EffortLevel {
 struct RoleMetadataSources {
     model_catalog: ModelCatalog,
     role_model_assignments: RoleModelAssignments,
+    named_role_model_profiles: NamedRoleModelProfiles,
     role_optional_skills: RoleOptionalSkills,
     nested_role_relations: NestedRoleRelations,
 }
@@ -1063,6 +1153,7 @@ impl GenerationConfiguration {
             &active_outputs,
             role_metadata_sources.model_catalog,
             role_metadata_sources.role_model_assignments,
+            role_metadata_sources.named_role_model_profiles,
             role_metadata_sources.role_optional_skills,
             role_metadata_sources.nested_role_relations,
         )?;

@@ -9,9 +9,10 @@ use skills::{
     Error,
     schema::assembly::{
         ActiveOutputs, EffortLevel, GenerationMode, GenerationRequest, ManifestPath, ModelCatalog,
-        ModuleDependencies, ModuleKind, NestedRoleRelations, RoleGenerationKind,
-        RoleModelAssignments, RoleOptionalSkills, RoleTargetSurface, SourceRoot,
-        TargetModuleInsertions, UniversalRoleModules, VisualizationRequest, WorkspaceRoot,
+        ModuleDependencies, ModuleKind, NamedRoleModelProfiles, NestedRoleRelations,
+        RoleGenerationKind, RoleModelAssignments, RoleOptionalSkills, RoleTargetSurface,
+        SourceRoot, TargetModuleInsertions, UniversalRoleModules, VisualizationRequest,
+        WorkspaceRoot,
     },
     trunk_guard::{TrunkDescendantGuard, TrunkDivergence},
 };
@@ -291,6 +292,10 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         NotaSource::new(include_str!("../manifests/role-model-assignments.nota"))
             .parse::<RoleModelAssignments>()
             .expect("role model assignments parse");
+    let named_role_model_profiles =
+        NotaSource::new(include_str!("../manifests/role-model-profiles.nota"))
+            .parse::<NamedRoleModelProfiles>()
+            .expect("named role-model profiles parse");
     let role_optional_skills =
         NotaSource::new(include_str!("../manifests/role-optional-skills.nota"))
             .parse::<RoleOptionalSkills>()
@@ -314,9 +319,10 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         .count();
 
     assert_eq!(skill_count, 63);
-    assert_eq!(role_count, 14);
+    assert_eq!(role_count, 15);
     assert_eq!(model_catalog.payload().len(), 6);
-    assert_eq!(nested_role_relations.payload().len(), 3);
+    assert_eq!(named_role_model_profiles.payload().len(), 1);
+    assert_eq!(nested_role_relations.payload().len(), 2);
     assert_eq!(role_model_assignments.payload().len(), role_count);
     assert_eq!(role_optional_skills.payload().len(), role_count);
 
@@ -336,7 +342,7 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
     for sonnet_role in ["intent-recorder", "scout", "repository-closeout"] {
         assert!(
             role_model_assignments_source.contains(&format!(
-                "({sonnet_role} (gpt-5.6-luna Medium) (claude-sonnet-5 Medium))"
+                "(Direct ({sonnet_role} (gpt-5.6-luna Medium) (claude-sonnet-5 Medium)))"
             )),
             "{sonnet_role} uses Claude Sonnet 5"
         );
@@ -364,6 +370,7 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         "nota-shape-checklist",
         "management",
         "documentation-placement",
+        "skill-designing",
     ] {
         assert!(
             active_skill_identifiers.contains(required_skill),
@@ -380,6 +387,7 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         "orchestration",
         "kameo",
         "architecture-editor",
+        "skill-editor",
     ] {
         assert!(
             !active_skill_identifiers.contains(deprecated_skill),
@@ -712,7 +720,12 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
                 "non-ideal-registry",
             ],
         ),
-        ("skill-editor", "role-skill-editor", &[]),
+        (
+            "skill-maintainer",
+            "role-skill-maintainer",
+            &["skill-designing"],
+        ),
+        ("trivial-task", "role-trivial-task", &[]),
         (
             "intent-curator",
             "role-intent-curator",
@@ -945,79 +958,94 @@ fn repository_visibility_doctrine_defaults_public_without_weakening_privacy() {
 }
 
 #[test]
-fn skill_editor_skill_is_the_approved_boundary_and_role_is_unchanged() {
-    const EXPECTED_SKILL: &str = "Before any skill change, show the psyche the exact full diff and get approval for that diff. Proposed wording is not approval to apply it.\n\
-Flag instructions that may not meet skill standards and explain why before proposing any change.\n\
-State which constraints, decision boundaries, and rationale each proposal preserves, changes, or removes.\n";
-    const EXPECTED_ROLE: &str = "Keep only unusual guidance that changes agent behavior.\n\
-Keep distinct instructions separate.\n\
-Shorten skills by deleting weak guidance, not by compressing it.\n\
-Make a skill only when the same guidance is needed across repositories.\n\
-Reject operational guidance and repository-specific facts.\n\
-Remove anything repeated, unverified, outdated, or already done without the skill.\n\
-Use headings only when they aid navigation; never repeat the skill name.\n";
+fn skill_designing_replaces_skill_editor_and_composes_once_in_skill_maintainer() {
+    const SKILL_BODY: &str = "Write skills with brutal minimalism.\n\
+Descriptions say when the skill applies.\n\
+State unusual, impactful instructions once and directly.\n\
+Flag anything noisy, unclear, unsafe, or misplaced. Explain what each proposed change preserves, changes, or removes.\n";
+    const ROLE_BODY: &str = "Before changing a skill, show the psyche the exact diff and get approval. A proposal is not approval.\n\
+Change only the approved diff.\n\
+Generate, verify, and report.\n";
+    const RETIRED_ROLE_LINES: [&str; 7] = [
+        "Keep only unusual guidance that changes agent behavior.",
+        "Keep distinct instructions separate.",
+        "Shorten skills by deleting weak guidance, not by compressing it.",
+        "Make a skill only when the same guidance is needed across repositories.",
+        "Reject operational guidance and repository-specific facts.",
+        "Remove anything repeated, unverified, outdated, or already done without the skill.",
+        "Use headings only when they aid navigation; never repeat the skill name.",
+    ];
 
-    assert_eq!(include_str!("../skills/skill-editor.md"), EXPECTED_SKILL);
-    assert_eq!(include_str!("../roles/skill-editor.md"), EXPECTED_ROLE);
+    assert_eq!(include_str!("../skills/skill-designing.md"), SKILL_BODY);
+    assert_eq!(include_str!("../roles/skill-maintainer.md"), ROLE_BODY);
+    assert!(
+        !Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("skills/skill-editor.md")
+            .exists()
+    );
+    assert!(
+        !Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("roles/skill-editor.md")
+            .exists()
+    );
 
     let fixture = Fixture::new();
     fixture
         .generate_from_repo(GenerationMode::Write)
-        .expect("approved Skill Editor boundary generates");
+        .expect("approved skill-designing and skill-maintainer surfaces generate");
     for path in [
-        ".agents/skills/skill-editor/SKILL.md",
-        ".claude/skills/skill-editor/SKILL.md",
+        ".agents/skills/skill-designing/SKILL.md",
+        ".claude/skills/skill-designing/SKILL.md",
     ] {
         assert_eq!(
             fixture.read_workspace_file(path),
             format!(
-                "---\nname: skill-editor\ndescription: 'Skill editor rules.'\n---\n\n{EXPECTED_SKILL}"
+                "---\nname: skill-designing\ndescription: 'Use when designing a skill.'\n---\n\n{SKILL_BODY}"
             ),
-            "{path} is the exact approved runtime skill"
+            "{path} is the exact active skill-designing surface"
         );
     }
     for path in [
+        ".pi/agents/skill-maintainer.md",
+        ".claude/agents/skill-maintainer.md",
+        ".codex/agents/skill-maintainer.toml",
+    ] {
+        let output = fixture.read_workspace_file(path).replace("\\n", "\n");
+        assert!(output.contains(ROLE_BODY), "{path} receives its role body");
+        assert_eq!(
+            output.matches(SKILL_BODY).count(),
+            1,
+            "{path} composes skill-designing once"
+        );
+        assert!(
+            !output.contains("## Allowed child-role roster"),
+            "{path} is a leaf"
+        );
+        for retired_line in RETIRED_ROLE_LINES {
+            assert!(
+                !output.contains(retired_line),
+                "{path} excludes retired skill-editor role guidance: {retired_line}"
+            );
+        }
+    }
+    for retired_path in [
+        ".agents/skills/skill-editor/SKILL.md",
+        ".claude/skills/skill-editor/SKILL.md",
         ".pi/agents/skill-editor.md",
         ".claude/agents/skill-editor.md",
         ".codex/agents/skill-editor.toml",
     ] {
-        let output = fixture.read_workspace_file(path);
-        let expected = if path.ends_with(".toml") {
-            EXPECTED_ROLE.replace('\n', "\\n")
-        } else {
-            EXPECTED_ROLE.to_owned()
-        };
-        assert!(
-            output.contains(&expected),
-            "{path} receives the exact guidance"
-        );
-        for legacy_operation in [
-            "Get explicit psyche approval before changing skills or roles.",
-            "Edit source guidance, not generated runtime files.",
-            "Generate and verify affected runtime surfaces.",
-            "## edit coordination",
-            "## editing closeout",
-            "## skill source",
-            "## harness placement",
-        ] {
-            assert!(
-                !output.contains(legacy_operation),
-                "{path} excludes legacy Skill Editor operation: {legacy_operation}"
-            );
-        }
+        assert!(!fixture.workspace.path().join(retired_path).exists());
     }
-    assert!(
-        !Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("skills.md")
-            .exists()
-    );
 }
 
 #[test]
-fn management_delegation_prohibits_subagent_polling() {
-    const DIRECTIVE: &str = "Do not poll subagents; use one short wait only when idle.";
+fn management_delegation_never_waits_for_subagents() {
+    const DIRECTIVE: &str = "Never wait for subagents; they report asynchronously.";
+    const RETIRED_DIRECTIVE: &str = "Do not poll subagents; use one short wait only when idle.";
 
     assert!(include_str!("../skills/management.md").contains(DIRECTIVE));
+    assert!(!include_str!("../skills/management.md").contains(RETIRED_DIRECTIVE));
 
     let fixture = Fixture::new();
     fixture
@@ -1035,6 +1063,13 @@ fn management_delegation_prohibits_subagent_polling() {
                 .replace("\\n", "\n")
                 .contains(DIRECTIVE),
             "{path} includes the approved management polling directive"
+        );
+        assert!(
+            !fixture
+                .read_workspace_file(path)
+                .replace("\\n", "\n")
+                .contains(RETIRED_DIRECTIVE),
+            "{path} excludes the retired waiting directive"
         );
     }
 }
@@ -1104,17 +1139,15 @@ fn harness_api_fields_do_not_leak_into_general_management_doctrine() {
         }
     }
     for path in [
-        ".agents/skills/skill-editor/SKILL.md",
-        ".claude/skills/skill-editor/SKILL.md",
-        ".pi/agents/skill-editor.md",
-        ".claude/agents/skill-editor.md",
-        ".codex/agents/skill-editor.toml",
+        ".pi/agents/skill-maintainer.md",
+        ".claude/agents/skill-maintainer.md",
+        ".codex/agents/skill-maintainer.toml",
     ] {
         assert!(
             !fixture
                 .read_workspace_file(path)
                 .contains("Keep shared guidance independent of harness APIs."),
-            "{path} excludes retired Skill Editor harness operations"
+            "{path} excludes retired skill-editor harness operations"
         );
     }
 }
@@ -1542,15 +1575,6 @@ fn nested_role_schema_preserves_child_rosters_without_model_upgrades() {
                     "repository-closeout",
                 ],
             ),
-            (
-                "skill-editor",
-                vec![
-                    "scout",
-                    "general-code-implementer",
-                    "rust-auditor",
-                    "repository-closeout",
-                ],
-            ),
         ])
     );
     for relation in relations.payload() {
@@ -1624,15 +1648,6 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
             "repository-closeout",
         ]
     );
-    assert_eq!(
-        roster(".pi/agents/skill-editor.md"),
-        [
-            "scout",
-            "general-code-implementer",
-            "rust-auditor",
-            "repository-closeout",
-        ]
-    );
     assert!(
         !fixture
             .workspace
@@ -1647,13 +1662,21 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
                 .any(|role| role.starts_with("crucial-greenfield-")),
             "deactivated greenfield roles are absent from {path}"
         );
+        assert!(
+            roster(path).contains(&"skill-maintainer".to_owned()),
+            "{path} lists skill-maintainer as an active Manager child"
+        );
+        assert!(
+            roster(path).contains(&"trivial-task".to_owned()),
+            "{path} lists trivial-task as an active Manager child"
+        );
     }
 
     for role in [
         "generalist",
         "intent-translator",
         "operating-system-implementer",
-        "skill-editor",
+        "skill-maintainer",
         "intent-curator",
     ] {
         assert!(
@@ -1674,7 +1697,8 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
         "operating-system-implementer",
         "rust-auditor",
         "nix-auditor",
-        "skill-editor",
+        "skill-maintainer",
+        "trivial-task",
         "intent-curator",
         "repository-closeout",
         "tracker-weaver",
@@ -1698,6 +1722,43 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
             "{role} has no Claude Fable model"
         );
     }
+    let assignment_source = include_str!("../manifests/role-model-assignments.nota");
+    let trivial_assignment = assignment_source
+        .lines()
+        .find(|line| line.contains("trivial-task"))
+        .expect("trivial-task has exactly one role-model assignment");
+    assert_eq!(
+        trivial_assignment.trim(),
+        "(Profile (trivial-task minimalFastEconomical))"
+    );
+    assert!(!include_str!("../roles/trivial-task.md").contains("gpt-5.6-luna"));
+    assert!(!include_str!("../roles/trivial-task.md").contains("claude-sonnet-5"));
+    for path in [
+        ".pi/agents/trivial-task.md",
+        ".codex/agents/trivial-task.toml",
+        ".claude/agents/trivial-task.md",
+    ] {
+        let output = fixture.read_workspace_file(path);
+        assert!(
+            !output.contains("minimalFastEconomical"),
+            "{path} resolves the semantic profile before rendering"
+        );
+    }
+    assert!(
+        fixture
+            .read_workspace_file(".pi/agents/trivial-task.md")
+            .contains("model: 'openai-codex/gpt-5.6-luna'\nthinking: medium")
+    );
+    assert!(
+        fixture
+            .read_workspace_file(".codex/agents/trivial-task.toml")
+            .contains("model = \"gpt-5.6-luna\"\nmodel_reasoning_effort = \"medium\"")
+    );
+    assert!(
+        fixture
+            .read_workspace_file(".claude/agents/trivial-task.md")
+            .contains("model: claude-sonnet-5\neffort: medium")
+    );
 
     let claude_manager_module = include_str!("../skills/claude-manager-non-fable.md").trim();
     assert!(
@@ -1725,7 +1786,8 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
         ".claude/agents/operating-system-implementer.md",
         ".claude/agents/rust-auditor.md",
         ".claude/agents/nix-auditor.md",
-        ".claude/agents/skill-editor.md",
+        ".claude/agents/skill-maintainer.md",
+        ".claude/agents/trivial-task.md",
         ".claude/agents/intent-curator.md",
         ".claude/agents/repository-closeout.md",
         ".claude/agents/tracker-weaver.md",
@@ -2034,7 +2096,7 @@ fn role_model_assignments_reject_missing_duplicate_stale_and_duplicate_catalog_e
     duplicate.write_role_generation_sources();
     duplicate.write_source_file(
         "manifests/role-model-assignments.nota",
-        "[(worker (gpt-test High) (claude-test High)) (worker (gpt-test High) (claude-test High))]\n",
+        "[(Direct (worker (gpt-test High) (claude-test High))) (Direct (worker (gpt-test High) (claude-test High)))]\n",
     );
     let error = duplicate
         .generate(GenerationMode::Write)
@@ -2048,7 +2110,7 @@ fn role_model_assignments_reject_missing_duplicate_stale_and_duplicate_catalog_e
     stale.write_role_generation_sources();
     stale.write_source_file(
         "manifests/role-model-assignments.nota",
-        "[(worker (gpt-test High) (claude-test High)) (retired-role (gpt-test High) (claude-test High))]\n",
+        "[(Direct (worker (gpt-test High) (claude-test High))) (Direct (retired-role (gpt-test High) (claude-test High)))]\n",
     );
     let error = stale
         .generate(GenerationMode::Write)
@@ -2093,7 +2155,7 @@ fn role_model_assignments_reject_unsupported_effort_and_family_mismatch() {
     unsupported.write_role_generation_sources();
     unsupported.write_source_file(
         "manifests/role-model-assignments.nota",
-        "[(worker (unknown-model High) (claude-test High))]\n",
+        "[(Direct (worker (unknown-model High) (claude-test High)))]\n",
     );
     let error = unsupported
         .generate(GenerationMode::Write)
@@ -2107,7 +2169,7 @@ fn role_model_assignments_reject_unsupported_effort_and_family_mismatch() {
     effort.write_role_generation_sources();
     effort.write_source_file(
         "manifests/role-model-assignments.nota",
-        "[(worker (gpt-test Xhigh) (claude-test High))]\n",
+        "[(Direct (worker (gpt-test Xhigh) (claude-test High)))]\n",
     );
     let error = effort
         .generate(GenerationMode::Write)
@@ -2121,13 +2183,97 @@ fn role_model_assignments_reject_unsupported_effort_and_family_mismatch() {
     family.write_role_generation_sources();
     family.write_source_file(
         "manifests/role-model-assignments.nota",
-        "[(worker (claude-test High) (gpt-test High))]\n",
+        "[(Direct (worker (claude-test High) (gpt-test High)))]\n",
     );
     let error = family
         .generate(GenerationMode::Write)
         .expect_err("family mismatch fails");
     assert!(
         matches!(error, Error::RoleModelFamilyMismatch { .. }),
+        "{error:?}"
+    );
+}
+
+#[test]
+fn named_role_model_profiles_resolve_and_reject_duplicate_unknown_and_stale_profiles() {
+    let resolved = Fixture::new();
+    resolved.write_role_generation_sources();
+    resolved.write_source_file("roles/worker.md", "Worker role.\n");
+    resolved.write_source_file("skills/shared.md", "Shared role module.\n");
+    resolved.write_source_file("skills/feature.md", "Feature role module.\n");
+    resolved.write_source_file(
+        "manifests/role-model-profiles.nota",
+        "[(minimalFastEconomical (gpt-test Medium) (claude-test Medium))]\n",
+    );
+    resolved.write_source_file(
+        "manifests/role-model-assignments.nota",
+        "[(Profile (worker minimalFastEconomical))]\n",
+    );
+    resolved
+        .generate(GenerationMode::Write)
+        .expect("named model profile resolves");
+    assert!(
+        resolved
+            .read_workspace_file(".pi/agents/worker.md")
+            .contains("model: 'openai-codex/gpt-test'\nthinking: medium")
+    );
+    assert!(
+        resolved
+            .read_workspace_file(".claude/agents/worker.md")
+            .contains("model: claude-test\neffort: medium")
+    );
+    for path in [
+        ".pi/agents/worker.md",
+        ".codex/agents/worker.toml",
+        ".claude/agents/worker.md",
+    ] {
+        assert!(
+            !resolved
+                .read_workspace_file(path)
+                .contains("minimalFastEconomical"),
+            "{path} does not expose the source profile name"
+        );
+    }
+
+    let duplicate = Fixture::new();
+    duplicate.write_role_generation_sources();
+    duplicate.write_source_file(
+        "manifests/role-model-profiles.nota",
+        "[(minimalFastEconomical (gpt-test Medium) (claude-test Medium)) (minimalFastEconomical (gpt-test Medium) (claude-test Medium))]\n",
+    );
+    let error = duplicate
+        .generate(GenerationMode::Write)
+        .expect_err("duplicate profile fails");
+    assert!(
+        matches!(error, Error::DuplicateNamedRoleModelProfile { .. }),
+        "{error:?}"
+    );
+
+    let unknown = Fixture::new();
+    unknown.write_role_generation_sources();
+    unknown.write_source_file(
+        "manifests/role-model-assignments.nota",
+        "[(Profile (worker unknownProfile))]\n",
+    );
+    let error = unknown
+        .generate(GenerationMode::Write)
+        .expect_err("unknown profile fails");
+    assert!(
+        matches!(error, Error::UnknownNamedRoleModelProfile { .. }),
+        "{error:?}"
+    );
+
+    let stale = Fixture::new();
+    stale.write_role_generation_sources();
+    stale.write_source_file(
+        "manifests/role-model-profiles.nota",
+        "[(minimalFastEconomical (gpt-test Medium) (claude-test Medium))]\n",
+    );
+    let error = stale
+        .generate(GenerationMode::Write)
+        .expect_err("unreferenced profile fails");
+    assert!(
+        matches!(error, Error::StaleNamedRoleModelProfile { .. }),
         "{error:?}"
     );
 }
@@ -2971,7 +3117,7 @@ impl Fixture {
         );
         self.write_source_file(
             "manifests/role-model-assignments.nota",
-            "[(parent (gpt-5.6-terra High) (claude-opus-4-8 Xhigh)) (child (gpt-5.6-terra High) (claude-opus-4-8 Xhigh))]\n",
+            "[(Direct (parent (gpt-5.6-terra High) (claude-opus-4-8 Xhigh))) (Direct (child (gpt-5.6-terra High) (claude-opus-4-8 Xhigh)))]\n",
         );
         self.write_source_file(
             "manifests/role-optional-skills.nota",
@@ -3004,7 +3150,7 @@ impl Fixture {
         );
         self.write_source_file(
             "manifests/role-model-assignments.nota",
-            "[(parent (gpt-ordinary Medium) (claude-ordinary Medium)) (child (gpt-ordinary Medium) (claude-ordinary Medium))]\n",
+            "[(Direct (parent (gpt-ordinary Medium) (claude-ordinary Medium))) (Direct (child (gpt-ordinary Medium) (claude-ordinary Medium)))]\n",
         );
         self.write_source_file(
             "manifests/role-optional-skills.nota",
@@ -3031,7 +3177,7 @@ impl Fixture {
         );
         let assignments = role_identifiers
             .iter()
-            .map(|role| format!("({role} (gpt-test High) (claude-test High))"))
+            .map(|role| format!("(Direct ({role} (gpt-test High) (claude-test High)))"))
             .collect::<Vec<_>>()
             .join(" ");
         self.write_source_file(
