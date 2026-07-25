@@ -280,12 +280,12 @@ pub enum Error {
     PathEscapesRoot { root: PathBuf, path: PathBuf },
 
     #[error(
-        "generated output is stale: {path}. Update the locked `skills` input, run `nix run github:LiGoldragon/skills#generate-skills -- <workspace-root>`, then rerun `nix run github:LiGoldragon/skills#check-skills -- <workspace-root>`."
+        "generated output is stale: {path}. Update the locked `skills` input, run `nix run .#generate-skills -- <workspace-root>`, then rerun `nix run .#check-skills -- <workspace-root>`."
     )]
     StaleOutput { path: PathBuf },
 
     #[error(
-        "stale generated archived/deleted skill output remains: {path}. Update the locked `skills` input, run `nix run github:LiGoldragon/skills#generate-skills -- <workspace-root>`, then rerun `nix run github:LiGoldragon/skills#check-skills -- <workspace-root>`."
+        "stale generated archived/deleted skill output remains: {path}. Update the locked `skills` input, run `nix run .#generate-skills -- <workspace-root>`, then rerun `nix run .#check-skills -- <workspace-root>`."
     )]
     StaleGeneratedOutput { path: PathBuf },
 
