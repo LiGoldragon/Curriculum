@@ -15,7 +15,7 @@
   VisualizationReport { RoleVisualizations GeneratedOutputVisualizations }
   RoleVisualizations (Vector RoleVisualization)
   RoleVisualization { OutputIdentifier RoleGenerationKind RolePacketCompositions }
-  RoleGenerationKind [RootManager DispatchableNestedRole DispatchableLeafRole]
+  RoleGenerationKind [DispatchableNestedRole DispatchableLeafRole]
   RolePacketCompositions (Vector RolePacketComposition)
   RolePacketComposition { OutputPath OutputSurface Modules DispatchableRoles }
   DispatchableRoles (Vector OutputIdentifier)
@@ -72,7 +72,8 @@
   AllowedLeafRoles (Vector OutputIdentifier)
   ModuleDependencies (Vector ModuleDependency)
   UniversalRoleModules (Vector ModuleIdentifier)
-  ManagerPacketComposition [Full Minimal]
+  SkillModuleCompositions (Vector SkillModuleComposition)
+  SkillModuleComposition { OutputIdentifier IncludedModules }
   ModuleDependency { ModuleIdentifier ModulePath DependencyModules ModuleKind }
   ModuleKind [RuntimeSkill RoleSource RoleComposition]
   DependencyModules (Vector ModuleIdentifier)

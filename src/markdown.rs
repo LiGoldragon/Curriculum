@@ -794,7 +794,7 @@ impl HeadingText {
                 title_count += 1;
             }
             let normalized = HeadingName::new(&heading.text).normalized();
-            if !seen.insert(normalized.clone()) {
+            if !seen.insert((normalized.clone(), heading.level)) {
                 return Err(Error::DuplicateHeading {
                     path: path.to_path_buf(),
                     heading: heading.text.clone(),

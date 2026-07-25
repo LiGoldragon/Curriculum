@@ -178,7 +178,6 @@ pub struct RoleVisualization {
     Eq,
 )]
 pub enum RoleGenerationKind {
-    RootManager,
     DispatchableNestedRole,
     DispatchableLeafRole,
 }
@@ -814,19 +813,18 @@ pub struct UniversalRoleModules(Vec<ModuleIdentifier>);
     feature = "nota-text",
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
-#[derive(
-    rkyv::Archive,
-    rkyv::Serialize,
-    rkyv::Deserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SkillModuleCompositions(Vec<SkillModuleComposition>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
-pub enum ManagerPacketComposition {
-    Full,
-    Minimal,
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SkillModuleComposition {
+    pub output_identifier: OutputIdentifier,
+    pub included_modules: IncludedModules,
 }
 
 #[rustfmt::skip]
@@ -1698,6 +1696,25 @@ impl UniversalRoleModules {
 #[rustfmt::skip]
 impl From<Vec<ModuleIdentifier>> for UniversalRoleModules {
     fn from(payload: Vec<ModuleIdentifier>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl SkillModuleCompositions {
+    pub fn new(payload: Vec<SkillModuleComposition>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<SkillModuleComposition> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<SkillModuleComposition> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<SkillModuleComposition>> for SkillModuleCompositions {
+    fn from(payload: Vec<SkillModuleComposition>) -> Self {
         Self::new(payload)
     }
 }

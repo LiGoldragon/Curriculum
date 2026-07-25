@@ -1,0 +1,4 @@
+;; Ordered modules appended after an active skill's primary module.
+[
+  (psyche-interraction [psyche-interraction-continuation])
+]

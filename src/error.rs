@@ -69,6 +69,12 @@ pub enum Error {
     #[error("role `{role_identifier}` is listed more than once in role model assignments")]
     DuplicateRoleModelAssignment { role_identifier: String },
 
+    #[error("skill `{skill_identifier}` is listed more than once in skill module compositions")]
+    DuplicateSkillModuleComposition { skill_identifier: String },
+
+    #[error("skill module composition names inactive skill `{skill_identifier}`")]
+    StaleSkillModuleComposition { skill_identifier: String },
+
     #[error("model assignment names inactive role `{role_identifier}`")]
     StaleRoleModelAssignment { role_identifier: String },
 
@@ -147,9 +153,6 @@ pub enum Error {
     #[error("nested-role metadata names inactive role `{role_identifier}`")]
     InactiveNestedRole { role_identifier: String },
 
-    #[error("Manager is the root Manager and cannot be a NestedRole")]
-    ManagerCannotBeNestedRole,
-
     #[error("nested role `{role_identifier}` has no allowed leaf role")]
     MissingNestedRoleChild { role_identifier: String },
 
@@ -161,9 +164,6 @@ pub enum Error {
 
     #[error("nested role `{role_identifier}` cannot delegate to itself")]
     NestedRoleSelfEdge { role_identifier: String },
-
-    #[error("nested role `{role_identifier}` cannot name Manager as a child")]
-    ManagerCannotBeNestedChild { role_identifier: String },
 
     #[error("nested role `{role_identifier}` cannot delegate to nested role `{child_identifier}`")]
     NestedRoleChildCannotBeNested {

@@ -2,5 +2,5 @@
 ;; Each record is: base module id, output surface, inserted module ids.
 [
   (general-instructions CodexAgent [codex-skill-loading])
-  (management ClaudeSkill [claude-manager-non-fable])
+  (psyche-interraction ClaudeSkill [psyche-interraction-claude-briefness])
 ]

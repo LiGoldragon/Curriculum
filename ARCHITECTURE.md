@@ -24,8 +24,8 @@ workers do not discover doctrine through a runtime index.
 - `manifests/active-outputs.nota`: active `Skill` and `Role` outputs; presence means active.
 - `manifests/module-dependencies.nota`: module identifier, source path, dependency module identifiers, and explicit source module kind (`RuntimeSkill`, `RoleSource`, or `RoleComposition`).
 - `manifests/target-module-insertions.nota`: target-specific module overlays keyed by base module and output surface.
-- `manifests/universal-role-modules.nota`: the sole `general-instructions` module included in ordinary generated role packets.
-- `manifests/manager-packet-composition.nota`: typed Manager-only packet composition; `Minimal` omits universal doctrine and generated roster prose.
+- `manifests/universal-role-modules.nota`: the `general-instructions` and `tenets` modules included in every generated role packet.
+- `manifests/skill-module-compositions.nota`: typed ordered modules appended to a named active skill after its primary module.
 - `manifests/model-catalog.nota`: canonical Claude and ChatGPT-family model+effort profiles with explicit total-order strengths.
 - `manifests/role-model-profiles.nota`: repository-owned semantic profiles that resolve to target model assignments.
 - `manifests/role-model-assignments.nota`: exactly one direct or named profile assignment per active role.
@@ -62,32 +62,25 @@ Visualization:
 The active source surface is manifest-owned: one active-outputs manifest lists
 generated `Skill` and `Role` outputs, where presence means active; sidecar
 indexes map module identifiers to source paths, dependencies, target overlays,
-and universal role modules. `skills/general-instructions.md` is the sole
-source of universal cross-agent role doctrine; role-, skill-, repository-, and
+and universal role modules. `skills/general-instructions.md` and
+`skills/tenets.md` provide universal cross-agent role doctrine; role-, skill-, repository-, and
 harness-specific instruction stays in its owning source. Role sidecars assign
 validated model profiles and optional skills. Nested-role relations add
-validated target-relative minimum
-models and exclusive leaf-role delegation without changing Manager's root
-identity. The active manifest decides what emits; the module index decides
-expansion order and module kind.
+validated target-relative minimum models and exclusive leaf-role delegation.
+The active manifest decides what emits; the module index decides expansion order
+and module kind.
 
 Assembly is ordered concatenation of source modules after manifest expansion.
-For skills, the active skill's module expands through the dependency index and
-the generated output surface's target insertions. For roles, the role body is
+For skills, the active skill's module expands through the dependency index,
+target-specific insertions, and any typed ordered skill composition. For roles, the role body is
 emitted first, followed by universal role modules, per-role preloaded modules,
 their dependencies, surface-specific insertions, a generated target-relative
-Manager or nested-role roster when applicable, and a generated list of optional
+nested-role roster when applicable, and a generated list of optional
 skills. Optional skill bodies remain outside the packet until loaded. The
 catalog's typed model+effort strength determines the strongest assignment;
 ordinary assignment wins an equal-strength minimum-model tie, and a stronger
 nested minimum prevents downgrade. A generated role packet is the curated runtime
 bundle for normal role work.
-
-The typed Manager-only packet composition may select `Minimal`. This preserves
-Manager harness metadata and structured dispatch enforcement while composing
-only its authored role body and selected manager runtime skill; it omits
-universal doctrine, generated roster prose, and optional-skill prose. It does
-not alter ordinary or nested role assembly.
 
 Module dependencies are typed by module identifier rather than inferred from
 markdown links or filesystem layout. The dependency index also carries source
@@ -97,8 +90,8 @@ generator-only role packet components that may be dependency-expanded into
 roles but cannot be emitted as runtime skills. Target insertions are data, not
 model choice: a base module, output surface, and inserted module list determine
 which overlay appears in a generated harness surface. Universal role modules
-are data, not repeated role prose; the generator includes them in ordinary role
-packets. Generation metadata such as descriptions, tiers, frontmatter, target
+and typed skill compositions are data, not repeated prose; the generator
+includes them in the owning packet or skill. Generation metadata such as descriptions, tiers, frontmatter, target
 surfaces, role output identity, model profiles, and optional skills, nested-role edges, and minimum models live in manifests.
 
 ## Ownership Boundaries

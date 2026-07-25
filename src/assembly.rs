@@ -14,16 +14,17 @@ use crate::{
         ClaudeModelAssignment, DirectRoleModelAssignment, EffortLevel, Frontmatter,
         FrontmatterEntry, FrontmatterKey, FrontmatterValue, GeneratedFile, GeneratedFiles,
         GeneratedOutputVisualization, GeneratedOutputVisualizations, GeneratedRoleOutputs,
-        GenerationMode, GenerationOutcome, GenerationReport, GenerationRequest, LineCount,
-        ManagerPacketComposition, Manifest, ManifestPath, ModelCatalog, ModelCatalogEntry,
-        ModelEffortStrength, ModelIdentifier, ModelStrength, ModuleDependencies, ModuleDependency,
-        ModuleIdentifier, ModuleKind, ModulePath, Modules, NamedRoleModelProfile,
-        NamedRoleModelProfiles, NestedRoleMinimumModel, NestedRoleRelations, Operation,
-        OptionalSkills, OutputIdentifier, OutputKind, OutputPath, OutputSurface,
-        RoleGenerationKind, RoleModelAssignment, RoleModelAssignments, RoleModelProfileIdentifier,
-        RoleOptionalSkills, RolePacketComposition, RolePacketCompositions, RoleTargetSurface,
-        RoleVisualization, RoleVisualizations, TargetModuleInsertion, TargetModuleInsertions,
-        TargetSurface, UniversalRoleModules, VisualizationReport, VisualizationRequest,
+        GenerationMode, GenerationOutcome, GenerationReport, GenerationRequest, IncludedModules,
+        LineCount, Manifest, ManifestPath, ModelCatalog, ModelCatalogEntry, ModelEffortStrength,
+        ModelIdentifier, ModelStrength, ModuleDependencies, ModuleDependency, ModuleIdentifier,
+        ModuleKind, ModulePath, Modules, NamedRoleModelProfile, NamedRoleModelProfiles,
+        NestedRoleMinimumModel, NestedRoleRelations, Operation, OptionalSkills, OutputIdentifier,
+        OutputKind, OutputPath, OutputSurface, RoleGenerationKind, RoleModelAssignment,
+        RoleModelAssignments, RoleModelProfileIdentifier, RoleOptionalSkills,
+        RolePacketComposition, RolePacketCompositions, RoleTargetSurface, RoleVisualization,
+        RoleVisualizations, SkillModuleComposition, SkillModuleCompositions, TargetModuleInsertion,
+        TargetModuleInsertions, TargetSurface, UniversalRoleModules, VisualizationReport,
+        VisualizationRequest,
     },
     trunk_guard::TrunkDescendantGuard,
     workspace_path::WorkspacePath,
@@ -263,12 +264,12 @@ impl GenerationSource {
             SourceFile::new(self.source_root.clone(), universal_role_modules_path)
                 .read_optional()?
                 .unwrap_or_else(|| UniversalRoleModules::new(Vec::new()));
-        let manager_packet_composition_path =
-            manifest_directory.join("manager-packet-composition.nota");
-        let manager_packet_composition: ManagerPacketComposition =
-            SourceFile::new(self.source_root.clone(), manager_packet_composition_path)
+        let skill_module_compositions_path =
+            manifest_directory.join("skill-module-compositions.nota");
+        let skill_module_compositions: SkillModuleCompositions =
+            SourceFile::new(self.source_root.clone(), skill_module_compositions_path)
                 .read_optional()?
-                .unwrap_or(ManagerPacketComposition::Full);
+                .unwrap_or_else(|| SkillModuleCompositions::new(Vec::new()));
         let model_catalog_path = manifest_directory.join("model-catalog.nota");
         let model_catalog: ModelCatalog =
             SourceFile::new(self.source_root.clone(), model_catalog_path)
@@ -299,7 +300,7 @@ impl GenerationSource {
             module_dependencies,
             target_module_insertions,
             universal_role_modules,
-            manager_packet_composition,
+            skill_module_compositions,
             RoleMetadataSources {
                 model_catalog,
                 role_model_assignments,
@@ -489,6 +490,55 @@ impl RoleMetadataIndex {
 
     fn nested_role(&self, role_identifier: &OutputIdentifier) -> Option<&NestedRoleMetadata> {
         self.nested_roles.entries.get(role_identifier)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct SkillModuleCompositionIndex {
+    entries: BTreeMap<OutputIdentifier, IncludedModules>,
+}
+
+impl SkillModuleCompositionIndex {
+    fn new(
+        skill_module_compositions: SkillModuleCompositions,
+        active_outputs: &ActiveOutputs,
+    ) -> Result<Self> {
+        let active_skills: BTreeSet<OutputIdentifier> = active_outputs
+            .payload()
+            .iter()
+            .filter_map(|output| match output {
+                ActiveOutput::Skill(skill) => Some(skill.output_identifier.clone()),
+                ActiveOutput::Role(_) => None,
+            })
+            .collect();
+        let mut entries = BTreeMap::new();
+        for SkillModuleComposition {
+            output_identifier,
+            included_modules,
+        } in skill_module_compositions.into_payload()
+        {
+            if !active_skills.contains(&output_identifier) {
+                return Err(Error::StaleSkillModuleComposition {
+                    skill_identifier: output_identifier.into_payload(),
+                });
+            }
+            if entries
+                .insert(output_identifier.clone(), included_modules)
+                .is_some()
+            {
+                return Err(Error::DuplicateSkillModuleComposition {
+                    skill_identifier: output_identifier.into_payload(),
+                });
+            }
+        }
+        Ok(Self { entries })
+    }
+
+    fn included_modules(&self, skill_identifier: &OutputIdentifier) -> Vec<ModuleIdentifier> {
+        self.entries
+            .get(skill_identifier)
+            .map(|composition| composition.payload().clone())
+            .unwrap_or_default()
     }
 }
 
@@ -835,10 +885,6 @@ impl NestedRoleIndex {
                     .ok_or_else(|| Error::InactiveNestedRole {
                         role_identifier: role_identifier.as_ref().to_owned(),
                     })?;
-            if role_identifier.as_ref() == "manager" {
-                return Err(Error::ManagerCannotBeNestedRole);
-            }
-
             let mut minimum_models = Vec::new();
             for minimum in relation.nested_role_minimum_models.into_payload() {
                 let surface = minimum.role_target_surface;
@@ -888,11 +934,6 @@ impl NestedRoleIndex {
                 }
                 if child_identifier == &role_identifier {
                     return Err(Error::NestedRoleSelfEdge {
-                        role_identifier: role_identifier.as_ref().to_owned(),
-                    });
-                }
-                if child_identifier.as_ref() == "manager" {
-                    return Err(Error::ManagerCannotBeNestedChild {
                         role_identifier: role_identifier.as_ref().to_owned(),
                     });
                 }
@@ -1145,7 +1186,7 @@ struct GenerationConfiguration {
     module_dependencies: ModuleDependencies,
     target_module_insertions: TargetModuleInsertions,
     universal_role_modules: UniversalRoleModules,
-    manager_packet_composition: ManagerPacketComposition,
+    skill_module_compositions: SkillModuleCompositionIndex,
     role_metadata: RoleMetadataIndex,
 }
 
@@ -1155,9 +1196,11 @@ impl GenerationConfiguration {
         module_dependencies: ModuleDependencies,
         target_module_insertions: TargetModuleInsertions,
         universal_role_modules: UniversalRoleModules,
-        manager_packet_composition: ManagerPacketComposition,
+        skill_module_compositions: SkillModuleCompositions,
         role_metadata_sources: RoleMetadataSources,
     ) -> Result<Self> {
+        let skill_module_compositions =
+            SkillModuleCompositionIndex::new(skill_module_compositions, &active_outputs)?;
         let role_metadata = RoleMetadataIndex::new(
             &active_outputs,
             role_metadata_sources.model_catalog,
@@ -1171,7 +1214,7 @@ impl GenerationConfiguration {
             module_dependencies,
             target_module_insertions,
             universal_role_modules,
-            manager_packet_composition,
+            skill_module_compositions,
             role_metadata,
         })
     }
@@ -1205,7 +1248,9 @@ impl GenerationConfiguration {
         )?;
         let mut manifests = Vec::new();
         for skill in self.active_skills() {
-            for manifest in skill.first_class_manifests(&module_index)? {
+            for manifest in
+                skill.first_class_manifests(&module_index, &self.skill_module_compositions)?
+            {
                 manifests.push(manifest);
             }
         }
@@ -1217,17 +1262,14 @@ impl GenerationConfiguration {
             self.module_dependencies.clone(),
             self.target_module_insertions.clone(),
         )?;
-        let active_roles = self.active_roles();
         let mut manifests = Vec::new();
-        for role in &active_roles {
+        for role in &self.active_roles() {
             let metadata = self.role_metadata.metadata(&role.output_identifier)?;
             for manifest in role.manifests(
                 &module_index,
                 &self.universal_role_modules,
-                &self.manager_packet_composition,
                 metadata,
                 self.role_metadata.nested_role(&role.output_identifier),
-                &active_roles,
             )? {
                 manifests.push(manifest);
             }
@@ -1235,24 +1277,8 @@ impl GenerationConfiguration {
         Ok(manifests)
     }
 
-    fn allowed_child_roles(
-        &self,
-        role_identifier: &OutputIdentifier,
-        output_surface: OutputSurface,
-    ) -> Vec<ActiveRole> {
+    fn allowed_child_roles(&self, role_identifier: &OutputIdentifier) -> Vec<ActiveRole> {
         let active_roles = self.active_roles();
-        if role_identifier.as_ref() == "manager" {
-            return active_roles
-                .into_iter()
-                .filter(|role| {
-                    role.output_identifier.as_ref() != "manager"
-                        && role
-                            .role_target_surfaces
-                            .payload()
-                            .contains(&output_surface.role_target_surface())
-                })
-                .collect();
-        }
         let Some(nested_role) = self.role_metadata.nested_role(role_identifier) else {
             return Vec::new();
         };
@@ -1270,17 +1296,12 @@ impl GenerationConfiguration {
 
     fn generated_role_roster(&self, manifest: &Manifest) -> Option<String> {
         let role_identifier = manifest.role_identifier();
-        if role_identifier.as_ref() == "manager"
-            && self.manager_packet_composition == ManagerPacketComposition::Minimal
-        {
-            return None;
-        }
         let nested = self.role_metadata.nested_role(&role_identifier).is_some();
-        if role_identifier.as_ref() != "manager" && !nested {
+        if !nested {
             return None;
         }
         let entries = self
-            .allowed_child_roles(&role_identifier, manifest.output_surface)
+            .allowed_child_roles(&role_identifier)
             .into_iter()
             .map(|role| {
                 format!(
@@ -1291,15 +1312,9 @@ impl GenerationConfiguration {
             })
             .collect::<Vec<_>>()
             .join("\n");
-        if role_identifier.as_ref() == "manager" {
-            Some(format!(
-                "# Module - generated Manager roster\n\n## Manager dispatch roster\n\nThe root Manager may dispatch these target-available roles directly. Use `generalist` when no specialist fits.\n\n{entries}\n"
-            ))
-        } else {
-            Some(format!(
-                "# Module - generated nested role roster\n\n## Allowed child-role roster\n\nThis NestedRole may dispatch only these leaf roles on this target.\n\n{entries}\n"
-            ))
-        }
+        Some(format!(
+            "# Module - generated nested role roster\n\n## Allowed child-role roster\n\nThis NestedRole may dispatch only these leaf roles on this target.\n\n{entries}\n"
+        ))
     }
 
     fn role_visualizations(&self) -> Result<Vec<RoleVisualization>> {
@@ -1316,14 +1331,12 @@ impl GenerationConfiguration {
             for manifest in role.manifests(
                 &module_index,
                 &self.universal_role_modules,
-                &self.manager_packet_composition,
                 metadata,
                 nested_role,
-                &active_roles,
             )? {
                 let output_surface = manifest.output_surface;
                 let mut dispatchable_roles = self
-                    .allowed_child_roles(&role.output_identifier, output_surface)
+                    .allowed_child_roles(&role.output_identifier)
                     .into_iter()
                     .map(|child| child.output_identifier)
                     .collect::<Vec<_>>();
@@ -1341,9 +1354,7 @@ impl GenerationConfiguration {
                 .sort_by(|left, right| left.output_path.as_ref().cmp(right.output_path.as_ref()));
             visualizations.push(RoleVisualization {
                 output_identifier: role.output_identifier.clone(),
-                role_generation_kind: if role.output_identifier.as_ref() == "manager" {
-                    RoleGenerationKind::RootManager
-                } else if nested_role.is_some() {
+                role_generation_kind: if nested_role.is_some() {
                     RoleGenerationKind::DispatchableNestedRole
                 } else {
                     RoleGenerationKind::DispatchableLeafRole
@@ -1477,12 +1488,19 @@ impl OutputPathIndex {
 }
 
 impl ActiveSkill {
-    fn first_class_manifests(&self, module_index: &ModuleIndex) -> Result<Vec<Manifest>> {
+    fn first_class_manifests(
+        &self,
+        module_index: &ModuleIndex,
+        skill_module_compositions: &SkillModuleCompositionIndex,
+    ) -> Result<Vec<Manifest>> {
+        let mut module_identifiers = vec![self.module_identifier.clone()];
+        module_identifiers
+            .extend(skill_module_compositions.included_modules(&self.output_identifier));
         let mut manifests = Vec::new();
         for surface in self.target_surfaces.payload() {
             let output_surface = OutputSurface::from(surface);
             let modules = Modules::new(module_index.expanded_paths(
-                std::slice::from_ref(&self.module_identifier),
+                &module_identifiers,
                 ModuleUse::SkillContent,
                 output_surface,
             )?);
@@ -1519,10 +1537,8 @@ impl ActiveRole {
         &self,
         module_index: &ModuleIndex,
         universal_role_modules: &UniversalRoleModules,
-        manager_packet_composition: &ManagerPacketComposition,
         metadata: &RoleMetadata,
         nested_role: Option<&NestedRoleMetadata>,
-        active_roles: &[ActiveRole],
     ) -> Result<Vec<Manifest>> {
         let mut manifests = Vec::new();
         for surface in self.role_target_surfaces.payload() {
@@ -1531,8 +1547,7 @@ impl ActiveRole {
                 metadata.profile.target(output_surface),
                 nested_role.and_then(|nested| nested.minimum_model(output_surface)),
             );
-            let allowed_child_role_identifiers =
-                self.allowed_child_role_identifiers(output_surface, nested_role, active_roles);
+            let allowed_child_role_identifiers = self.allowed_child_role_identifiers(nested_role);
             manifests.push(Manifest {
                 output_path: OutputPath::new(
                     output_surface.role_path(self.output_identifier.as_ref()),
@@ -1550,7 +1565,6 @@ impl ActiveRole {
                 modules: Modules::new(self.assembled_modules(
                     module_index,
                     universal_role_modules,
-                    manager_packet_composition,
                     output_surface,
                 )?),
             });
@@ -1560,23 +1574,8 @@ impl ActiveRole {
 
     fn allowed_child_role_identifiers(
         &self,
-        output_surface: OutputSurface,
         nested_role: Option<&NestedRoleMetadata>,
-        active_roles: &[ActiveRole],
     ) -> Vec<OutputIdentifier> {
-        if self.output_identifier.as_ref() == "manager" {
-            return active_roles
-                .iter()
-                .filter(|role| {
-                    role.output_identifier.as_ref() != "manager"
-                        && role
-                            .role_target_surfaces
-                            .payload()
-                            .contains(&output_surface.role_target_surface())
-                })
-                .map(|role| role.output_identifier.clone())
-                .collect();
-        }
         nested_role
             .map(|nested| nested.allowed_leaf_roles.clone())
             .unwrap_or_default()
@@ -1586,18 +1585,13 @@ impl ActiveRole {
         &self,
         module_index: &ModuleIndex,
         universal_role_modules: &UniversalRoleModules,
-        manager_packet_composition: &ManagerPacketComposition,
         output_surface: OutputSurface,
     ) -> Result<Vec<ModulePath>> {
         let mut expansion =
             ModuleExpansion::new(module_index, ModuleUse::RoleContent, output_surface);
         expansion.append_role_source(&self.module_identifier)?;
-        if !(self.output_identifier.as_ref() == "manager"
-            && *manager_packet_composition == ManagerPacketComposition::Minimal)
-        {
-            for module_identifier in universal_role_modules.payload() {
-                expansion.append(module_identifier)?;
-            }
+        for module_identifier in universal_role_modules.payload() {
+            expansion.append(module_identifier)?;
         }
         for module_identifier in self.included_modules.payload() {
             expansion.append(module_identifier)?;
@@ -1656,15 +1650,11 @@ impl ActiveRole {
                 });
                 entries.push(FrontmatterEntry {
                     frontmatter_key: FrontmatterKey::new("projectRoleDispatchKind"),
-                    frontmatter_value: FrontmatterValue::new(
-                        if self.output_identifier.as_ref() == "manager" {
-                            "manager"
-                        } else if is_nested_role {
-                            "nested"
-                        } else {
-                            "leaf"
-                        },
-                    ),
+                    frontmatter_value: FrontmatterValue::new(if is_nested_role {
+                        "nested"
+                    } else {
+                        "leaf"
+                    }),
                 });
                 if is_nested_role {
                     entries.push(FrontmatterEntry {

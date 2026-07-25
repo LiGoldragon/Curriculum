@@ -8,10 +8,10 @@ use nota::NotaSource;
 use skills::{
     Error,
     schema::assembly::{
-        ActiveOutputs, EffortLevel, GenerationMode, GenerationRequest, ManagerPacketComposition,
-        ManifestPath, ModelCatalog, ModuleDependencies, ModuleKind, NamedRoleModelProfiles,
-        NestedRoleRelations, RoleGenerationKind, RoleModelAssignments, RoleOptionalSkills,
-        RoleTargetSurface, SourceRoot, TargetModuleInsertions, UniversalRoleModules,
+        ActiveOutputs, EffortLevel, GenerationMode, GenerationRequest, ManifestPath, ModelCatalog,
+        ModuleDependencies, ModuleKind, NamedRoleModelProfiles, NestedRoleRelations,
+        RoleGenerationKind, RoleModelAssignments, RoleOptionalSkills, RoleTargetSurface,
+        SkillModuleCompositions, SourceRoot, TargetModuleInsertions, UniversalRoleModules,
         VisualizationRequest, WorkspaceRoot,
     },
     trunk_guard::{TrunkDescendantGuard, TrunkDivergence},
@@ -59,10 +59,7 @@ fn project_role_contract(packet: &str, runtime_role_name: &str) -> ParsedProject
     let dispatch_kind = frontmatter
         .get("projectRoleDispatchKind")
         .expect("projectRoleDispatchKind exists");
-    assert!(matches!(
-        dispatch_kind.as_str(),
-        "manager" | "nested" | "leaf"
-    ));
+    assert!(matches!(dispatch_kind.as_str(), "nested" | "leaf"));
     let allowed_child_role_names = frontmatter
         .get("allowedChildRoleNames")
         .map(|value| {
@@ -253,6 +250,36 @@ fn generation_rejects_nested_legacy_module_source_paths() {
 }
 
 #[test]
+fn skill_module_compositions_reject_inactive_and_duplicate_skill_entries() {
+    let inactive = Fixture::new();
+    inactive.write_default_manifest();
+    inactive.write_source_file("skills/example.md", "# Skill — example\n\nExample.\n");
+    inactive.write_source_file(
+        "manifests/skill-module-compositions.nota",
+        "[(missing [])]\n",
+    );
+    let error = inactive
+        .generate(GenerationMode::Write)
+        .expect_err("inactive skill composition rejects generation");
+    assert!(matches!(error, Error::StaleSkillModuleComposition { .. }));
+
+    let duplicate = Fixture::new();
+    duplicate.write_default_manifest();
+    duplicate.write_source_file("skills/example.md", "# Skill — example\n\nExample.\n");
+    duplicate.write_source_file(
+        "manifests/skill-module-compositions.nota",
+        "[(example []) (example [])]\n",
+    );
+    let error = duplicate
+        .generate(GenerationMode::Write)
+        .expect_err("duplicate skill composition rejects generation");
+    assert!(matches!(
+        error,
+        Error::DuplicateSkillModuleComposition { .. }
+    ));
+}
+
+#[test]
 fn generation_fails_on_duplicate_headings() {
     let fixture = Fixture::new();
     fixture.write_default_manifest();
@@ -285,10 +312,10 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         NotaSource::new(include_str!("../manifests/universal-role-modules.nota"))
             .parse::<UniversalRoleModules>()
             .expect("universal role module manifest parses");
-    let manager_packet_composition =
-        NotaSource::new(include_str!("../manifests/manager-packet-composition.nota"))
-            .parse::<ManagerPacketComposition>()
-            .expect("Manager packet composition manifest parses");
+    let skill_module_compositions =
+        NotaSource::new(include_str!("../manifests/skill-module-compositions.nota"))
+            .parse::<SkillModuleCompositions>()
+            .expect("skill module composition manifest parses");
     let model_catalog = NotaSource::new(include_str!("../manifests/model-catalog.nota"))
         .parse::<ModelCatalog>()
         .expect("model catalog parses");
@@ -322,8 +349,8 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         .filter(|output| matches!(output, skills::schema::assembly::ActiveOutput::Role(_)))
         .count();
 
-    assert_eq!(skill_count, 64);
-    assert_eq!(role_count, 15);
+    assert_eq!(skill_count, 65);
+    assert_eq!(role_count, 14);
     assert_eq!(model_catalog.payload().len(), 6);
     assert_eq!(named_role_model_profiles.payload().len(), 1);
     assert_eq!(nested_role_relations.payload().len(), 2);
@@ -373,7 +400,8 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         "pi-extension-updates",
         "nota-shape-checklist",
         "management",
-        "manager",
+        "psyche-interraction",
+        "tenets",
         "documentation-placement",
         "skill-designing",
     ] {
@@ -454,6 +482,15 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
             }
         }
     }
+    for composition in skill_module_compositions.payload() {
+        reachable_modules.extend(
+            composition
+                .included_modules
+                .payload()
+                .iter()
+                .map(|module| module.as_ref()),
+        );
+    }
     loop {
         let previous_count = reachable_modules.len();
         for dependency in module_dependencies.payload() {
@@ -484,7 +521,7 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
     }
     assert_eq!(
         dependency_modules, reachable_modules,
-        "module index retains only active sources reachable from outputs, role composition, and target insertions"
+        "module index retains only active sources reachable from outputs, skill and role composition, and target insertions"
     );
     let role_composition_modules = [
         "general-instructions",
@@ -515,9 +552,9 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         "spirit-query remains a first-class read-only skill"
     );
     assert_eq!(
-        module_kinds.get("claude-manager-non-fable"),
+        module_kinds.get("psyche-interraction-claude-briefness"),
         Some(&ModuleKind::RuntimeSkill),
-        "Claude-only management overlay can emit to the Claude skill surface"
+        "Claude-only psyche interaction overlay can emit to the Claude skill surface"
     );
     assert!(
         !dependency_modules.contains("human-interaction"),
@@ -549,7 +586,39 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
             .iter()
             .map(|module| module.as_ref())
             .collect::<Vec<_>>(),
-        Vec::<&str>::new()
+        ["tenets"]
+    );
+    let psyche_interraction_dependency = module_dependencies
+        .payload()
+        .iter()
+        .find(|dependency| dependency.module_identifier.as_ref() == "psyche-interraction")
+        .expect("psyche-interraction dependency indexed");
+    assert_eq!(
+        psyche_interraction_dependency
+            .dependency_modules
+            .payload()
+            .iter()
+            .map(|module| module.as_ref())
+            .collect::<Vec<_>>(),
+        ["tenets"]
+    );
+    assert_eq!(skill_module_compositions.payload().len(), 1);
+    let psyche_interraction_composition = skill_module_compositions
+        .payload()
+        .first()
+        .expect("psyche interaction composition exists");
+    assert_eq!(
+        psyche_interraction_composition.output_identifier.as_ref(),
+        "psyche-interraction"
+    );
+    assert_eq!(
+        psyche_interraction_composition
+            .included_modules
+            .payload()
+            .iter()
+            .map(|module| module.as_ref())
+            .collect::<Vec<_>>(),
+        ["psyche-interraction-continuation"]
     );
     for nota_module in ["nota-design", "nota-schema-design", "nota-literacy"] {
         let dependency = module_dependencies
@@ -596,9 +665,9 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
                 vec!["codex-skill-loading"]
             ),
             (
-                "management",
+                "psyche-interraction",
                 skills::schema::assembly::OutputSurface::ClaudeSkill,
-                vec!["claude-manager-non-fable"]
+                vec!["psyche-interraction-claude-briefness"]
             ),
         ]
     );
@@ -608,11 +677,7 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
             .iter()
             .map(|module| module.as_ref())
             .collect::<Vec<_>>(),
-        ["general-instructions"]
-    );
-    assert_eq!(
-        manager_packet_composition,
-        ManagerPacketComposition::Minimal
+        ["general-instructions", "tenets"]
     );
 
     let active_roles: BTreeMap<&str, _> = active_outputs
@@ -626,7 +691,6 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         })
         .collect();
     let expected_roles: &[(&str, &str, &[&str])] = &[
-        ("manager", "role-manager", &["manager"]),
         (
             "generalist",
             "role-generalist",
@@ -785,8 +849,12 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
 
 #[test]
 fn human_interaction_and_context_maintenance_are_removed_while_handover_and_deep_remain() {
-    const HANDOVER: &str = "A handover contains only the goal, psyche vision, verified facts, and references.\n\
-Do not tell the next session what to conclude or how to proceed.\n";
+    const HANDOVER: &str = "Write the handover in the response.\n\
+## Psyche vision\n\
+Psyche vision is the psyche's aims, values, priorities, and desired outcome for the work.\n\
+Preserve every non-repetitive, load-bearing psyche statement in recognizable language and full resolution.\n\
+## References\n\
+Include only the references needed to resume the thread.\n";
 
     let manifest_text = include_str!("../manifests/active-outputs.nota");
     let index_text = include_str!("../manifests/module-dependencies.nota");
@@ -823,7 +891,7 @@ Do not tell the next session what to conclude or how to proceed.\n";
             .iter()
             .map(|module| module.as_ref())
             .collect::<Vec<_>>(),
-        Vec::<&str>::new()
+        ["tenets"]
     );
     assert!(manifest_text.contains("(Skill (context-handover context-handover Meta Mechanism"));
     assert!(
@@ -890,7 +958,7 @@ Do not tell the next session what to conclude or how to proceed.\n";
         assert_eq!(
             fixture.read_workspace_file(path),
             format!(
-                "---\nname: context-handover\ndescription: 'Context handover rules.'\n---\n\n{HANDOVER}"
+                "---\nname: context-handover\ndescription: 'Use when carrying the psyche''s vision into another session.'\n---\n\n{HANDOVER}"
             ),
             "{path} is the approved exact handover guidance"
         );
@@ -1020,104 +1088,29 @@ Generate, verify, and report.\n";
 }
 
 #[test]
-fn manager_packet_wipe_is_minimal_and_keeps_harness_dispatch_metadata() {
-    const ROLE_BODY: &str = "Manage delegated work for the parent.\n";
-    const SKILL_BODY: &str = "Delegate assigned work to child workers.\n\
+fn manager_surfaces_are_retired_while_historical_modules_remain_inactive() {
+    const MANAGEMENT: &str = "Delegate assigned work to child workers.\n\
 Poll until they finish.\n\
 Keep observations, hypotheses, and unknowns distinct.\n\
-Return unresolved authority, safety, privacy, or scope to the parent.\n\
-Return a concise synthesis to the parent.\n";
-    const RETIRED_TEXT: [&str; 12] = [
-        "Align with the psyche’s vision.",
-        "Management may only coordinate subagents and directly read relevant skill or role files; it never performs other tool actions or writes files.",
-        "Delegate investigation and operations.",
-        "Keep requested rules, mechanisms, and architecture as matter.",
-        "Require explicit psyche approval before a host reboot.",
-        "Send direct known work to one specialist.",
-        "Keep management available while workers run.",
-        "State whether a psyche response accepts, rejects, leaves open, or only leans toward a proposal.",
-        "Answer the psyche's question before commentary.",
-        "Give a full synthesis after relevant workers return.",
-        "Claim future behavior only after its durable guard and verification exist.",
-        "Use expected type and position to interpret every value.",
-    ];
+Return unresolved authority, safety, privacy, or scope to the caller.\n\
+Return a concise synthesis to the caller.\n";
+    const TENETS: &str = "## Central\nNever pretend to know what you don't know; admit you don't know.\n## Evidence\nKeep observations, hypotheses, and unknowns separate.\nKeep unknown causes unknown.\nSeek disconfirming evidence.\nDo not seed audits with suspected conclusions.\nWeigh evidence by origin, not repetition.\n";
 
-    assert_eq!(include_str!("../roles/manager.md"), ROLE_BODY);
-    assert_eq!(include_str!("../skills/manager.md"), SKILL_BODY);
-    assert_eq!(
-        NotaSource::new(include_str!("../manifests/manager-packet-composition.nota"))
-            .parse::<ManagerPacketComposition>()
-            .expect("Manager packet composition parses"),
-        ManagerPacketComposition::Minimal
-    );
-
-    let fixture = Fixture::new();
-    fixture
-        .generate_from_repo(GenerationMode::Write)
-        .expect("minimal Manager outputs generate");
-
+    assert_eq!(include_str!("../skills/management.md"), MANAGEMENT);
+    assert_eq!(include_str!("../skills/tenets.md"), TENETS);
     for path in [
-        ".agents/skills/manager/SKILL.md",
-        ".claude/skills/manager/SKILL.md",
+        "roles/manager.md",
+        "skills/manager.md",
+        "manifests/manager-packet-composition.nota",
     ] {
-        assert_eq!(
-            fixture.read_workspace_file(path),
-            format!(
-                "---\nname: manager\ndescription: 'Use when managing delegated workers for a parent agent.'\n---\n\n{SKILL_BODY}"
-            ),
-            "{path} is the exact manager runtime skill"
+        assert!(
+            !Path::new(env!("CARGO_MANIFEST_DIR")).join(path).exists(),
+            "{path} is retired"
         );
     }
-
-    for path in [
-        ".claude/agents/manager.md",
-        ".codex/agents/manager.toml",
-        ".pi/agents/manager.md",
-    ] {
-        let packet = fixture.read_workspace_file(path).replace("\\n", "\n");
-        assert_eq!(
-            packet.matches(ROLE_BODY).count(),
-            1,
-            "{path} has the role body once"
-        );
-        assert_eq!(
-            packet.matches(SKILL_BODY).count(),
-            1,
-            "{path} has the skill body once"
-        );
-        for line in SKILL_BODY.lines() {
-            assert_eq!(packet.matches(line).count(), 1, "{path} has `{line}` once");
-        }
-        for forbidden in [
-            "psyche",
-            "general instructions",
-            "skill loading",
-            "Manager dispatch roster",
-            "Allowed child-role roster",
-            "optional skills",
-        ] {
-            assert!(!packet.contains(forbidden), "{path} excludes `{forbidden}`");
-        }
-        for retired in RETIRED_TEXT {
-            assert!(
-                !packet.contains(retired),
-                "{path} excludes retired Manager doctrine"
-            );
-        }
-    }
-
-    let claude = fixture.read_workspace_file(".claude/agents/manager.md");
-    assert!(claude.contains("model: claude-opus-4-8\neffort: high"));
-    let codex = fixture.read_workspace_file(".codex/agents/manager.toml");
-    assert!(codex.contains("model = \"gpt-5.6-sol\"\nmodel_reasoning_effort = \"high\""));
-    let pi = fixture.read_workspace_file(".pi/agents/manager.md");
-    assert!(pi.contains("model: 'openai-codex/gpt-5.6-sol'\nthinking: high"));
-    assert!(pi.contains("projectRoleIdentity: manager\nprojectRoleDispatchKind: manager"));
-    assert!(!pi.contains("allowedChildRoleNames:"));
-    assert!(!pi.contains("skills:"));
 
     let index = include_str!("../manifests/module-dependencies.nota");
-    for retired_module in [
+    for historical_module in [
         "manager-boundary",
         "manager-intent-classification",
         "manager-safeguards",
@@ -1130,46 +1123,105 @@ Return a concise synthesis to the parent.\n";
     ] {
         assert!(
             Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join(format!("skills/{retired_module}.md"))
+                .join(format!("skills/{historical_module}.md"))
                 .is_file(),
-            "{retired_module} source remains available"
+            "{historical_module} source remains available"
         );
         assert!(
-            !index.contains(&format!("({retired_module} ")),
-            "{retired_module} no longer composes into active packets"
+            !index.contains(&format!("({historical_module} ")),
+            "{historical_module} remains outside active composition"
         );
     }
-}
-
-#[test]
-fn management_delegation_never_waits_for_subagents() {
-    const DIRECTIVE: &str = "Never wait for subagents; they report asynchronously.";
-    const RETIRED_DIRECTIVE: &str = "Do not poll subagents; use one short wait only when idle.";
-
-    assert!(include_str!("../skills/management.md").contains(DIRECTIVE));
-    assert!(!include_str!("../skills/management.md").contains(RETIRED_DIRECTIVE));
 
     let fixture = Fixture::new();
     fixture
         .generate_from_repo(GenerationMode::Write)
-        .expect("management polling directive generates");
+        .expect("retired Manager source generates the remaining surfaces");
+    for path in [
+        ".agents/skills/manager/SKILL.md",
+        ".claude/skills/manager/SKILL.md",
+        ".claude/agents/manager.md",
+        ".codex/agents/manager.toml",
+        ".pi/agents/manager.md",
+    ] {
+        assert!(
+            !fixture.workspace.path().join(path).exists(),
+            "{path} is absent"
+        );
+    }
     for path in [
         ".agents/skills/management/SKILL.md",
         ".claude/skills/management/SKILL.md",
     ] {
+        let output = fixture.read_workspace_file(path);
         assert!(
-            fixture
-                .read_workspace_file(path)
-                .replace("\\n", "\n")
-                .contains(DIRECTIVE),
-            "{path} includes the approved management polling directive"
+            output.contains("description: 'Use when coordinating delegated work for a caller.'")
         );
+        assert_eq!(output.matches(TENETS).count(), 1, "{path} has tenets once");
+        assert_eq!(
+            output.matches(MANAGEMENT).count(),
+            1,
+            "{path} has management once"
+        );
+    }
+
+    let active_outputs = NotaSource::new(include_str!("../manifests/active-outputs.nota"))
+        .parse::<ActiveOutputs>()
+        .expect("active outputs parse");
+    for role in active_outputs
+        .payload()
+        .iter()
+        .filter_map(|output| match output {
+            skills::schema::assembly::ActiveOutput::Role(role) => Some(role),
+            skills::schema::assembly::ActiveOutput::Skill(_) => None,
+        })
+    {
+        for surface in role.role_target_surfaces.payload() {
+            let path = match surface {
+                RoleTargetSurface::ClaudeAgent => {
+                    format!(".claude/agents/{}.md", role.output_identifier.as_ref())
+                }
+                RoleTargetSurface::CodexAgent => {
+                    format!(".codex/agents/{}.toml", role.output_identifier.as_ref())
+                }
+                RoleTargetSurface::PiAgent => {
+                    format!(".pi/agents/{}.md", role.output_identifier.as_ref())
+                }
+            };
+            let packet = fixture.read_workspace_file(&path).replace("\\n", "\n");
+            assert_eq!(
+                packet
+                    .matches("Never pretend to know what you don't know; admit you don't know.")
+                    .count(),
+                1,
+                "{path} has tenets once"
+            );
+        }
+    }
+}
+
+#[test]
+fn management_is_caller_scoped_and_has_no_psyche_interaction_doctrine() {
+    let management = include_str!("../skills/management.md");
+    for required in [
+        "Delegate assigned work to child workers.",
+        "Poll until they finish.",
+        "Return unresolved authority, safety, privacy, or scope to the caller.",
+        "Return a concise synthesis to the caller.",
+    ] {
         assert!(
-            !fixture
-                .read_workspace_file(path)
-                .replace("\\n", "\n")
-                .contains(RETIRED_DIRECTIVE),
-            "{path} excludes the retired waiting directive"
+            management.contains(required),
+            "management retains `{required}`"
+        );
+    }
+    for excluded in [
+        "Align with the psyche’s vision.",
+        "Ask the psyche *until the vision is clear.*",
+        "Never wait for subagents; they report asynchronously.",
+    ] {
+        assert!(
+            !management.contains(excluded),
+            "management excludes `{excluded}`"
         );
     }
 }
@@ -1227,9 +1279,6 @@ fn harness_api_fields_do_not_leak_into_general_management_doctrine() {
     for path in [
         ".agents/skills/management/SKILL.md",
         ".claude/skills/management/SKILL.md",
-        ".claude/agents/manager.md",
-        ".pi/agents/manager.md",
-        ".codex/agents/manager.toml",
     ] {
         let output = fixture.read_workspace_file(path).replace("\\n", "\n");
         for field in fields {
@@ -1270,48 +1319,57 @@ fn pi_extension_update_protocol_uses_declarative_source_ownership() {
 }
 
 #[test]
-fn management_claude_overlay_is_source_driven_and_target_scoped() {
-    let management = include_str!("../skills/management.md");
-    assert!(!management.trim().is_empty(), "management has directives");
-    let headings: Vec<_> = management
-        .lines()
-        .filter_map(|line| line.strip_prefix("## "))
-        .collect();
+fn psyche_interraction_claude_briefness_is_typed_and_target_scoped() {
+    const CENTRAL: &str = "## Central\nBe very brief unless writing a context handover.\nAlign with the psyche’s vision.\nAsk the psyche *until the vision is clear.*\n";
+    const CLAUDE_BRIEFNESS: &str = "Use the fewest words that preserve the answer.\nDo not repeat context the psyche already knows.\n";
+    assert_eq!(include_str!("../skills/psyche-interraction.md"), CENTRAL);
     assert_eq!(
-        headings,
-        [
-            "Central",
-            "Basic tenets",
-            "Conversation",
-            "Delegation",
-            "Authority",
-            "Delivery",
-        ]
+        include_str!("../skills/psyche-interraction-claude-briefness.md"),
+        CLAUDE_BRIEFNESS
     );
-    assert!(
-        !Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("skills/claude-management.md")
-            .exists()
-    );
-    let claude_overlay = include_str!("../skills/claude-manager-non-fable.md").trim();
+    for interaction_source in [
+        include_str!("../skills/management.md"),
+        include_str!("../skills/psyche-interraction.md"),
+        include_str!("../skills/psyche-interraction-continuation.md"),
+    ] {
+        assert!(!interaction_source.contains("## Basic tenets"));
+        assert!(!interaction_source.contains("## Delegation"));
+    }
 
     let fixture = Fixture::new();
     fixture
         .generate_from_repo(GenerationMode::Write)
-        .expect("management profile generates");
-    let agents = fixture.read_workspace_file(".agents/skills/management/SKILL.md");
-    let claude = fixture.read_workspace_file(".claude/skills/management/SKILL.md");
-    assert!(!agents.contains(claude_overlay));
-    assert!(claude.contains(claude_overlay));
-    for path in [
-        ".claude/agents/manager.md",
-        ".pi/agents/manager.md",
-        ".codex/agents/manager.toml",
-    ] {
-        let packet = fixture.read_workspace_file(path).replace("\\n", "\n");
-        assert!(!packet.contains("@generated"));
-        assert!(!packet.contains(claude_overlay));
+        .expect("psyche interaction profile generates");
+    let agents = fixture.read_workspace_file(".agents/skills/psyche-interraction/SKILL.md");
+    let claude = fixture.read_workspace_file(".claude/skills/psyche-interraction/SKILL.md");
+    assert!(!agents.contains(CLAUDE_BRIEFNESS));
+    assert!(claude.contains(CLAUDE_BRIEFNESS));
+    for output in [&agents, &claude] {
+        assert_eq!(
+            output
+                .matches("Never pretend to know what you don't know; admit you don't know.")
+                .count(),
+            1,
+            "psyche interaction direct loading includes tenets once"
+        );
     }
+    assert!(
+        claude.find(CENTRAL).expect("central emitted")
+            < claude.find(CLAUDE_BRIEFNESS).expect("briefness emitted")
+    );
+    assert!(
+        claude.find(CLAUDE_BRIEFNESS).expect("briefness emitted")
+            < claude
+                .find("## Conversation")
+                .expect("conversation emitted")
+    );
+    assert_eq!(claude.matches(CLAUDE_BRIEFNESS).count(), 1);
+    assert!(!agents.contains("Use the fewest words that preserve the answer."));
+    assert!(
+        !Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("skills/claude-psyche-interraction.md")
+            .exists()
+    );
 }
 
 #[test]
@@ -1326,7 +1384,7 @@ fn generated_recorder_packets_preserve_matter_not_intent_classification() {
         ".claude/agents/intent-recorder.md",
     ] {
         let packet = fixture.read_workspace_file(path).replace("\\n", "\n");
-        assert!(packet.contains("Return matter to Manager; do not submit it."));
+        assert!(packet.contains("Return matter to the caller; do not submit it."));
     }
 }
 
@@ -1426,73 +1484,24 @@ fn generation_rejects_configured_execution_limit_fields_in_agent_packets() {
 }
 
 #[test]
-fn manager_rosters_are_target_relative_and_never_instruct_role_listing() {
-    let fixture = Fixture::new();
-    fixture.write_source_file(
-        "manifests/active-outputs.nota",
-        "[(Role (manager manager [] [Manager root.] [ClaudeAgent CodexAgent PiAgent])) (Role (shared shared [] [Shared role.] [ClaudeAgent CodexAgent PiAgent])) (Role (pi-only pi-only [] [Pi role.] [PiAgent])) (Role (claude-only claude-only [] [Claude role.] [ClaudeAgent])) (Role (codex-only codex-only [] [Codex role.] [CodexAgent]))]\n",
-    );
-    fixture.write_source_file(
-        "manifests/module-dependencies.nota",
-        "[(manager roles/manager.md [] RoleSource) (shared roles/shared.md [] RoleSource) (pi-only roles/pi-only.md [] RoleSource) (claude-only roles/claude-only.md [] RoleSource) (codex-only roles/codex-only.md [] RoleSource)]\n",
-    );
-    for role in ["manager", "shared", "pi-only", "claude-only", "codex-only"] {
-        fixture.write_source_file(
-            &format!("roles/{role}.md"),
-            &format!("# Role - {role}\n\n## Contract\n\nRole body.\n"),
-        );
-    }
-    fixture.write_role_metadata(&["manager", "shared", "pi-only", "claude-only", "codex-only"]);
-
-    fixture
-        .generate(GenerationMode::Write)
-        .expect("generation succeeds");
-
-    let roster = |packet: &str| {
-        packet
-            .replace("\\n", "\n")
-            .lines()
-            .filter_map(|line| line.strip_prefix("- `")?.split('`').next())
-            .map(str::to_owned)
-            .collect::<Vec<_>>()
-    };
-    let pi = fixture.read_workspace_file(".pi/agents/manager.md");
-    let claude = fixture.read_workspace_file(".claude/agents/manager.md");
-    let codex = fixture.read_workspace_file(".codex/agents/manager.toml");
-
-    assert_eq!(roster(&pi), ["shared", "pi-only"]);
-    assert_eq!(roster(&claude), ["shared", "claude-only"]);
-    assert_eq!(roster(&codex), ["shared", "codex-only"]);
-    assert!(pi.contains("projectRoleIdentity: manager"));
-    assert!(pi.contains("projectRoleDispatchKind: manager"));
-    assert!(!pi.contains("allowedChildRoleNames:"));
-    for packet in [&pi, &claude, &codex] {
-        assert!(packet.contains("Manager dispatch roster"));
-        assert!(!packet.contains("`list`"));
-        assert!(!packet.contains("Orchestrator"));
-        assert!(!roster(packet).contains(&"manager".to_owned()));
-    }
-}
-
-#[test]
 fn visualization_reports_role_kinds_composition_and_virtual_output_sizes() {
     let fixture = Fixture::new();
     fixture.write_source_file(
         "manifests/active-outputs.nota",
-        "[(Skill (example example Craft Topic [Example skill.] [AgentsSkill])) (Role (manager manager [] [Manager root.] [PiAgent])) (Role (planner planner [shared] [Planner role.] [PiAgent])) (Role (worker worker [] [Worker role.] [PiAgent]))]\n",
+        "[(Skill (example example Craft Topic [Example skill.] [AgentsSkill])) (Role (planner planner [shared] [Planner role.] [PiAgent])) (Role (worker worker [] [Worker role.] [PiAgent]))]\n",
     );
     fixture.write_source_file(
         "manifests/module-dependencies.nota",
-        "[(example skills/example.md [] RuntimeSkill) (shared skills/shared.md [] RoleComposition) (manager roles/manager.md [] RoleSource) (planner roles/planner.md [] RoleSource) (worker roles/worker.md [] RoleSource)]\n",
+        "[(example skills/example.md [] RuntimeSkill) (shared skills/shared.md [] RoleComposition) (planner roles/planner.md [] RoleSource) (worker roles/worker.md [] RoleSource)]\n",
     );
-    fixture.write_role_metadata(&["manager", "planner", "worker"]);
+    fixture.write_role_metadata(&["planner", "worker"]);
     fixture.write_source_file(
         "manifests/nested-role-relations.nota",
         "[(planner [(PiAgent gpt-test Medium)] [worker])]\n",
     );
     fixture.write_source_file("skills/example.md", "# Skill - example\n\nExample.\n");
     fixture.write_source_file("skills/shared.md", "# Module - shared\n\nShared.\n");
-    for role in ["manager", "planner", "worker"] {
+    for role in ["planner", "worker"] {
         fixture.write_source_file(
             &format!("roles/{role}.md"),
             &format!("# Role - {role}\n\n## Contract\n\nRole body.\n"),
@@ -1501,24 +1510,6 @@ fn visualization_reports_role_kinds_composition_and_virtual_output_sizes() {
 
     let visualization = fixture.visualize().expect("visualization succeeds");
     let roles = visualization.role_visualizations.payload();
-    let manager = roles
-        .iter()
-        .find(|role| role.output_identifier.as_ref() == "manager")
-        .expect("Manager visualization exists");
-    assert_eq!(
-        manager.role_generation_kind,
-        RoleGenerationKind::RootManager
-    );
-    assert_eq!(
-        manager.role_packet_compositions.payload()[0]
-            .dispatchable_roles
-            .payload()
-            .iter()
-            .map(|role| role.as_ref())
-            .collect::<Vec<_>>(),
-        ["planner", "worker"]
-    );
-
     let planner = roles
         .iter()
         .find(|role| role.output_identifier.as_ref() == "planner")
@@ -1700,7 +1691,6 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
         let roster_body = packet
             .split("## Allowed child-role roster")
             .nth(1)
-            .or_else(|| packet.split("## Manager dispatch roster").nth(1))
             .expect("generated roster heading exists");
         roster_body
             .split("## optional skills")
@@ -1733,26 +1723,6 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
             "repository-closeout",
         ]
     );
-    for path in [
-        ".claude/agents/manager.md",
-        ".pi/agents/manager.md",
-        ".codex/agents/manager.toml",
-    ] {
-        let packet = fixture.read_workspace_file(path).replace("\\n", "\n");
-        assert!(
-            !packet.contains("Manager dispatch roster"),
-            "{path} has no prose Manager roster"
-        );
-        assert!(
-            !packet.contains("Allowed child-role roster"),
-            "{path} has no prose child roster"
-        );
-        assert!(
-            !packet.contains("crucial-greenfield-"),
-            "{path} excludes deactivated greenfield roles"
-        );
-    }
-
     for role in [
         "generalist",
         "intent-translator",
@@ -1768,7 +1738,6 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
         );
     }
     let active_roles = [
-        "manager",
         "generalist",
         "intent-recorder",
         "intent-translator",
@@ -1787,16 +1756,6 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
     for role in active_roles {
         let pi = fixture.read_workspace_file(&format!(".pi/agents/{role}.md"));
         let codex = fixture.read_workspace_file(&format!(".codex/agents/{role}.toml"));
-        if role == "manager" {
-            assert!(pi.contains("model: 'openai-codex/gpt-5.6-sol'\nthinking: high"));
-            assert!(codex.contains("model = \"gpt-5.6-sol\""));
-            assert!(
-                fixture
-                    .read_workspace_file(".claude/agents/manager.md")
-                    .contains("model: claude-opus-4-8\neffort: high")
-            );
-            continue;
-        }
         assert!(!pi.contains("gpt-5.6-sol"), "{role} has no Pi Sol model");
         assert!(
             !codex.contains("model = \"gpt-5.6-sol\""),
@@ -1846,19 +1805,15 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
             .contains("model: claude-sonnet-5\neffort: medium")
     );
 
-    let claude_manager_module = include_str!("../skills/claude-manager-non-fable.md").trim();
+    let claude_briefness = include_str!("../skills/psyche-interraction-claude-briefness.md").trim();
     assert!(
         fixture
-            .read_workspace_file(".claude/skills/management/SKILL.md")
-            .contains(claude_manager_module)
+            .read_workspace_file(".claude/skills/psyche-interraction/SKILL.md")
+            .contains(claude_briefness)
     );
     for path in [
         ".agents/skills/management/SKILL.md",
-        ".agents/skills/manager/SKILL.md",
-        ".claude/skills/manager/SKILL.md",
-        ".claude/agents/manager.md",
-        ".pi/agents/manager.md",
-        ".codex/agents/manager.toml",
+        ".agents/skills/psyche-interraction/SKILL.md",
         ".claude/agents/generalist.md",
         ".claude/agents/intent-recorder.md",
         ".claude/agents/intent-translator.md",
@@ -1874,11 +1829,7 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
         ".claude/agents/repository-closeout.md",
         ".claude/agents/tracker-weaver.md",
     ] {
-        assert!(
-            !fixture
-                .read_workspace_file(path)
-                .contains(claude_manager_module)
-        );
+        assert!(!fixture.read_workspace_file(path).contains(claude_briefness));
     }
 }
 
@@ -1890,7 +1841,8 @@ fn general_instructions_compose_once_and_keep_authority_gates() {
     assert!(general.contains("explicit psyche approval"));
     assert!(!general.contains("Clarify, gate, dispatch"));
     assert!(
-        include_str!("../manifests/universal-role-modules.nota").contains("[general-instructions]")
+        include_str!("../manifests/universal-role-modules.nota")
+            .contains("[general-instructions tenets]")
     );
 }
 
@@ -2067,17 +2019,6 @@ fn nested_role_validation_rejects_child_and_recursion_inconsistencies() {
     assert!(matches!(
         nested_edge,
         Error::NestedRoleChildCannotBeNested { .. }
-    ));
-    let manager_nested = nested_relation_error(
-        "[(manager [(ClaudeAgent claude-test Medium) (CodexAgent gpt-test Medium) (PiAgent gpt-test Medium)] [child])]",
-    );
-    assert!(matches!(manager_nested, Error::ManagerCannotBeNestedRole));
-    let manager_child = nested_relation_error(
-        "[(parent [(ClaudeAgent claude-test Medium) (CodexAgent gpt-test Medium) (PiAgent gpt-test Medium)] [manager])]",
-    );
-    assert!(matches!(
-        manager_child,
-        Error::ManagerCannotBeNestedChild { .. }
     ));
 }
 
@@ -3173,13 +3114,13 @@ impl Fixture {
     fn write_nested_validation_sources(&self, relations: &str) {
         self.write_source_file(
             "manifests/active-outputs.nota",
-            "[(Role (manager manager [] [Manager role.] [ClaudeAgent CodexAgent PiAgent])) (Role (parent parent [] [Parent role.] [ClaudeAgent CodexAgent PiAgent])) (Role (nested-two nested-two [] [Nested two.] [ClaudeAgent CodexAgent PiAgent])) (Role (child child [] [Child role.] [ClaudeAgent CodexAgent PiAgent])) (Role (claude-child claude-child [] [Claude child.] [ClaudeAgent]))]\n",
+            "[(Role (parent parent [] [Parent role.] [ClaudeAgent CodexAgent PiAgent])) (Role (nested-two nested-two [] [Nested two.] [ClaudeAgent CodexAgent PiAgent])) (Role (child child [] [Child role.] [ClaudeAgent CodexAgent PiAgent])) (Role (claude-child claude-child [] [Claude child.] [ClaudeAgent]))]\n",
         );
         self.write_source_file(
             "manifests/module-dependencies.nota",
-            "[(manager roles/manager.md [] RoleSource) (parent roles/parent.md [] RoleSource) (nested-two roles/nested-two.md [] RoleSource) (child roles/child.md [] RoleSource) (claude-child roles/claude-child.md [] RoleSource)]\n",
+            "[(parent roles/parent.md [] RoleSource) (nested-two roles/nested-two.md [] RoleSource) (child roles/child.md [] RoleSource) (claude-child roles/claude-child.md [] RoleSource)]\n",
         );
-        self.write_role_metadata(&["manager", "parent", "nested-two", "child", "claude-child"]);
+        self.write_role_metadata(&["parent", "nested-two", "child", "claude-child"]);
         self.write_source_file("manifests/nested-role-relations.nota", relations);
     }
 
