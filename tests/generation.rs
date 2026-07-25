@@ -8,11 +8,11 @@ use nota::NotaSource;
 use skills::{
     Error,
     schema::assembly::{
-        ActiveOutputs, EffortLevel, GenerationMode, GenerationRequest, ManifestPath, ModelCatalog,
-        ModuleDependencies, ModuleKind, NamedRoleModelProfiles, NestedRoleRelations,
-        RoleGenerationKind, RoleModelAssignments, RoleOptionalSkills, RoleTargetSurface,
-        SourceRoot, TargetModuleInsertions, UniversalRoleModules, VisualizationRequest,
-        WorkspaceRoot,
+        ActiveOutputs, EffortLevel, GenerationMode, GenerationRequest, ManagerPacketComposition,
+        ManifestPath, ModelCatalog, ModuleDependencies, ModuleKind, NamedRoleModelProfiles,
+        NestedRoleRelations, RoleGenerationKind, RoleModelAssignments, RoleOptionalSkills,
+        RoleTargetSurface, SourceRoot, TargetModuleInsertions, UniversalRoleModules,
+        VisualizationRequest, WorkspaceRoot,
     },
     trunk_guard::{TrunkDescendantGuard, TrunkDivergence},
 };
@@ -285,6 +285,10 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         NotaSource::new(include_str!("../manifests/universal-role-modules.nota"))
             .parse::<UniversalRoleModules>()
             .expect("universal role module manifest parses");
+    let manager_packet_composition =
+        NotaSource::new(include_str!("../manifests/manager-packet-composition.nota"))
+            .parse::<ManagerPacketComposition>()
+            .expect("Manager packet composition manifest parses");
     let model_catalog = NotaSource::new(include_str!("../manifests/model-catalog.nota"))
         .parse::<ModelCatalog>()
         .expect("model catalog parses");
@@ -318,7 +322,7 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         .filter(|output| matches!(output, skills::schema::assembly::ActiveOutput::Role(_)))
         .count();
 
-    assert_eq!(skill_count, 63);
+    assert_eq!(skill_count, 64);
     assert_eq!(role_count, 15);
     assert_eq!(model_catalog.payload().len(), 6);
     assert_eq!(named_role_model_profiles.payload().len(), 1);
@@ -369,6 +373,7 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         "pi-extension-updates",
         "nota-shape-checklist",
         "management",
+        "manager",
         "documentation-placement",
         "skill-designing",
     ] {
@@ -483,7 +488,6 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
     );
     let role_composition_modules = [
         "general-instructions",
-        "psyche-facing-commitments",
         "codex-skill-loading",
         "edit-coordination-core",
         "editing-closeout",
@@ -497,14 +501,6 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         "rust-discipline",
         "bead-weaver",
         "spirit-submission",
-        "manager-boundary",
-        "manager-intent-classification",
-        "manager-safeguards",
-        "manager-dispatch",
-        "manager-liveness",
-        "manager-decisions",
-        "manager-communication",
-        "manager-synthesis",
     ];
     for module_identifier in role_composition_modules {
         assert_eq!(
@@ -614,6 +610,10 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
             .collect::<Vec<_>>(),
         ["general-instructions"]
     );
+    assert_eq!(
+        manager_packet_composition,
+        ManagerPacketComposition::Minimal
+    );
 
     let active_roles: BTreeMap<&str, _> = active_outputs
         .payload()
@@ -626,23 +626,7 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
         })
         .collect();
     let expected_roles: &[(&str, &str, &[&str])] = &[
-        (
-            "manager",
-            "role-manager",
-            &[
-                "management",
-                "manager-boundary",
-                "manager-intent-classification",
-                "manager-safeguards",
-                "manager-dispatch",
-                "manager-liveness",
-                "manager-decisions",
-                "manager-communication",
-                "manager-synthesis",
-                "psyche-facing-commitments",
-                "protos-syntax",
-            ],
-        ),
+        ("manager", "role-manager", &["manager"]),
         (
             "generalist",
             "role-generalist",
@@ -767,15 +751,11 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
                 .collect::<Vec<_>>(),
             *included_modules
         );
-        let expected_surfaces: &[RoleTargetSurface] = if *output_identifier == "manager" {
-            &[RoleTargetSurface::CodexAgent, RoleTargetSurface::PiAgent]
-        } else {
-            &[
-                RoleTargetSurface::ClaudeAgent,
-                RoleTargetSurface::CodexAgent,
-                RoleTargetSurface::PiAgent,
-            ]
-        };
+        let expected_surfaces: &[RoleTargetSurface] = &[
+            RoleTargetSurface::ClaudeAgent,
+            RoleTargetSurface::CodexAgent,
+            RoleTargetSurface::PiAgent,
+        ];
         assert_eq!(role.role_target_surfaces.payload(), expected_surfaces);
         assert!(dependency_modules.contains(module_identifier));
         assert_eq!(
@@ -1040,6 +1020,128 @@ Generate, verify, and report.\n";
 }
 
 #[test]
+fn manager_packet_wipe_is_minimal_and_keeps_harness_dispatch_metadata() {
+    const ROLE_BODY: &str = "Manage delegated work for the parent.\n";
+    const SKILL_BODY: &str = "Delegate assigned work to child workers.\n\
+Poll until they finish.\n\
+Keep observations, hypotheses, and unknowns distinct.\n\
+Return unresolved authority, safety, privacy, or scope to the parent.\n\
+Return a concise synthesis to the parent.\n";
+    const RETIRED_TEXT: [&str; 12] = [
+        "Align with the psyche’s vision.",
+        "Management may only coordinate subagents and directly read relevant skill or role files; it never performs other tool actions or writes files.",
+        "Delegate investigation and operations.",
+        "Keep requested rules, mechanisms, and architecture as matter.",
+        "Require explicit psyche approval before a host reboot.",
+        "Send direct known work to one specialist.",
+        "Keep management available while workers run.",
+        "State whether a psyche response accepts, rejects, leaves open, or only leans toward a proposal.",
+        "Answer the psyche's question before commentary.",
+        "Give a full synthesis after relevant workers return.",
+        "Claim future behavior only after its durable guard and verification exist.",
+        "Use expected type and position to interpret every value.",
+    ];
+
+    assert_eq!(include_str!("../roles/manager.md"), ROLE_BODY);
+    assert_eq!(include_str!("../skills/manager.md"), SKILL_BODY);
+    assert_eq!(
+        NotaSource::new(include_str!("../manifests/manager-packet-composition.nota"))
+            .parse::<ManagerPacketComposition>()
+            .expect("Manager packet composition parses"),
+        ManagerPacketComposition::Minimal
+    );
+
+    let fixture = Fixture::new();
+    fixture
+        .generate_from_repo(GenerationMode::Write)
+        .expect("minimal Manager outputs generate");
+
+    for path in [
+        ".agents/skills/manager/SKILL.md",
+        ".claude/skills/manager/SKILL.md",
+    ] {
+        assert_eq!(
+            fixture.read_workspace_file(path),
+            format!(
+                "---\nname: manager\ndescription: 'Use when managing delegated workers for a parent agent.'\n---\n\n{SKILL_BODY}"
+            ),
+            "{path} is the exact manager runtime skill"
+        );
+    }
+
+    for path in [
+        ".claude/agents/manager.md",
+        ".codex/agents/manager.toml",
+        ".pi/agents/manager.md",
+    ] {
+        let packet = fixture.read_workspace_file(path).replace("\\n", "\n");
+        assert_eq!(
+            packet.matches(ROLE_BODY).count(),
+            1,
+            "{path} has the role body once"
+        );
+        assert_eq!(
+            packet.matches(SKILL_BODY).count(),
+            1,
+            "{path} has the skill body once"
+        );
+        for line in SKILL_BODY.lines() {
+            assert_eq!(packet.matches(line).count(), 1, "{path} has `{line}` once");
+        }
+        for forbidden in [
+            "psyche",
+            "general instructions",
+            "skill loading",
+            "Manager dispatch roster",
+            "Allowed child-role roster",
+            "optional skills",
+        ] {
+            assert!(!packet.contains(forbidden), "{path} excludes `{forbidden}`");
+        }
+        for retired in RETIRED_TEXT {
+            assert!(
+                !packet.contains(retired),
+                "{path} excludes retired Manager doctrine"
+            );
+        }
+    }
+
+    let claude = fixture.read_workspace_file(".claude/agents/manager.md");
+    assert!(claude.contains("model: claude-opus-4-8\neffort: high"));
+    let codex = fixture.read_workspace_file(".codex/agents/manager.toml");
+    assert!(codex.contains("model = \"gpt-5.6-sol\"\nmodel_reasoning_effort = \"high\""));
+    let pi = fixture.read_workspace_file(".pi/agents/manager.md");
+    assert!(pi.contains("model: 'openai-codex/gpt-5.6-sol'\nthinking: high"));
+    assert!(pi.contains("projectRoleIdentity: manager\nprojectRoleDispatchKind: manager"));
+    assert!(!pi.contains("allowedChildRoleNames:"));
+    assert!(!pi.contains("skills:"));
+
+    let index = include_str!("../manifests/module-dependencies.nota");
+    for retired_module in [
+        "manager-boundary",
+        "manager-intent-classification",
+        "manager-safeguards",
+        "manager-dispatch",
+        "manager-liveness",
+        "manager-decisions",
+        "manager-communication",
+        "manager-synthesis",
+        "psyche-facing-commitments",
+    ] {
+        assert!(
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join(format!("skills/{retired_module}.md"))
+                .is_file(),
+            "{retired_module} source remains available"
+        );
+        assert!(
+            !index.contains(&format!("({retired_module} ")),
+            "{retired_module} no longer composes into active packets"
+        );
+    }
+}
+
+#[test]
 fn management_delegation_never_waits_for_subagents() {
     const DIRECTIVE: &str = "Never wait for subagents; they report asynchronously.";
     const RETIRED_DIRECTIVE: &str = "Do not poll subagents; use one short wait only when idle.";
@@ -1054,8 +1156,6 @@ fn management_delegation_never_waits_for_subagents() {
     for path in [
         ".agents/skills/management/SKILL.md",
         ".claude/skills/management/SKILL.md",
-        ".pi/agents/manager.md",
-        ".codex/agents/manager.toml",
     ] {
         assert!(
             fixture
@@ -1127,6 +1227,7 @@ fn harness_api_fields_do_not_leak_into_general_management_doctrine() {
     for path in [
         ".agents/skills/management/SKILL.md",
         ".claude/skills/management/SKILL.md",
+        ".claude/agents/manager.md",
         ".pi/agents/manager.md",
         ".codex/agents/manager.toml",
     ] {
@@ -1202,46 +1303,30 @@ fn management_claude_overlay_is_source_driven_and_target_scoped() {
     let claude = fixture.read_workspace_file(".claude/skills/management/SKILL.md");
     assert!(!agents.contains(claude_overlay));
     assert!(claude.contains(claude_overlay));
-    assert!(
-        !fixture
-            .workspace
-            .path()
-            .join(".claude/agents/manager.md")
-            .exists()
-    );
-    for path in [".pi/agents/manager.md", ".codex/agents/manager.toml"] {
+    for path in [
+        ".claude/agents/manager.md",
+        ".pi/agents/manager.md",
+        ".codex/agents/manager.toml",
+    ] {
         let packet = fixture.read_workspace_file(path).replace("\\n", "\n");
         assert!(!packet.contains("@generated"));
+        assert!(!packet.contains(claude_overlay));
     }
 }
 
 #[test]
-fn generated_manager_and_recorder_packets_preserve_matter_not_intent_classification() {
+fn generated_recorder_packets_preserve_matter_not_intent_classification() {
     let fixture = Fixture::new();
     fixture
         .generate_from_repo(GenerationMode::Write)
-        .expect("manager and recorder packets generate");
-    for (role, rule) in [
-        (
-            "manager",
-            "Keep requested rules, mechanisms, and architecture as matter.",
-        ),
-        (
-            "intent-recorder",
-            "Return matter to Manager; do not submit it.",
-        ),
+        .expect("recorder packets generate");
+    for path in [
+        ".pi/agents/intent-recorder.md",
+        ".codex/agents/intent-recorder.toml",
+        ".claude/agents/intent-recorder.md",
     ] {
-        let mut paths = vec![
-            format!(".pi/agents/{role}.md"),
-            format!(".codex/agents/{role}.toml"),
-        ];
-        if role != "manager" {
-            paths.push(format!(".claude/agents/{role}.md"));
-        }
-        for path in paths {
-            let packet = fixture.read_workspace_file(&path).replace("\\n", "\n");
-            assert!(packet.contains(rule));
-        }
+        let packet = fixture.read_workspace_file(path).replace("\\n", "\n");
+        assert!(packet.contains("Return matter to Manager; do not submit it."));
     }
 }
 
@@ -1648,27 +1733,23 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
             "repository-closeout",
         ]
     );
-    assert!(
-        !fixture
-            .workspace
-            .path()
-            .join(".claude/agents/manager.md")
-            .exists()
-    );
-    for path in [".pi/agents/manager.md", ".codex/agents/manager.toml"] {
+    for path in [
+        ".claude/agents/manager.md",
+        ".pi/agents/manager.md",
+        ".codex/agents/manager.toml",
+    ] {
+        let packet = fixture.read_workspace_file(path).replace("\\n", "\n");
         assert!(
-            !roster(path)
-                .iter()
-                .any(|role| role.starts_with("crucial-greenfield-")),
-            "deactivated greenfield roles are absent from {path}"
+            !packet.contains("Manager dispatch roster"),
+            "{path} has no prose Manager roster"
         );
         assert!(
-            roster(path).contains(&"skill-maintainer".to_owned()),
-            "{path} lists skill-maintainer as an active Manager child"
+            !packet.contains("Allowed child-role roster"),
+            "{path} has no prose child roster"
         );
         assert!(
-            roster(path).contains(&"trivial-task".to_owned()),
-            "{path} lists trivial-task as an active Manager child"
+            !packet.contains("crucial-greenfield-"),
+            "{path} excludes deactivated greenfield roles"
         );
     }
 
@@ -1709,6 +1790,11 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
         if role == "manager" {
             assert!(pi.contains("model: 'openai-codex/gpt-5.6-sol'\nthinking: high"));
             assert!(codex.contains("model = \"gpt-5.6-sol\""));
+            assert!(
+                fixture
+                    .read_workspace_file(".claude/agents/manager.md")
+                    .contains("model: claude-opus-4-8\neffort: high")
+            );
             continue;
         }
         assert!(!pi.contains("gpt-5.6-sol"), "{role} has no Pi Sol model");
@@ -1766,15 +1852,11 @@ fn generated_packets_keep_rosters_and_exclude_disallowed_worker_models() {
             .read_workspace_file(".claude/skills/management/SKILL.md")
             .contains(claude_manager_module)
     );
-    assert!(
-        !fixture
-            .workspace
-            .path()
-            .join(".claude/agents/manager.md")
-            .exists()
-    );
     for path in [
         ".agents/skills/management/SKILL.md",
+        ".agents/skills/manager/SKILL.md",
+        ".claude/skills/manager/SKILL.md",
+        ".claude/agents/manager.md",
         ".pi/agents/manager.md",
         ".codex/agents/manager.toml",
         ".claude/agents/generalist.md",
@@ -1813,7 +1895,7 @@ fn general_instructions_compose_once_and_keep_authority_gates() {
 }
 
 #[test]
-fn cross_session_intercom_training_reaches_every_dispatch_capable_role() {
+fn cross_session_intercom_training_reaches_every_nested_role() {
     const RULES: [&str; 3] = [
         "Cross-session intercom is prohibited unless the target explicitly invited contact or the psyche explicitly authorized that exact contact.",
         "Apparent status, availability, or topic relevance never grants permission.",
@@ -1829,12 +1911,11 @@ fn cross_session_intercom_training_reaches_every_dispatch_capable_role() {
         NotaSource::new(include_str!("../manifests/nested-role-relations.nota"))
             .parse::<NestedRoleRelations>()
             .expect("nested-role relations parse");
-    let mut dispatch_capable_roles: BTreeSet<&str> = nested_role_relations
+    let dispatch_capable_roles: BTreeSet<&str> = nested_role_relations
         .payload()
         .iter()
         .map(|relation| relation.output_identifier.as_ref())
         .collect();
-    dispatch_capable_roles.insert("manager");
 
     let active_outputs = NotaSource::new(include_str!("../manifests/active-outputs.nota"))
         .parse::<ActiveOutputs>()

@@ -1,3 +1,1 @@
-# Role — manager
-
-- Route psyche intent to accountable workers.
+Manage delegated work for the parent.

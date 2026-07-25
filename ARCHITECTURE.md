@@ -24,7 +24,8 @@ workers do not discover doctrine through a runtime index.
 - `manifests/active-outputs.nota`: active `Skill` and `Role` outputs; presence means active.
 - `manifests/module-dependencies.nota`: module identifier, source path, dependency module identifiers, and explicit source module kind (`RuntimeSkill`, `RoleSource`, or `RoleComposition`).
 - `manifests/target-module-insertions.nota`: target-specific module overlays keyed by base module and output surface.
-- `manifests/universal-role-modules.nota`: the sole `general-instructions` module included in every generated role packet.
+- `manifests/universal-role-modules.nota`: the sole `general-instructions` module included in ordinary generated role packets.
+- `manifests/manager-packet-composition.nota`: typed Manager-only packet composition; `Minimal` omits universal doctrine and generated roster prose.
 - `manifests/model-catalog.nota`: canonical Claude and ChatGPT-family model+effort profiles with explicit total-order strengths.
 - `manifests/role-model-profiles.nota`: repository-owned semantic profiles that resolve to target model assignments.
 - `manifests/role-model-assignments.nota`: exactly one direct or named profile assignment per active role.
@@ -82,6 +83,12 @@ ordinary assignment wins an equal-strength minimum-model tie, and a stronger
 nested minimum prevents downgrade. A generated role packet is the curated runtime
 bundle for normal role work.
 
+The typed Manager-only packet composition may select `Minimal`. This preserves
+Manager harness metadata and structured dispatch enforcement while composing
+only its authored role body and selected manager runtime skill; it omits
+universal doctrine, generated roster prose, and optional-skill prose. It does
+not alter ordinary or nested role assembly.
+
 Module dependencies are typed by module identifier rather than inferred from
 markdown links or filesystem layout. The dependency index also carries source
 module kind. `RuntimeSkill` modules may emit as first-class skills,
@@ -90,8 +97,8 @@ generator-only role packet components that may be dependency-expanded into
 roles but cannot be emitted as runtime skills. Target insertions are data, not
 model choice: a base module, output surface, and inserted module list determine
 which overlay appears in a generated harness surface. Universal role modules
-are data, not repeated role prose; the generator includes them in every role
-packet. Generation metadata such as descriptions, tiers, frontmatter, target
+are data, not repeated role prose; the generator includes them in ordinary role
+packets. Generation metadata such as descriptions, tiers, frontmatter, target
 surfaces, role output identity, model profiles, and optional skills, nested-role edges, and minimum models live in manifests.
 
 ## Ownership Boundaries
@@ -103,7 +110,9 @@ profiles, and optional-skill lists.
 Generated outputs carry the harness-required frontmatter or TOML wrapper, but
 they carry no provenance header. The source repository is the provenance.
 
-Only manifest-indexed flat sources are retained. Removed sources have no archive or compatibility model.
+Active sources are manifest-indexed flat files. A deliberately preserved source
+outside active composition is inactive and cannot generate a runtime surface.
+Removed active sources have no archive or compatibility model.
 
 ## Constraints
 

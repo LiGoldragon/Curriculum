@@ -72,6 +72,7 @@
   AllowedLeafRoles (Vector OutputIdentifier)
   ModuleDependencies (Vector ModuleDependency)
   UniversalRoleModules (Vector ModuleIdentifier)
+  ManagerPacketComposition [Full Minimal]
   ModuleDependency { ModuleIdentifier ModulePath DependencyModules ModuleKind }
   ModuleKind [RuntimeSkill RoleSource RoleComposition]
   DependencyModules (Vector ModuleIdentifier)

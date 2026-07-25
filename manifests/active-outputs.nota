@@ -58,6 +58,7 @@
   (Skill (skill-designing skill-designing Workflow Mechanism [|Use when designing a skill.|] [AgentsSkill ClaudeSkill]))
   (Skill (helper-context-transfer helper-context-transfer Meta Mechanism [|Helper context transfer rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (management management Meta Mechanism [|Management rules.|] [AgentsSkill ClaudeSkill]))
+  (Skill (manager manager Meta Mechanism [|Use when managing delegated workers for a parent agent.|] [AgentsSkill ClaudeSkill]))
   (Skill (spirit-query spirit-query Meta Topic [|Spirit query rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (context-handover context-handover Meta Mechanism [|Context handover rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (context-maintenance-deep context-maintenance-deep Meta Mechanism [|Context maintenance deep rules.|] [AgentsSkill ClaudeSkill]))
@@ -70,7 +71,7 @@
   (Skill (main-feature-integration main-feature-integration Workflow Mechanism [|Main feature integration rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (protos-syntax protos-syntax Architecture Topic [|Protos syntax rules.|] [AgentsSkill ClaudeSkill]))
 
-  (Role (manager role-manager [management manager-boundary manager-intent-classification manager-safeguards manager-dispatch manager-liveness manager-decisions manager-communication manager-synthesis psyche-facing-commitments protos-syntax] [|Routes intent and work.|] [CodexAgent PiAgent]))
+  (Role (manager role-manager [manager] [|Routes intent and work.|] [ClaudeAgent CodexAgent PiAgent]))
   (Role (generalist role-generalist [edit-coordination-core editing-closeout code-implementation-core non-ideal-registry] [|Owns coupled delivery.|] [ClaudeAgent CodexAgent PiAgent]))
   (Role (intent-recorder role-intent-recorder [spirit-submission] [|Submits approved intent.|] [ClaudeAgent CodexAgent PiAgent]))
   (Role (intent-translator role-intent-translator [edit-coordination-core bead-weaver] [|Routes clarified work.|] [ClaudeAgent CodexAgent PiAgent]))

@@ -15,15 +15,15 @@ use crate::{
         FrontmatterEntry, FrontmatterKey, FrontmatterValue, GeneratedFile, GeneratedFiles,
         GeneratedOutputVisualization, GeneratedOutputVisualizations, GeneratedRoleOutputs,
         GenerationMode, GenerationOutcome, GenerationReport, GenerationRequest, LineCount,
-        Manifest, ManifestPath, ModelCatalog, ModelCatalogEntry, ModelEffortStrength,
-        ModelIdentifier, ModelStrength, ModuleDependencies, ModuleDependency, ModuleIdentifier,
-        ModuleKind, ModulePath, Modules, NamedRoleModelProfile, NamedRoleModelProfiles,
-        NestedRoleMinimumModel, NestedRoleRelations, Operation, OptionalSkills, OutputIdentifier,
-        OutputKind, OutputPath, OutputSurface, RoleGenerationKind, RoleModelAssignment,
-        RoleModelAssignments, RoleModelProfileIdentifier, RoleOptionalSkills,
-        RolePacketComposition, RolePacketCompositions, RoleTargetSurface, RoleVisualization,
-        RoleVisualizations, TargetModuleInsertion, TargetModuleInsertions, TargetSurface,
-        UniversalRoleModules, VisualizationReport, VisualizationRequest,
+        ManagerPacketComposition, Manifest, ManifestPath, ModelCatalog, ModelCatalogEntry,
+        ModelEffortStrength, ModelIdentifier, ModelStrength, ModuleDependencies, ModuleDependency,
+        ModuleIdentifier, ModuleKind, ModulePath, Modules, NamedRoleModelProfile,
+        NamedRoleModelProfiles, NestedRoleMinimumModel, NestedRoleRelations, Operation,
+        OptionalSkills, OutputIdentifier, OutputKind, OutputPath, OutputSurface,
+        RoleGenerationKind, RoleModelAssignment, RoleModelAssignments, RoleModelProfileIdentifier,
+        RoleOptionalSkills, RolePacketComposition, RolePacketCompositions, RoleTargetSurface,
+        RoleVisualization, RoleVisualizations, TargetModuleInsertion, TargetModuleInsertions,
+        TargetSurface, UniversalRoleModules, VisualizationReport, VisualizationRequest,
     },
     trunk_guard::TrunkDescendantGuard,
     workspace_path::WorkspacePath,
@@ -263,6 +263,12 @@ impl GenerationSource {
             SourceFile::new(self.source_root.clone(), universal_role_modules_path)
                 .read_optional()?
                 .unwrap_or_else(|| UniversalRoleModules::new(Vec::new()));
+        let manager_packet_composition_path =
+            manifest_directory.join("manager-packet-composition.nota");
+        let manager_packet_composition: ManagerPacketComposition =
+            SourceFile::new(self.source_root.clone(), manager_packet_composition_path)
+                .read_optional()?
+                .unwrap_or(ManagerPacketComposition::Full);
         let model_catalog_path = manifest_directory.join("model-catalog.nota");
         let model_catalog: ModelCatalog =
             SourceFile::new(self.source_root.clone(), model_catalog_path)
@@ -293,6 +299,7 @@ impl GenerationSource {
             module_dependencies,
             target_module_insertions,
             universal_role_modules,
+            manager_packet_composition,
             RoleMetadataSources {
                 model_catalog,
                 role_model_assignments,
@@ -1138,6 +1145,7 @@ struct GenerationConfiguration {
     module_dependencies: ModuleDependencies,
     target_module_insertions: TargetModuleInsertions,
     universal_role_modules: UniversalRoleModules,
+    manager_packet_composition: ManagerPacketComposition,
     role_metadata: RoleMetadataIndex,
 }
 
@@ -1147,6 +1155,7 @@ impl GenerationConfiguration {
         module_dependencies: ModuleDependencies,
         target_module_insertions: TargetModuleInsertions,
         universal_role_modules: UniversalRoleModules,
+        manager_packet_composition: ManagerPacketComposition,
         role_metadata_sources: RoleMetadataSources,
     ) -> Result<Self> {
         let role_metadata = RoleMetadataIndex::new(
@@ -1162,6 +1171,7 @@ impl GenerationConfiguration {
             module_dependencies,
             target_module_insertions,
             universal_role_modules,
+            manager_packet_composition,
             role_metadata,
         })
     }
@@ -1214,6 +1224,7 @@ impl GenerationConfiguration {
             for manifest in role.manifests(
                 &module_index,
                 &self.universal_role_modules,
+                &self.manager_packet_composition,
                 metadata,
                 self.role_metadata.nested_role(&role.output_identifier),
                 &active_roles,
@@ -1259,6 +1270,11 @@ impl GenerationConfiguration {
 
     fn generated_role_roster(&self, manifest: &Manifest) -> Option<String> {
         let role_identifier = manifest.role_identifier();
+        if role_identifier.as_ref() == "manager"
+            && self.manager_packet_composition == ManagerPacketComposition::Minimal
+        {
+            return None;
+        }
         let nested = self.role_metadata.nested_role(&role_identifier).is_some();
         if role_identifier.as_ref() != "manager" && !nested {
             return None;
@@ -1300,6 +1316,7 @@ impl GenerationConfiguration {
             for manifest in role.manifests(
                 &module_index,
                 &self.universal_role_modules,
+                &self.manager_packet_composition,
                 metadata,
                 nested_role,
                 &active_roles,
@@ -1502,6 +1519,7 @@ impl ActiveRole {
         &self,
         module_index: &ModuleIndex,
         universal_role_modules: &UniversalRoleModules,
+        manager_packet_composition: &ManagerPacketComposition,
         metadata: &RoleMetadata,
         nested_role: Option<&NestedRoleMetadata>,
         active_roles: &[ActiveRole],
@@ -1532,6 +1550,7 @@ impl ActiveRole {
                 modules: Modules::new(self.assembled_modules(
                     module_index,
                     universal_role_modules,
+                    manager_packet_composition,
                     output_surface,
                 )?),
             });
@@ -1567,13 +1586,18 @@ impl ActiveRole {
         &self,
         module_index: &ModuleIndex,
         universal_role_modules: &UniversalRoleModules,
+        manager_packet_composition: &ManagerPacketComposition,
         output_surface: OutputSurface,
     ) -> Result<Vec<ModulePath>> {
         let mut expansion =
             ModuleExpansion::new(module_index, ModuleUse::RoleContent, output_surface);
         expansion.append_role_source(&self.module_identifier)?;
-        for module_identifier in universal_role_modules.payload() {
-            expansion.append(module_identifier)?;
+        if !(self.output_identifier.as_ref() == "manager"
+            && *manager_packet_composition == ManagerPacketComposition::Minimal)
+        {
+            for module_identifier in universal_role_modules.payload() {
+                expansion.append(module_identifier)?;
+            }
         }
         for module_identifier in self.included_modules.payload() {
             expansion.append(module_identifier)?;
