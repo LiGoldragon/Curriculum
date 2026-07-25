@@ -417,7 +417,8 @@
             grep -F '(read [|Do not edit files, commit, or push. Fetching, cloning, and tool queries are fine.|] Restricted)' "$permissions" >/dev/null
             grep -F '(write [] Unrestricted)' "$permissions" >/dev/null
             grep -F '(claude-haiku-4-5 Claude [])' "$catalog" >/dev/null
-            grep -F '(trivial (claude-haiku-4-5 None) (gpt-5.6-luna (Some Low)))' "$depths" >/dev/null
+            grep -F '(gpt-5.4-mini ChatGpt [Low Medium High Xhigh])' "$catalog" >/dev/null
+            grep -F '(trivial (claude-haiku-4-5 None) (gpt-5.4-mini (Some Medium)))' "$depths" >/dev/null
             grep -F '(critical (claude-opus-5 (Some High)) (gpt-5.6-sol (Some Medium)))' "$depths" >/dev/null
             test "$(grep -c '^  (' "$descriptions")" -eq 8
             if grep -F '(Role (' ${cleanSource}/manifests/active-outputs.nota; then
