@@ -5,6 +5,6 @@
   (ChatGpt (gpt-5.6-terra openai-codex [(Medium 20) (High 30) (Xhigh 40)]))
   (ChatGpt (gpt-5.6-luna openai-codex [(Medium 10)]))
   (Claude (fable-5 [(Medium 50) (High 60)]))
-  (Claude (claude-opus-4-8 [(High 30) (Xhigh 40)]))
+  (Claude (claude-opus-5 [(High 30) (Xhigh 40)]))
   (Claude (claude-sonnet-5 [(Medium 10)]))
 ]

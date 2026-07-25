@@ -369,7 +369,7 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
             .contains("(ChatGpt (gpt-5.6-terra openai-codex [(Medium 20) (High 30) (Xhigh 40)]))")
     );
     assert!(model_catalog_source.contains("(Claude (fable-5 [(Medium 50) (High 60)]))"));
-    assert!(model_catalog_source.contains("(Claude (claude-opus-4-8 [(High 30) (Xhigh 40)]))"));
+    assert!(model_catalog_source.contains("(Claude (claude-opus-5 [(High 30) (Xhigh 40)]))"));
     for sonnet_role in ["intent-recorder", "scout", "repository-closeout"] {
         assert!(
             role_model_assignments_source.contains(&format!(
@@ -3149,11 +3149,11 @@ impl Fixture {
         );
         self.write_source_file(
             "manifests/model-catalog.nota",
-            "[(ChatGpt (gpt-5.6-sol openai-codex [(Medium 50)])) (ChatGpt (gpt-5.6-terra openai-codex [(High 30)])) (Claude (fable-5 [(Medium 50)])) (Claude (claude-opus-4-8 [(Xhigh 40)]))]\n",
+            "[(ChatGpt (gpt-5.6-sol openai-codex [(Medium 50)])) (ChatGpt (gpt-5.6-terra openai-codex [(High 30)])) (Claude (fable-5 [(Medium 50)])) (Claude (claude-opus-5 [(Xhigh 40)]))]\n",
         );
         self.write_source_file(
             "manifests/role-model-assignments.nota",
-            "[(Direct (parent (gpt-5.6-terra High) (claude-opus-4-8 Xhigh))) (Direct (child (gpt-5.6-terra High) (claude-opus-4-8 Xhigh)))]\n",
+            "[(Direct (parent (gpt-5.6-terra High) (claude-opus-5 Xhigh))) (Direct (child (gpt-5.6-terra High) (claude-opus-5 Xhigh)))]\n",
         );
         self.write_source_file(
             "manifests/role-optional-skills.nota",

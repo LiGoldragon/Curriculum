@@ -439,13 +439,13 @@
             grep -F '(ChatGpt (gpt-5.6-sol openai-codex [(Medium 50) (High 60)]))' "$model_catalog" >/dev/null
             grep -F '(ChatGpt (gpt-5.6-terra openai-codex [(Medium 20) (High 30) (Xhigh 40)]))' "$model_catalog" >/dev/null
             grep -F '(Claude (fable-5 [(Medium 50) (High 60)]))' "$model_catalog" >/dev/null
-            grep -F '(Claude (claude-opus-4-8 [(High 30) (Xhigh 40)]))' "$model_catalog" >/dev/null
+            grep -F '(Claude (claude-opus-5 [(High 30) (Xhigh 40)]))' "$model_catalog" >/dev/null
             grep -F '(Claude (claude-sonnet-5 [(Medium 10)]))' "$model_catalog" >/dev/null
-            grep -F '(Direct (generalist (gpt-5.6-terra Xhigh) (claude-opus-4-8 High)))' "$role_assignments" >/dev/null
-            grep -F '(Direct (intent-translator (gpt-5.6-terra Xhigh) (claude-opus-4-8 Xhigh)))' "$role_assignments" >/dev/null
-            grep -F '(Direct (operating-system-implementer (gpt-5.6-terra Xhigh) (claude-opus-4-8 High)))' "$role_assignments" >/dev/null
-            grep -F '(Direct (skill-maintainer (gpt-5.6-terra Xhigh) (claude-opus-4-8 Xhigh)))' "$role_assignments" >/dev/null
-            grep -F '(Direct (intent-curator (gpt-5.6-terra Xhigh) (claude-opus-4-8 Xhigh)))' "$role_assignments" >/dev/null
+            grep -F '(Direct (generalist (gpt-5.6-terra Xhigh) (claude-opus-5 High)))' "$role_assignments" >/dev/null
+            grep -F '(Direct (intent-translator (gpt-5.6-terra Xhigh) (claude-opus-5 Xhigh)))' "$role_assignments" >/dev/null
+            grep -F '(Direct (operating-system-implementer (gpt-5.6-terra Xhigh) (claude-opus-5 High)))' "$role_assignments" >/dev/null
+            grep -F '(Direct (skill-maintainer (gpt-5.6-terra Xhigh) (claude-opus-5 Xhigh)))' "$role_assignments" >/dev/null
+            grep -F '(Direct (intent-curator (gpt-5.6-terra Xhigh) (claude-opus-5 Xhigh)))' "$role_assignments" >/dev/null
             grep -F '(Direct (intent-recorder (gpt-5.6-luna Medium) (claude-sonnet-5 Medium)))' "$role_assignments" >/dev/null
             grep -F '(Direct (scout (gpt-5.6-luna Medium) (claude-sonnet-5 Medium)))' "$role_assignments" >/dev/null
             grep -F '(Direct (repository-closeout (gpt-5.6-luna Medium) (claude-sonnet-5 Medium)))' "$role_assignments" >/dev/null
