@@ -63,162 +63,88 @@ pub enum Error {
         effort: String,
     },
 
-    #[error("active role `{role_identifier}` has no model assignment")]
-    MissingRoleModelAssignment { role_identifier: String },
-
-    #[error("role `{role_identifier}` is listed more than once in role model assignments")]
-    DuplicateRoleModelAssignment { role_identifier: String },
-
     #[error("skill `{skill_identifier}` is listed more than once in skill module compositions")]
     DuplicateSkillModuleComposition { skill_identifier: String },
 
     #[error("skill module composition names inactive skill `{skill_identifier}`")]
     StaleSkillModuleComposition { skill_identifier: String },
 
-    #[error("model assignment names inactive role `{role_identifier}`")]
-    StaleRoleModelAssignment { role_identifier: String },
+    #[error("role permissions must list at least one permission")]
+    MissingRolePermissions,
 
-    #[error("named role-model profile `{profile_identifier}` is listed more than once")]
-    DuplicateNamedRoleModelProfile { profile_identifier: String },
+    #[error("role depths must list at least one depth")]
+    MissingRoleDepths,
 
-    #[error("role `{role_identifier}` names unknown role-model profile `{profile_identifier}`")]
-    UnknownNamedRoleModelProfile {
-        role_identifier: String,
-        profile_identifier: String,
-    },
+    #[error("permission `{permission_identifier}` is listed more than once in role permissions")]
+    DuplicateRolePermission { permission_identifier: String },
 
-    #[error("named role-model profile `{profile_identifier}` has no active role assignment")]
-    StaleNamedRoleModelProfile { profile_identifier: String },
-
-    #[error("role `{role_identifier}` assigns unsupported model `{model_identifier}`")]
-    UnsupportedRoleModel {
-        role_identifier: String,
-        model_identifier: String,
-    },
+    #[error("depth `{depth_identifier}` is listed more than once in role depths")]
+    DuplicateRoleDepth { depth_identifier: String },
 
     #[error(
-        "role `{role_identifier}` assigns `{model_identifier}` as {expected_family}, but the catalog marks it {actual_family}"
+        "role descriptions list permission `{permission_identifier}` with depth `{depth_identifier}` more than once"
     )]
-    RoleModelFamilyMismatch {
-        role_identifier: String,
-        model_identifier: String,
-        expected_family: String,
-        actual_family: String,
+    DuplicateRoleDescription {
+        permission_identifier: String,
+        depth_identifier: String,
     },
 
     #[error(
-        "role `{role_identifier}` assigns unsupported effort `{effort}` to model `{model_identifier}`"
+        "role descriptions have no cell for permission `{permission_identifier}` with depth `{depth_identifier}`"
+    )]
+    MissingRoleDescription {
+        permission_identifier: String,
+        depth_identifier: String,
+    },
+
+    #[error(
+        "role descriptions carry cell `{permission_identifier}` with depth `{depth_identifier}`, which is outside the permission-by-depth cross product"
+    )]
+    StaleRoleDescription {
+        permission_identifier: String,
+        depth_identifier: String,
+    },
+
+    #[error("depth `{depth_identifier}` assigns unsupported model `{model_identifier}`")]
+    UnsupportedRoleModel {
+        depth_identifier: String,
+        model_identifier: String,
+    },
+
+    #[error(
+        "depth `{depth_identifier}` assigns `{model_identifier}` as {expected_provider}, but the catalog marks it {actual_provider}"
+    )]
+    RoleModelProviderMismatch {
+        depth_identifier: String,
+        model_identifier: String,
+        expected_provider: String,
+        actual_provider: String,
+    },
+
+    #[error(
+        "depth `{depth_identifier}` assigns unsupported effort `{effort}` to model `{model_identifier}`"
     )]
     UnsupportedRoleModelEffort {
-        role_identifier: String,
+        depth_identifier: String,
         model_identifier: String,
         effort: String,
     },
 
-    #[error("active role `{role_identifier}` has no optional-skill metadata")]
-    MissingRoleOptionalSkills { role_identifier: String },
-
-    #[error("role `{role_identifier}` is listed more than once in optional-skill metadata")]
-    DuplicateRoleOptionalSkills { role_identifier: String },
-
-    #[error("optional-skill metadata names inactive role `{role_identifier}`")]
-    StaleRoleOptionalSkills { role_identifier: String },
-
-    #[error("role `{role_identifier}` lists optional skill `{skill_identifier}` more than once")]
-    DuplicateOptionalSkill {
-        role_identifier: String,
-        skill_identifier: String,
-    },
-
     #[error(
-        "role `{role_identifier}` lists inactive or renamed optional skill `{skill_identifier}`"
+        "depth `{depth_identifier}` assigns no effort to model `{model_identifier}`, which accepts one"
     )]
-    MissingOptionalSkill {
-        role_identifier: String,
-        skill_identifier: String,
-    },
-
-    #[error(
-        "optional skill `{skill_identifier}` for role `{role_identifier}` does not support role surface `{role_surface}`"
-    )]
-    TargetIncompatibleOptionalSkill {
-        role_identifier: String,
-        skill_identifier: String,
-        role_surface: String,
-    },
-
-    #[error("nested role `{role_identifier}` is listed more than once")]
-    DuplicateNestedRoleRelation { role_identifier: String },
-
-    #[error("nested-role metadata names inactive role `{role_identifier}`")]
-    InactiveNestedRole { role_identifier: String },
-
-    #[error("nested role `{role_identifier}` has no allowed leaf role")]
-    MissingNestedRoleChild { role_identifier: String },
-
-    #[error("nested role `{role_identifier}` lists child `{child_identifier}` more than once")]
-    DuplicateNestedRoleChild {
-        role_identifier: String,
-        child_identifier: String,
-    },
-
-    #[error("nested role `{role_identifier}` cannot delegate to itself")]
-    NestedRoleSelfEdge { role_identifier: String },
-
-    #[error("nested role `{role_identifier}` cannot delegate to nested role `{child_identifier}`")]
-    NestedRoleChildCannotBeNested {
-        role_identifier: String,
-        child_identifier: String,
-    },
-
-    #[error("nested role `{role_identifier}` names inactive leaf role `{child_identifier}`")]
-    InactiveNestedRoleChild {
-        role_identifier: String,
-        child_identifier: String,
-    },
-
-    #[error(
-        "leaf role `{child_identifier}` for nested role `{role_identifier}` does not support role surface `{role_surface}`"
-    )]
-    TargetIncompatibleNestedRoleChild {
-        role_identifier: String,
-        child_identifier: String,
-        role_surface: String,
-    },
-
-    #[error(
-        "nested role `{role_identifier}` has no minimum model for role surface `{role_surface}`"
-    )]
-    MissingNestedRoleMinimumModel {
-        role_identifier: String,
-        role_surface: String,
-    },
-
-    #[error(
-        "nested role `{role_identifier}` has more than one minimum model for role surface `{role_surface}`"
-    )]
-    DuplicateNestedRoleMinimumModel {
-        role_identifier: String,
-        role_surface: String,
-    },
-
-    #[error(
-        "nested role `{role_identifier}` sets a minimum model for inactive role surface `{role_surface}`"
-    )]
-    NestedRoleMinimumForInactiveTarget {
-        role_identifier: String,
-        role_surface: String,
-    },
-
-    #[error(
-        "nested role `{role_identifier}` minimum `{model_identifier}` for `{role_surface}` must be {expected_family}, but the catalog marks it {actual_family}"
-    )]
-    NestedRoleMinimumModelFamilyMismatch {
-        role_identifier: String,
+    MissingRoleModelEffort {
+        depth_identifier: String,
         model_identifier: String,
-        role_surface: String,
-        expected_family: String,
-        actual_family: String,
+    },
+
+    #[error(
+        "depth `{depth_identifier}` assigns effort `{effort}` to model `{model_identifier}`, which accepts none"
+    )]
+    EffortlessRoleModelCarriesEffort {
+        depth_identifier: String,
+        model_identifier: String,
+        effort: String,
     },
 
     #[error(

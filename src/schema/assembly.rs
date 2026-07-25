@@ -158,28 +158,7 @@ pub struct RoleVisualizations(Vec<RoleVisualization>);
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RoleVisualization {
     pub output_identifier: OutputIdentifier,
-    pub role_generation_kind: RoleGenerationKind,
     pub role_packet_compositions: RolePacketCompositions,
-}
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(
-    rkyv::Archive,
-    rkyv::Serialize,
-    rkyv::Deserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-)]
-pub enum RoleGenerationKind {
-    DispatchableNestedRole,
-    DispatchableLeafRole,
 }
 
 #[rustfmt::skip]
@@ -200,16 +179,7 @@ pub struct RolePacketComposition {
     pub output_path: OutputPath,
     pub output_surface: OutputSurface,
     pub modules: Modules,
-    pub dispatchable_roles: DispatchableRoles,
 }
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct DispatchableRoles(Vec<OutputIdentifier>);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -266,7 +236,6 @@ pub struct Manifest {
     pub output_kind: OutputKind,
     pub output_surface: OutputSurface,
     pub frontmatter: Frontmatter,
-    pub optional_skills: OptionalSkills,
     pub modules: Modules,
 }
 
@@ -382,7 +351,6 @@ pub struct ActiveOutputs(Vec<ActiveOutput>);
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum ActiveOutput {
     Skill(ActiveSkill),
-    Role(ActiveRole),
 }
 
 #[rustfmt::skip]
@@ -398,20 +366,6 @@ pub struct ActiveSkill {
     pub skill_tier: SkillTier,
     pub skill_description: SkillDescription,
     pub target_surfaces: TargetSurfaces,
-}
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ActiveRole {
-    pub output_identifier: OutputIdentifier,
-    pub module_identifier: ModuleIdentifier,
-    pub included_modules: IncludedModules,
-    pub role_description: RoleDescription,
-    pub role_target_surfaces: RoleTargetSurfaces,
 }
 
 #[rustfmt::skip]
@@ -473,14 +427,6 @@ pub struct RoleDescription(String);
     feature = "nota-text",
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct RoleTargetSurfaces(Vec<RoleTargetSurface>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
 #[derive(
     rkyv::Archive,
     rkyv::Serialize,
@@ -511,32 +457,10 @@ pub struct ModelCatalog(Vec<ModelCatalogEntry>);
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub enum ModelCatalogEntry {
-    ChatGpt(ChatGptModel),
-    Claude(ClaudeModel),
-}
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ChatGptModel {
+pub struct ModelCatalogEntry {
     pub model_identifier: ModelIdentifier,
-    pub pi_provider: PiProvider,
-    pub model_effort_strengths: ModelEffortStrengths,
-}
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ClaudeModel {
-    pub model_identifier: ModelIdentifier,
-    pub model_effort_strengths: ModelEffortStrengths,
+    pub provider_surface: ProviderSurface,
+    pub accepted_effort_levels: AcceptedEffortLevels,
 }
 
 #[rustfmt::skip]
@@ -563,26 +487,19 @@ pub struct ModelIdentifier(String);
     feature = "nota-text",
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct PiProvider(String);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
 )]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ModelEffortStrengths(Vec<ModelEffortStrength>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ModelEffortStrength {
-    pub effort_level: EffortLevel,
-    pub model_strength: ModelStrength,
+pub enum ProviderSurface {
+    Claude,
+    ChatGpt,
 }
 
 #[rustfmt::skip]
@@ -591,7 +508,7 @@ pub struct ModelEffortStrength {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ModelStrength(Integer);
+pub struct AcceptedEffortLevels(Vec<EffortLevel>);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -609,6 +526,7 @@ pub struct ModelStrength(Integer);
     Eq,
 )]
 pub enum EffortLevel {
+    Low,
     Medium,
     High,
     Xhigh,
@@ -620,7 +538,7 @@ pub enum EffortLevel {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct RoleModelAssignments(Vec<RoleModelAssignment>);
+pub struct RolePermissions(Vec<RolePermission>);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -628,52 +546,10 @@ pub struct RoleModelAssignments(Vec<RoleModelAssignment>);
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub enum RoleModelAssignment {
-    Direct(DirectRoleModelAssignment),
-    Profile(ProfileRoleModelAssignment),
-}
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct DirectRoleModelAssignment {
-    pub output_identifier: OutputIdentifier,
-    pub chat_gpt_model_assignment: ChatGptModelAssignment,
-    pub claude_model_assignment: ClaudeModelAssignment,
-}
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ProfileRoleModelAssignment {
-    pub output_identifier: OutputIdentifier,
-    pub role_model_profile_identifier: RoleModelProfileIdentifier,
-}
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct NamedRoleModelProfiles(Vec<NamedRoleModelProfile>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct NamedRoleModelProfile {
-    pub role_model_profile_identifier: RoleModelProfileIdentifier,
-    pub chat_gpt_model_assignment: ChatGptModelAssignment,
-    pub claude_model_assignment: ClaudeModelAssignment,
+pub struct RolePermission {
+    pub role_permission_identifier: RolePermissionIdentifier,
+    pub permission_body: PermissionBody,
+    pub tool_restriction: ToolRestriction,
 }
 
 #[rustfmt::skip]
@@ -693,7 +569,7 @@ pub struct NamedRoleModelProfile {
     Ord,
 )]
 #[rkyv(derive(PartialEq, Eq, PartialOrd, Ord))]
-pub struct RoleModelProfileIdentifier(String);
+pub struct RolePermissionIdentifier(String);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -701,9 +577,76 @@ pub struct RoleModelProfileIdentifier(String);
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ChatGptModelAssignment {
+pub struct PermissionBody(String);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+)]
+pub enum ToolRestriction {
+    Restricted,
+    Unrestricted,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RoleDepths(Vec<RoleDepth>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RoleDepth {
+    pub role_depth_identifier: RoleDepthIdentifier,
+    pub claude_depth_model: ClaudeDepthModel,
+    pub chat_gpt_depth_model: ChatGptDepthModel,
+}
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(
+    rkyv::Archive,
+    rkyv::Serialize,
+    rkyv::Deserialize,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+)]
+#[rkyv(derive(PartialEq, Eq, PartialOrd, Ord))]
+pub struct RoleDepthIdentifier(String);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ClaudeDepthModel {
     pub model_identifier: ModelIdentifier,
-    pub effort_level: EffortLevel,
+    pub depth_effort_level: DepthEffortLevel,
 }
 
 #[rustfmt::skip]
@@ -712,9 +655,9 @@ pub struct ChatGptModelAssignment {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ClaudeModelAssignment {
+pub struct ChatGptDepthModel {
     pub model_identifier: ModelIdentifier,
-    pub effort_level: EffortLevel,
+    pub depth_effort_level: DepthEffortLevel,
 }
 
 #[rustfmt::skip]
@@ -723,7 +666,7 @@ pub struct ClaudeModelAssignment {
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct RoleOptionalSkills(Vec<RoleOptionalSkill>);
+pub struct DepthEffortLevel(Option<EffortLevel>);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -731,66 +674,19 @@ pub struct RoleOptionalSkills(Vec<RoleOptionalSkill>);
     derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
 )]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct RoleOptionalSkill {
-    pub output_identifier: OutputIdentifier,
-    pub optional_skills: OptionalSkills,
+pub struct RoleDescriptions(Vec<RoleDescriptionCell>);
+
+#[rustfmt::skip]
+#[cfg_attr(
+    feature = "nota-text",
+    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
+)]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RoleDescriptionCell {
+    pub role_permission_identifier: RolePermissionIdentifier,
+    pub role_depth_identifier: RoleDepthIdentifier,
+    pub role_description: RoleDescription,
 }
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct OptionalSkills(Vec<OutputIdentifier>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct NestedRoleRelations(Vec<NestedRoleRelation>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct NestedRoleRelation {
-    pub output_identifier: OutputIdentifier,
-    pub nested_role_minimum_models: NestedRoleMinimumModels,
-    pub allowed_leaf_roles: AllowedLeafRoles,
-}
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct NestedRoleMinimumModels(Vec<NestedRoleMinimumModel>);
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct NestedRoleMinimumModel {
-    pub role_target_surface: RoleTargetSurface,
-    pub model_identifier: ModelIdentifier,
-    pub effort_level: EffortLevel,
-}
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AllowedLeafRoles(Vec<OutputIdentifier>);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -857,7 +753,6 @@ pub struct ModuleDependency {
 )]
 pub enum ModuleKind {
     RuntimeSkill,
-    RoleSource,
     RoleComposition,
 }
 
@@ -1107,25 +1002,6 @@ impl RolePacketCompositions {
 #[rustfmt::skip]
 impl From<Vec<RolePacketComposition>> for RolePacketCompositions {
     fn from(payload: Vec<RolePacketComposition>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl DispatchableRoles {
-    pub fn new(payload: Vec<OutputIdentifier>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<OutputIdentifier> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<OutputIdentifier> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<OutputIdentifier>> for DispatchableRoles {
-    fn from(payload: Vec<OutputIdentifier>) -> Self {
         Self::new(payload)
     }
 }
@@ -1397,25 +1273,6 @@ impl From<String> for RoleDescription {
 }
 
 #[rustfmt::skip]
-impl RoleTargetSurfaces {
-    pub fn new(payload: Vec<RoleTargetSurface>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<RoleTargetSurface> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<RoleTargetSurface> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<RoleTargetSurface>> for RoleTargetSurfaces {
-    fn from(payload: Vec<RoleTargetSurface>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
 impl ModelCatalog {
     pub fn new(payload: Vec<ModelCatalogEntry>) -> Self {
         Self(payload)
@@ -1454,7 +1311,45 @@ impl From<String> for ModelIdentifier {
 }
 
 #[rustfmt::skip]
-impl PiProvider {
+impl AcceptedEffortLevels {
+    pub fn new(payload: Vec<EffortLevel>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<EffortLevel> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<EffortLevel> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<EffortLevel>> for AcceptedEffortLevels {
+    fn from(payload: Vec<EffortLevel>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl RolePermissions {
+    pub fn new(payload: Vec<RolePermission>) -> Self {
+        Self(payload)
+    }
+    pub fn payload(&self) -> &Vec<RolePermission> {
+        &self.0
+    }
+    pub fn into_payload(self) -> Vec<RolePermission> {
+        self.0
+    }
+}
+#[rustfmt::skip]
+impl From<Vec<RolePermission>> for RolePermissions {
+    fn from(payload: Vec<RolePermission>) -> Self {
+        Self::new(payload)
+    }
+}
+
+#[rustfmt::skip]
+impl RolePermissionIdentifier {
     pub fn new(payload: impl Into<String>) -> Self {
         Self(payload.into())
     }
@@ -1466,90 +1361,14 @@ impl PiProvider {
     }
 }
 #[rustfmt::skip]
-impl From<String> for PiProvider {
+impl From<String> for RolePermissionIdentifier {
     fn from(payload: String) -> Self {
         Self::new(payload)
     }
 }
 
 #[rustfmt::skip]
-impl ModelEffortStrengths {
-    pub fn new(payload: Vec<ModelEffortStrength>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<ModelEffortStrength> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<ModelEffortStrength> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<ModelEffortStrength>> for ModelEffortStrengths {
-    fn from(payload: Vec<ModelEffortStrength>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl ModelStrength {
-    pub fn new(payload: Integer) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Integer {
-        &self.0
-    }
-    pub fn into_payload(self) -> Integer {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Integer> for ModelStrength {
-    fn from(payload: Integer) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl RoleModelAssignments {
-    pub fn new(payload: Vec<RoleModelAssignment>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<RoleModelAssignment> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<RoleModelAssignment> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<RoleModelAssignment>> for RoleModelAssignments {
-    fn from(payload: Vec<RoleModelAssignment>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl NamedRoleModelProfiles {
-    pub fn new(payload: Vec<NamedRoleModelProfile>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<NamedRoleModelProfile> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<NamedRoleModelProfile> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<NamedRoleModelProfile>> for NamedRoleModelProfiles {
-    fn from(payload: Vec<NamedRoleModelProfile>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl RoleModelProfileIdentifier {
+impl PermissionBody {
     pub fn new(payload: impl Into<String>) -> Self {
         Self(payload.into())
     }
@@ -1561,103 +1380,84 @@ impl RoleModelProfileIdentifier {
     }
 }
 #[rustfmt::skip]
-impl From<String> for RoleModelProfileIdentifier {
+impl From<String> for PermissionBody {
     fn from(payload: String) -> Self {
         Self::new(payload)
     }
 }
 
 #[rustfmt::skip]
-impl RoleOptionalSkills {
-    pub fn new(payload: Vec<RoleOptionalSkill>) -> Self {
+impl RoleDepths {
+    pub fn new(payload: Vec<RoleDepth>) -> Self {
         Self(payload)
     }
-    pub fn payload(&self) -> &Vec<RoleOptionalSkill> {
+    pub fn payload(&self) -> &Vec<RoleDepth> {
         &self.0
     }
-    pub fn into_payload(self) -> Vec<RoleOptionalSkill> {
+    pub fn into_payload(self) -> Vec<RoleDepth> {
         self.0
     }
 }
 #[rustfmt::skip]
-impl From<Vec<RoleOptionalSkill>> for RoleOptionalSkills {
-    fn from(payload: Vec<RoleOptionalSkill>) -> Self {
+impl From<Vec<RoleDepth>> for RoleDepths {
+    fn from(payload: Vec<RoleDepth>) -> Self {
         Self::new(payload)
     }
 }
 
 #[rustfmt::skip]
-impl OptionalSkills {
-    pub fn new(payload: Vec<OutputIdentifier>) -> Self {
-        Self(payload)
+impl RoleDepthIdentifier {
+    pub fn new(payload: impl Into<String>) -> Self {
+        Self(payload.into())
     }
-    pub fn payload(&self) -> &Vec<OutputIdentifier> {
+    pub fn payload(&self) -> &String {
         &self.0
     }
-    pub fn into_payload(self) -> Vec<OutputIdentifier> {
+    pub fn into_payload(self) -> String {
         self.0
     }
 }
 #[rustfmt::skip]
-impl From<Vec<OutputIdentifier>> for OptionalSkills {
-    fn from(payload: Vec<OutputIdentifier>) -> Self {
+impl From<String> for RoleDepthIdentifier {
+    fn from(payload: String) -> Self {
         Self::new(payload)
     }
 }
 
 #[rustfmt::skip]
-impl NestedRoleRelations {
-    pub fn new(payload: Vec<NestedRoleRelation>) -> Self {
+impl DepthEffortLevel {
+    pub fn new(payload: Option<EffortLevel>) -> Self {
         Self(payload)
     }
-    pub fn payload(&self) -> &Vec<NestedRoleRelation> {
+    pub fn payload(&self) -> &Option<EffortLevel> {
         &self.0
     }
-    pub fn into_payload(self) -> Vec<NestedRoleRelation> {
+    pub fn into_payload(self) -> Option<EffortLevel> {
         self.0
     }
 }
 #[rustfmt::skip]
-impl From<Vec<NestedRoleRelation>> for NestedRoleRelations {
-    fn from(payload: Vec<NestedRoleRelation>) -> Self {
+impl From<Option<EffortLevel>> for DepthEffortLevel {
+    fn from(payload: Option<EffortLevel>) -> Self {
         Self::new(payload)
     }
 }
 
 #[rustfmt::skip]
-impl NestedRoleMinimumModels {
-    pub fn new(payload: Vec<NestedRoleMinimumModel>) -> Self {
+impl RoleDescriptions {
+    pub fn new(payload: Vec<RoleDescriptionCell>) -> Self {
         Self(payload)
     }
-    pub fn payload(&self) -> &Vec<NestedRoleMinimumModel> {
+    pub fn payload(&self) -> &Vec<RoleDescriptionCell> {
         &self.0
     }
-    pub fn into_payload(self) -> Vec<NestedRoleMinimumModel> {
+    pub fn into_payload(self) -> Vec<RoleDescriptionCell> {
         self.0
     }
 }
 #[rustfmt::skip]
-impl From<Vec<NestedRoleMinimumModel>> for NestedRoleMinimumModels {
-    fn from(payload: Vec<NestedRoleMinimumModel>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl AllowedLeafRoles {
-    pub fn new(payload: Vec<OutputIdentifier>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<OutputIdentifier> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<OutputIdentifier> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<OutputIdentifier>> for AllowedLeafRoles {
-    fn from(payload: Vec<OutputIdentifier>) -> Self {
+impl From<Vec<RoleDescriptionCell>> for RoleDescriptions {
+    fn from(payload: Vec<RoleDescriptionCell>) -> Self {
         Self::new(payload)
     }
 }
@@ -2088,63 +1888,63 @@ impl PartialEq<&str> for ModelIdentifier {
 }
 
 #[rustfmt::skip]
-impl std::fmt::Display for PiProvider {
+impl std::fmt::Display for RolePermissionIdentifier {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.payload().fmt(formatter)
     }
 }
 
 #[rustfmt::skip]
-impl AsRef<str> for PiProvider {
+impl AsRef<str> for RolePermissionIdentifier {
     fn as_ref(&self) -> &str {
         self.payload().as_str()
     }
 }
 
 #[rustfmt::skip]
-impl PartialEq<&str> for PiProvider {
+impl PartialEq<&str> for RolePermissionIdentifier {
     fn eq(&self, other: &&str) -> bool {
         self.payload() == other
     }
 }
 
 #[rustfmt::skip]
-impl std::fmt::Display for ModelStrength {
+impl std::fmt::Display for PermissionBody {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.payload().fmt(formatter)
     }
 }
 
 #[rustfmt::skip]
-impl PartialEq<u64> for ModelStrength {
-    fn eq(&self, other: &u64) -> bool {
-        self.payload() == other
-    }
-}
-
-#[rustfmt::skip]
-impl PartialOrd<u64> for ModelStrength {
-    fn partial_cmp(&self, other: &u64) -> Option<std::cmp::Ordering> {
-        self.payload().partial_cmp(other)
-    }
-}
-
-#[rustfmt::skip]
-impl std::fmt::Display for RoleModelProfileIdentifier {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.payload().fmt(formatter)
-    }
-}
-
-#[rustfmt::skip]
-impl AsRef<str> for RoleModelProfileIdentifier {
+impl AsRef<str> for PermissionBody {
     fn as_ref(&self) -> &str {
         self.payload().as_str()
     }
 }
 
 #[rustfmt::skip]
-impl PartialEq<&str> for RoleModelProfileIdentifier {
+impl PartialEq<&str> for PermissionBody {
+    fn eq(&self, other: &&str) -> bool {
+        self.payload() == other
+    }
+}
+
+#[rustfmt::skip]
+impl std::fmt::Display for RoleDepthIdentifier {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.payload().fmt(formatter)
+    }
+}
+
+#[rustfmt::skip]
+impl AsRef<str> for RoleDepthIdentifier {
+    fn as_ref(&self) -> &str {
+        self.payload().as_str()
+    }
+}
+
+#[rustfmt::skip]
+impl PartialEq<&str> for RoleDepthIdentifier {
     fn eq(&self, other: &&str) -> bool {
         self.payload() == other
     }
@@ -2196,29 +1996,6 @@ impl ActiveOutput {
     pub fn skill(payload: ActiveSkill) -> Self {
         Self::Skill(payload)
     }
-    pub fn role(payload: ActiveRole) -> Self {
-        Self::Role(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl ModelCatalogEntry {
-    pub fn chat_gpt(payload: ChatGptModel) -> Self {
-        Self::ChatGpt(payload)
-    }
-    pub fn claude(payload: ClaudeModel) -> Self {
-        Self::Claude(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl RoleModelAssignment {
-    pub fn direct(payload: DirectRoleModelAssignment) -> Self {
-        Self::Direct(payload)
-    }
-    pub fn profile(payload: ProfileRoleModelAssignment) -> Self {
-        Self::Profile(payload)
-    }
 }
 
 #[rustfmt::skip]
@@ -2253,40 +2030,5 @@ impl From<VisualizationReport> for GenerationOutcome {
 impl From<ActiveSkill> for ActiveOutput {
     fn from(payload: ActiveSkill) -> Self {
         Self::Skill(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl From<ActiveRole> for ActiveOutput {
-    fn from(payload: ActiveRole) -> Self {
-        Self::Role(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl From<ChatGptModel> for ModelCatalogEntry {
-    fn from(payload: ChatGptModel) -> Self {
-        Self::ChatGpt(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl From<ClaudeModel> for ModelCatalogEntry {
-    fn from(payload: ClaudeModel) -> Self {
-        Self::Claude(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl From<DirectRoleModelAssignment> for RoleModelAssignment {
-    fn from(payload: DirectRoleModelAssignment) -> Self {
-        Self::Direct(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl From<ProfileRoleModelAssignment> for RoleModelAssignment {
-    fn from(payload: ProfileRoleModelAssignment) -> Self {
-        Self::Profile(payload)
     }
 }

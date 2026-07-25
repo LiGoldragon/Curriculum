@@ -1,7 +1,7 @@
 ;; Active flat source index.
 ;; Each record is: module id, flat source path, dependency module ids, module kind.
-;; RuntimeSkill modules may emit as skills; RoleSource modules are role roots;
-;; RoleComposition modules are generator-only role packet components.
+;; RuntimeSkill modules may emit as skills; RoleComposition modules are
+;; generator-only role packet components.
 ;; Target-specific module insertion lives in target-module-insertions.nota.
 ;; Universal role packet modules live in universal-role-modules.nota.
 ;; The active output manifest decides what emits; this file records source module edges and kind.
@@ -23,7 +23,6 @@
   (component-architecture skills/component-architecture.md [] RuntimeSkill)
   (structural-forms skills/structural-forms.md [] RuntimeSkill)
   (contract-repo skills/contract-repo.md [] RuntimeSkill)
-  (micro-components skills/micro-components.md [] RuntimeSkill)
   (actor-systems skills/actor-systems.md [] RuntimeSkill)
   (architectural-truth-tests skills/architectural-truth-tests.md [] RoleComposition)
   (engine-analysis skills/engine-analysis.md [] RuntimeSkill)
@@ -32,14 +31,8 @@
   (abstractions skills/abstractions.md [] RuntimeSkill)
   (enum-contact-points skills/enum-contact-points.md [] RuntimeSkill)
   (naming skills/naming.md [] RuntimeSkill)
-  (secrets skills/secrets.md [] RuntimeSkill)
-  (privacy skills/privacy.md [] RuntimeSkill)
-  (design-quality skills/design-quality.md [] RuntimeSkill)
-  (push-not-pull skills/push-not-pull.md [] RuntimeSkill)
-  (reporting skills/reporting.md [] RuntimeSkill)
   (versioning skills/versioning.md [] RuntimeSkill)
   (typed-records-over-flags skills/typed-records-over-flags.md [] RuntimeSkill)
-  (prose skills/prose.md [] RuntimeSkill)
   (rust-discipline skills/rust-discipline.md [] RoleComposition)
   (rust-methods skills/rust-methods.md [] RuntimeSkill)
   (rust-errors skills/rust-errors.md [] RuntimeSkill)
@@ -50,9 +43,7 @@
   (operating-system-operations skills/operating-system-operations.md [] RuntimeSkill)
   (pi-internals skills/pi-internals.md [] RuntimeSkill)
   (pi-extension-updates skills/pi-extension-updates.md [pi-internals] RuntimeSkill)
-  (mermaid skills/mermaid.md [] RuntimeSkill)
   (session-lanes skills/session-lanes.md [] RuntimeSkill)
-  (session-archive-garbage-collection skills/session-archive-garbage-collection.md [] RuntimeSkill)
   (disk-hygiene skills/disk-hygiene.md [] RuntimeSkill)
   (documentation-placement skills/documentation-placement.md [] RuntimeSkill)
   (nota-schema-docs skills/nota-schema-docs.md [] RuntimeSkill)
@@ -74,34 +65,12 @@
   (psyche-interraction skills/psyche-interraction.md [] RuntimeSkill)
   (psyche-interraction-claude-briefness skills/psyche-interraction-claude-briefness.md [] RuntimeSkill)
   (psyche-interraction-continuation skills/psyche-interraction-continuation.md [] RuntimeSkill)
+  (psyche-vision skills/psyche-vision.md [] RuntimeSkill)
   (tenets skills/tenets.md [] RuntimeSkill)
   (codex-skill-loading skills/codex-skill-loading.md [] RoleComposition)
-  (spirit-query skills/spirit-query.md [] RuntimeSkill)
-  (helper-context-transfer skills/helper-context-transfer.md [] RuntimeSkill)
   (context-handover skills/context-handover.md [] RuntimeSkill)
-  (context-maintenance-deep skills/context-maintenance-deep.md [] RuntimeSkill)
   (intent-log skills/intent-log.md [] RuntimeSkill)
-  (spirit-cli skills/spirit-cli.md [] RuntimeSkill)
-  (intent-maintenance skills/intent-maintenance.md [] RuntimeSkill)
-  (intent-clarification skills/intent-clarification.md [] RuntimeSkill)
-  (repo-intent skills/repo-intent.md [] RuntimeSkill)
-  (intent-manifestation skills/intent-manifestation.md [] RuntimeSkill)
   (main-feature-integration skills/main-feature-integration.md [] RuntimeSkill)
   (protos-syntax skills/protos-syntax.md [] RuntimeSkill)
   (nixos-vm-testing skills/nixos-vm-testing.md [] RoleComposition)
-
-  (role-generalist roles/generalist.md [] RoleSource)
-  (role-intent-recorder roles/intent-recorder.md [] RoleSource)
-  (role-intent-translator roles/intent-translator.md [] RoleSource)
-  (role-scout roles/scout.md [] RoleSource)
-  (role-repo-scaffolder roles/repo-scaffolder.md [] RoleSource)
-  (role-general-code-implementer roles/general-code-implementer.md [] RoleSource)
-  (role-operating-system-implementer roles/operating-system-implementer.md [] RoleSource)
-  (role-rust-auditor roles/rust-auditor.md [] RoleSource)
-  (role-nix-auditor roles/nix-auditor.md [] RoleSource)
-  (role-skill-maintainer roles/skill-maintainer.md [] RoleSource)
-  (role-trivial-task roles/trivial-task.md [] RoleSource)
-  (role-intent-curator roles/intent-curator.md [] RoleSource)
-  (role-repository-closeout roles/repository-closeout.md [] RoleSource)
-  (role-tracker-weaver roles/tracker-weaver.md [] RoleSource)
 ]

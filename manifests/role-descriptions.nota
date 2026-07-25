@@ -1,0 +1,11 @@
+;; Cell: permission, depth, description.
+[
+  (read trivial [|The answer is in one known place — a file, a page, a query. You are fetching it, not finding it.|])
+  (read ordinary [|You know what you are looking for but not where it is. Search, fetch, and query until you have it.|])
+  (read demanding [|The answer is not written anywhere. It has to be assembled from how the parts behave.|])
+  (read critical [|A missed detail changes the conclusion.|])
+  (write trivial [|The change is fully specified. No decisions remain.|])
+  (write ordinary [|The approach is known. Applying it is the work.|])
+  (write demanding [|The approach has to be chosen, or the change spans surfaces that must agree.|])
+  (write critical [|New design, or a mistake that is hard to reverse or expensive to discover late.|])
+]

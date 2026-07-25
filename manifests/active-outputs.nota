@@ -1,15 +1,14 @@
-;; Active generated output manifest for skill and role packet generation.
+;; Active generated output manifest for skill generation.
 ;; This file lists active outputs only; absence means inactive.
 ;; Skill fields: output id, module id, category, tier, description, target surfaces.
-;; Role fields: output id, role source module id, ordered preloaded module ids, description, target surfaces.
-;; Model assignments, named profiles, and optional skills live in role-model-assignments.nota, role-model-profiles.nota, and role-optional-skills.nota.
+;; Generated roles are the permission-by-depth cross product and live in
+;; role-permissions.nota, role-depths.nota, and role-descriptions.nota.
 ;; Dependency data lives in module-dependencies.nota; universal role modules live in universal-role-modules.nota.
 
 [
   (Skill (component-architecture component-architecture Architecture Apex [|Component architecture rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (structural-forms structural-forms Architecture Apex [|Structural forms rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (contract-repo contract-repo Architecture Topic [|Contract repo rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (micro-components micro-components Architecture Topic [|Micro components rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (actor-systems actor-systems Architecture Topic [|Actor systems rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (engine-analysis engine-analysis Architecture Topic [|Engine analysis rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (engine-report engine-report Architecture Topic [|Engine report rules.|] [AgentsSkill ClaudeSkill]))
@@ -17,14 +16,8 @@
   (Skill (abstractions abstractions Craft Keystroke [|Abstractions rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (enum-contact-points enum-contact-points Craft Apex [|Enum contact points rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (naming naming Craft Keystroke [|Naming rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (secrets secrets Craft Keystroke [|Secrets rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (privacy privacy Craft Keystroke [|Privacy rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (design-quality design-quality Craft Keystroke [|Design quality rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (push-not-pull push-not-pull Craft Keystroke [|Push not pull rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (reporting reporting Craft Keystroke [|Reporting rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (versioning versioning Workflow Keystroke [|Versioning rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (typed-records-over-flags typed-records-over-flags Craft Keystroke [|Typed records over flags rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (prose prose Craft Topic [|Prose rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (rust-methods rust-methods Programming Topic [|Rust methods rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (rust-errors rust-errors Programming Topic [|Rust errors rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (rust-storage-and-wire rust-storage-and-wire Programming Topic [|Rust storage and wire rules.|] [AgentsSkill ClaudeSkill]))
@@ -37,9 +30,7 @@
   (Skill (edit-coordination edit-coordination Workflow Mechanism [|Edit coordination rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (code-implementation code-implementation Workflow Mechanism [|Code implementation rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (repository-closeout repository-closeout Workflow Mechanism [|Repository closeout rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (mermaid mermaid Programming Mechanism [|Mermaid rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (session-lanes session-lanes Workflow Mechanism [|Session lanes rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (session-archive-garbage-collection session-archive-garbage-collection Meta Mechanism [|Session archive garbage collection rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (disk-hygiene disk-hygiene Workflow Mechanism [|Disk hygiene rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (documentation-placement documentation-placement Workflow Mechanism [|Documentation placement rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (nota-schema-docs nota-schema-docs Workflow Mechanism [|Nota schema docs rules.|] [AgentsSkill ClaudeSkill]))
@@ -56,34 +47,12 @@
   (Skill (repository-publication repository-publication Workflow Mechanism [|Repository publication rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (repository-management repository-management Workflow Mechanism [|Repository management rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (skill-designing skill-designing Workflow Mechanism [|Use when designing a skill.|] [AgentsSkill ClaudeSkill]))
-  (Skill (helper-context-transfer helper-context-transfer Meta Mechanism [|Helper context transfer rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (management management Meta Mechanism [|Use when coordinating delegated work for a caller.|] [AgentsSkill ClaudeSkill]))
   (Skill (psyche-interraction psyche-interraction Meta Mechanism [|Use when interacting directly with the psyche.|] [AgentsSkill ClaudeSkill]))
+  (Skill (psyche-vision psyche-vision Meta Topic [|Psyche vision rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (tenets tenets Meta Mechanism [|Use in every agent task.|] [AgentsSkill ClaudeSkill]))
-  (Skill (spirit-query spirit-query Meta Topic [|Spirit query rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (context-handover context-handover Meta Mechanism [|Use when carrying the psyche's vision into another session.|] [AgentsSkill ClaudeSkill]))
-  (Skill (context-maintenance-deep context-maintenance-deep Meta Mechanism [|Context maintenance deep rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (intent-log intent-log Meta Topic [|Intent log rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (spirit-cli spirit-cli Meta Topic [|Spirit cli rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (intent-maintenance intent-maintenance Meta Mechanism [|Intent maintenance rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (intent-clarification intent-clarification Meta Topic [|Intent clarification rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (repo-intent repo-intent Meta Keystroke [|Repo intent rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (intent-manifestation intent-manifestation Meta Mechanism [|Intent manifestation rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (main-feature-integration main-feature-integration Workflow Mechanism [|Main feature integration rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (protos-syntax protos-syntax Architecture Topic [|Protos syntax rules.|] [AgentsSkill ClaudeSkill]))
-
-  (Role (generalist role-generalist [edit-coordination-core editing-closeout code-implementation-core non-ideal-registry] [|Owns coupled delivery.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (intent-recorder role-intent-recorder [spirit-submission] [|Submits approved intent.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (intent-translator role-intent-translator [edit-coordination-core bead-weaver] [|Routes clarified work.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (scout role-scout [edit-coordination-core] [|Returns witnessed facts.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (repo-scaffolder role-repo-scaffolder [edit-coordination-core editing-closeout repo-scaffold-core code-implementation-core non-ideal-registry] [|Builds repository structure.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (general-code-implementer role-general-code-implementer [edit-coordination-core editing-closeout code-implementation-core non-ideal-registry] [|Implements accepted changes.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (operating-system-implementer role-operating-system-implementer [edit-coordination-core editing-closeout code-implementation-core nix-core operating-system-operations nixos-vm-testing non-ideal-registry] [|Implements system changes.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (rust-auditor role-rust-auditor [edit-coordination-core editing-closeout rust-core architectural-truth-tests non-ideal-registry] [|Reviews Rust changes.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (nix-auditor role-nix-auditor [edit-coordination-core editing-closeout nix-core nixos-vm-testing non-ideal-registry] [|Reviews Nix changes.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (skill-maintainer role-skill-maintainer [skill-designing] [|Use when applying an approved skill change.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (trivial-task role-trivial-task [] [|Performs one explicitly bounded minimal task.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (intent-curator role-intent-curator [edit-coordination-core editing-closeout intent-core] [|Maintains approved intent.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (repository-closeout role-repository-closeout [edit-coordination-core editing-closeout repo-operation-core] [|Closes validated repositories.|] [ClaudeAgent CodexAgent PiAgent]))
-  (Role (tracker-weaver role-tracker-weaver [edit-coordination-core editing-closeout bead-weaver] [|Advances authorized tracker work.|] [ClaudeAgent CodexAgent PiAgent]))
 ]

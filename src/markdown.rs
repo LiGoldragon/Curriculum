@@ -367,8 +367,12 @@ impl<'a> FrontmatterKey<'a> {
         let starts_lowercase = characters
             .next()
             .is_some_and(|character| character.is_ascii_lowercase());
+        // Pi names its deny list `disallowed_tools`, so a key may carry an
+        // underscore as well as a hyphen.
         if starts_lowercase
-            && characters.all(|character| character.is_ascii_alphanumeric() || character == '-')
+            && characters.all(|character| {
+                character.is_ascii_alphanumeric() || matches!(character, '-' | '_')
+            })
         {
             Ok(())
         } else {

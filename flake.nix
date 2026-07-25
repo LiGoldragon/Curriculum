@@ -252,7 +252,8 @@
             while read -r source; do
               test -f "${cleanSource}/$source"
             done < <(sed -n 's/^[[:space:]]*(\([^[:space:]]*\)[[:space:]]\+\([^[:space:]]*\.md\)[[:space:]].*/\2/p' "$index")
-            if find ${cleanSource}/skills ${cleanSource}/roles -mindepth 2 -type f -name '*.md' | grep .; then
+            test ! -e ${cleanSource}/roles
+            if find ${cleanSource}/skills -mindepth 2 -type f -name '*.md' | grep .; then
               echo "active source files must not use nested directories" >&2
               exit 1
             fi
@@ -346,7 +347,7 @@
               ''
                 manifest=${cleanSource}/manifests/active-outputs.nota
                 index=${cleanSource}/manifests/module-dependencies.nota
-                if grep -R -F 'human-interaction' "$manifest" "$index" ${cleanSource}/skills ${cleanSource}/roles; then
+                if grep -R -F 'human-interaction' "$manifest" "$index" ${cleanSource}/skills; then
                   echo "human-interaction must be deleted from source manifests and active sources" >&2
                   exit 1
                 fi
@@ -364,27 +365,13 @@
           skill-designing-source-of-truth-guardrails =
             pkgs.runCommand "skills-skill-designing-source-of-truth-guardrails" { }
               ''
-                expected_skill=$TMPDIR/skill-designing.md
-                printf '%s\n' \
-                  'Write skills with brutal minimalism.' \
-                  'Descriptions say when the skill applies.' \
-                  'State unusual, impactful instructions once and directly.' \
-                  'Flag anything noisy, unclear, unsafe, or misplaced. Explain what each proposed change preserves, changes, or removes.' \
-                  > "$expected_skill"
-                expected_role=$TMPDIR/role-skill-maintainer.md
-                printf '%s\n' \
-                  'Before changing a skill, show the psyche the exact diff and get approval. A proposal is not approval.' \
-                  'Change only the approved diff.' \
-                  'Generate, verify, and report.' \
-                  > "$expected_role"
-                cmp "$expected_skill" ${cleanSource}/skills/skill-designing.md
-                cmp "$expected_role" ${cleanSource}/roles/skill-maintainer.md
                 test ! -e ${cleanSource}/skills/skill-editor.md
-                test ! -e ${cleanSource}/roles/skill-editor.md
+                test ! -e ${cleanSource}/roles
                 grep -F '(Skill (skill-designing skill-designing Workflow Mechanism [|Use when designing a skill.|]' ${cleanSource}/manifests/active-outputs.nota >/dev/null
-                grep -F '(Role (skill-maintainer role-skill-maintainer [skill-designing] [|Use when applying an approved skill change.|]' ${cleanSource}/manifests/active-outputs.nota >/dev/null
-                grep -F '(skill-maintainer [])' ${cleanSource}/manifests/role-optional-skills.nota >/dev/null
-                if grep -R -F 'skill-editor' ${cleanSource}/manifests ${cleanSource}/skills ${cleanSource}/roles; then
+                grep -Fx 'Write skills with brutal minimalism.' ${cleanSource}/skills/skill-designing.md >/dev/null
+                grep -Fx '## Cut these' ${cleanSource}/skills/skill-designing.md >/dev/null
+                grep -Fx '## Keep these' ${cleanSource}/skills/skill-designing.md >/dev/null
+                if grep -R -F 'skill-editor' ${cleanSource}/manifests ${cleanSource}/skills; then
                   echo "skill-editor must not remain in active source" >&2
                   exit 1
                 fi
@@ -399,7 +386,7 @@
                   'Use headings only when they aid navigation; never repeat the skill name.' \
                   > "$retired_lines"
                 while IFS= read -r line; do
-                  if grep -R -F -- "$line" ${cleanSource}/skills ${cleanSource}/roles ${cleanSource}/manifests; then
+                  if grep -R -F -- "$line" ${cleanSource}/skills ${cleanSource}/manifests; then
                     echo "retired skill-editor role guidance remains: $line" >&2
                     exit 1
                   fi
@@ -408,12 +395,6 @@
                 export SKILLS_SOURCE_ROOT=${cleanSource}
                 export SKILLS_WORKSPACE_ROOT="$workspace"
                 ${skillsPackage}/bin/skills ${cleanSource}/skills-generate.nota >/dev/null
-                for packet in "$workspace/.pi/agents/skill-maintainer.md" "$workspace/.claude/agents/skill-maintainer.md"; do
-                  while IFS= read -r line; do
-                    test "$(grep -Fxc "$line" "$packet")" -eq 1
-                  done < "$expected_skill"
-                  ! grep -F '## Allowed child-role roster' "$packet"
-                done
                 test ! -e "$workspace/.agents/skills/skill-editor/SKILL.md"
                 test ! -e "$workspace/.claude/skills/skill-editor/SKILL.md"
                 test ! -e "$workspace/.pi/agents/skill-editor.md"
@@ -421,49 +402,55 @@
                 test ! -e "$workspace/.codex/agents/skill-editor.toml"
                 touch "$out"
               '';
-          slim-role-composition = pkgs.runCommand "skills-slim-role-composition" { } ''
-            manifest=${cleanSource}/manifests/active-outputs.nota
-            if grep -F '(Role (' "$manifest" | grep -E '\[[^]]*(spirit-query|nota-design)[^]]*\]'; then
-              echo "roles must not preload broad Spirit or NOTA runtime skills" >&2
+          role-cross-product-manifests = pkgs.runCommand "skills-role-cross-product-manifests" { } ''
+            permissions=${cleanSource}/manifests/role-permissions.nota
+            depths=${cleanSource}/manifests/role-depths.nota
+            descriptions=${cleanSource}/manifests/role-descriptions.nota
+            catalog=${cleanSource}/manifests/model-catalog.nota
+            for retired in \
+              manifests/role-model-assignments.nota \
+              manifests/role-model-profiles.nota \
+              manifests/role-optional-skills.nota \
+              manifests/nested-role-relations.nota; do
+              test ! -e "${cleanSource}/$retired"
+            done
+            grep -F '(read [|Do not edit files, commit, or push. Fetching, cloning, and tool queries are fine.|] Restricted)' "$permissions" >/dev/null
+            grep -F '(write [] Unrestricted)' "$permissions" >/dev/null
+            grep -F '(claude-haiku-4-5 Claude [])' "$catalog" >/dev/null
+            grep -F '(trivial (claude-haiku-4-5 None) (gpt-5.6-luna (Some Low)))' "$depths" >/dev/null
+            grep -F '(critical (claude-opus-5 (Some High)) (gpt-5.6-sol (Some Medium)))' "$depths" >/dev/null
+            test "$(grep -c '^  (' "$descriptions")" -eq 8
+            if grep -F '(Role (' ${cleanSource}/manifests/active-outputs.nota; then
+              echo "roles are generated from the permission-by-depth cross product, not listed as active outputs" >&2
               exit 1
             fi
-            grep -F '(Role (intent-recorder role-intent-recorder [spirit-submission]' "$manifest" >/dev/null
-            grep -Fx '[general-instructions tenets]' ${cleanSource}/manifests/universal-role-modules.nota >/dev/null
-            ! grep -F '(Role (manager ' "$manifest"
-            touch "$out"
-          '';
-          role-profile-manifests = pkgs.runCommand "skills-role-profile-manifests" { } ''
-            model_catalog=${cleanSource}/manifests/model-catalog.nota
-            profile_catalog=${cleanSource}/manifests/role-model-profiles.nota
-            role_assignments=${cleanSource}/manifests/role-model-assignments.nota
-            grep -F '(ChatGpt (gpt-5.6-sol openai-codex [(Medium 50) (High 60)]))' "$model_catalog" >/dev/null
-            grep -F '(ChatGpt (gpt-5.6-terra openai-codex [(Medium 20) (High 30) (Xhigh 40)]))' "$model_catalog" >/dev/null
-            grep -F '(Claude (fable-5 [(Medium 50) (High 60)]))' "$model_catalog" >/dev/null
-            grep -F '(Claude (claude-opus-5 [(High 30) (Xhigh 40)]))' "$model_catalog" >/dev/null
-            grep -F '(Claude (claude-sonnet-5 [(Medium 10)]))' "$model_catalog" >/dev/null
-            grep -F '(Direct (generalist (gpt-5.6-terra Xhigh) (claude-opus-5 High)))' "$role_assignments" >/dev/null
-            grep -F '(Direct (intent-translator (gpt-5.6-terra Xhigh) (claude-opus-5 Xhigh)))' "$role_assignments" >/dev/null
-            grep -F '(Direct (operating-system-implementer (gpt-5.6-terra Xhigh) (claude-opus-5 High)))' "$role_assignments" >/dev/null
-            grep -F '(Direct (skill-maintainer (gpt-5.6-terra Xhigh) (claude-opus-5 Xhigh)))' "$role_assignments" >/dev/null
-            grep -F '(Direct (intent-curator (gpt-5.6-terra Xhigh) (claude-opus-5 Xhigh)))' "$role_assignments" >/dev/null
-            grep -F '(Direct (intent-recorder (gpt-5.6-luna Medium) (claude-sonnet-5 Medium)))' "$role_assignments" >/dev/null
-            grep -F '(Direct (scout (gpt-5.6-luna Medium) (claude-sonnet-5 Medium)))' "$role_assignments" >/dev/null
-            grep -F '(Direct (repository-closeout (gpt-5.6-luna Medium) (claude-sonnet-5 Medium)))' "$role_assignments" >/dev/null
-            grep -F '(minimalFastEconomical (gpt-5.6-luna Medium) (claude-sonnet-5 Medium))' "$profile_catalog" >/dev/null
-            grep -F '(Profile (trivial-task minimalFastEconomical))' "$role_assignments" >/dev/null
-            ! grep -F 'gpt-5.6-luna' ${cleanSource}/roles/trivial-task.md
-            ! grep -F 'claude-sonnet-5' ${cleanSource}/roles/trivial-task.md
-            if grep -R -F 'claude-sonnet-4-6' ${cleanSource}/manifests; then
-              echo "Claude Sonnet roles must not regress to Sonnet 4.6" >&2
-              exit 1
-            fi
-            ! grep -F '(manager ' ${cleanSource}/manifests/role-optional-skills.nota
+            workspace=$TMPDIR/workspace
+            export SKILLS_SOURCE_ROOT=${cleanSource}
+            export SKILLS_WORKSPACE_ROOT="$workspace"
+            ${skillsPackage}/bin/skills ${cleanSource}/skills-generate.nota >/dev/null
+            for permission in read write; do
+              for depth in trivial ordinary demanding critical; do
+                test -f "$workspace/.claude/agents/$permission-$depth.md"
+                test -f "$workspace/.codex/agents/$permission-$depth.toml"
+                test -f "$workspace/.pi/agents/$permission-$depth.md"
+              done
+            done
+            for depth in trivial ordinary demanding critical; do
+              grep -F 'disallowedTools' "$workspace/.claude/agents/read-$depth.md" >/dev/null
+              grep -F 'Edit, Write, NotebookEdit' "$workspace/.claude/agents/read-$depth.md" >/dev/null
+              grep -F 'disallowed_tools' "$workspace/.pi/agents/read-$depth.md" >/dev/null
+              grep -F 'edit, write' "$workspace/.pi/agents/read-$depth.md" >/dev/null
+              ! grep -F 'disallowedTools' "$workspace/.claude/agents/write-$depth.md"
+              ! grep -F 'disallowed_tools' "$workspace/.pi/agents/write-$depth.md"
+            done
+            ! grep -F 'effort:' "$workspace/.claude/agents/read-trivial.md"
+            grep -Fx 'model: claude-haiku-4-5' "$workspace/.claude/agents/read-trivial.md" >/dev/null
             touch "$out"
           '';
           active-appellations = pkgs.runCommand "skills-active-appellations" { } ''
             manifest=${cleanSource}/manifests/active-outputs.nota
             index=${cleanSource}/manifests/module-dependencies.nota
-            for required in component-architecture design-quality version-control work-tracking management psyche-interraction tenets skill-designing generalist intent-recorder intent-curator repository-closeout tracker-weaver skill-maintainer trivial-task; do
+            for required in component-architecture version-control work-tracking management psyche-interraction psyche-vision tenets skill-designing documentation-placement; do
               grep -F "$required" "$manifest" >/dev/null || {
                 echo "$required must be present in active output manifest" >&2
                 exit 1
@@ -476,14 +463,14 @@
               echo "orchestration must not be an active skill output" >&2
               exit 1
             fi
-            for retired in component-triad beauty 'Skill (jj ' 'Skill (beads ' human-interaction 'Role (orchestrator ' intent-maintainer repo-operator weave-operator skill-editor role-skill-editor; do
+            for retired in component-triad beauty 'Skill (jj ' 'Skill (beads ' human-interaction 'Skill (design-quality ' 'Skill (privacy ' 'Skill (secrets ' 'Skill (prose ' 'Skill (reporting ' 'Skill (mermaid ' 'Skill (repo-intent ' 'Skill (spirit-query ' 'Skill (spirit-cli ' 'Skill (push-not-pull ' 'Skill (micro-components ' skill-editor; do
               if grep -F "$retired" "$manifest"; then
                 echo "$retired must not be an active output appellation" >&2
                 exit 1
               fi
             done
             for retired_title in 'Repo Operator' 'Weave Operator' 'Intent Maintainer'; do
-              if grep -R -F "$retired_title" ${cleanSource}/roles ${cleanSource}/skills; then
+              if grep -R -F "$retired_title" ${cleanSource}/skills; then
                 echo "$retired_title must not appear as active current-destination prose" >&2
                 exit 1
               fi
