@@ -320,7 +320,7 @@
               test ! -e "$retired"
             done
             for packet in "$workspace"/.claude/agents/*.md "$workspace"/.codex/agents/*.toml "$workspace"/.pi/agents/*.md; do
-              test "$(grep -Fxc "Never pretend to know what you don't know; admit you don't know." "$packet")" -eq 1
+              test "$(grep -oF "Never pretend to know what you don't know; admit you don't know." "$packet" | wc -l)" -eq 1
             done
             ! grep -F 'Use the fewest words that preserve the answer.' "$workspace/.agents/skills/psyche-interraction/SKILL.md"
             grep -F 'Use the fewest words that preserve the answer.' "$workspace/.claude/skills/psyche-interraction/SKILL.md" >/dev/null
