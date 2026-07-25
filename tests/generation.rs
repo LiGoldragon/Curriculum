@@ -586,7 +586,7 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
             .iter()
             .map(|module| module.as_ref())
             .collect::<Vec<_>>(),
-        ["tenets"]
+        Vec::<&str>::new()
     );
     let psyche_interraction_dependency = module_dependencies
         .payload()
@@ -600,7 +600,7 @@ fn active_manifest_and_module_index_cover_current_skills_and_roles() {
             .iter()
             .map(|module| module.as_ref())
             .collect::<Vec<_>>(),
-        ["tenets"]
+        Vec::<&str>::new()
     );
     assert_eq!(skill_module_compositions.payload().len(), 1);
     let psyche_interraction_composition = skill_module_compositions
@@ -891,7 +891,7 @@ Include only the references needed to resume the thread.\n";
             .iter()
             .map(|module| module.as_ref())
             .collect::<Vec<_>>(),
-        ["tenets"]
+        Vec::<&str>::new()
     );
     assert!(manifest_text.contains("(Skill (context-handover context-handover Meta Mechanism"));
     assert!(
@@ -1089,11 +1089,11 @@ Generate, verify, and report.\n";
 
 #[test]
 fn manager_surfaces_are_retired_while_historical_modules_remain_inactive() {
-    const MANAGEMENT: &str = "Delegate assigned work to child workers.\n\
-Poll until they finish.\n\
-Keep observations, hypotheses, and unknowns distinct.\n\
-Return unresolved authority, safety, privacy, or scope to the caller.\n\
-Return a concise synthesis to the caller.\n";
+    const MANAGEMENT: &str = "Reserve your context for managing subagents.\n\
+Use no tools except subagent coordination.\n\
+Delegate all task work.\n\
+Never block on subagents.\n\
+Return a synthesis to the caller.\n";
     const TENETS: &str = "## Central\nNever pretend to know what you don't know; admit you don't know.\n## Evidence\nKeep observations, hypotheses, and unknowns separate.\nKeep unknown causes unknown.\nSeek disconfirming evidence.\nDo not seed audits with suspected conclusions.\nWeigh evidence by origin, not repetition.\n";
 
     assert_eq!(include_str!("../skills/management.md"), MANAGEMENT);
@@ -1157,11 +1157,22 @@ Return a concise synthesis to the caller.\n";
         assert!(
             output.contains("description: 'Use when coordinating delegated work for a caller.'")
         );
-        assert_eq!(output.matches(TENETS).count(), 1, "{path} has tenets once");
-        assert_eq!(
-            output.matches(MANAGEMENT).count(),
-            1,
-            "{path} has management once"
+        assert!(!output.contains(TENETS), "{path} keeps tenets separate");
+        assert!(
+            output.ends_with(MANAGEMENT),
+            "{path} has only management body"
+        );
+        assert!(!output.contains("\n## "), "{path} has no body headings");
+        for management_line in MANAGEMENT.lines() {
+            assert_eq!(
+                output.matches(management_line).count(),
+                1,
+                "{path} has `{management_line}` once"
+            );
+        }
+        assert!(
+            !output.contains("Poll until they finish."),
+            "{path} has no polling rule"
         );
     }
 
@@ -1201,13 +1212,14 @@ Return a concise synthesis to the caller.\n";
 }
 
 #[test]
-fn management_is_caller_scoped_and_has_no_psyche_interaction_doctrine() {
+fn management_is_subagent_scoped_and_has_no_psyche_interaction_doctrine() {
     let management = include_str!("../skills/management.md");
     for required in [
-        "Delegate assigned work to child workers.",
-        "Poll until they finish.",
-        "Return unresolved authority, safety, privacy, or scope to the caller.",
-        "Return a concise synthesis to the caller.",
+        "Reserve your context for managing subagents.",
+        "Use no tools except subagent coordination.",
+        "Delegate all task work.",
+        "Never block on subagents.",
+        "Return a synthesis to the caller.",
     ] {
         assert!(
             management.contains(required),
@@ -1218,6 +1230,8 @@ fn management_is_caller_scoped_and_has_no_psyche_interaction_doctrine() {
         "Align with the psyche’s vision.",
         "Ask the psyche *until the vision is clear.*",
         "Never wait for subagents; they report asynchronously.",
+        "Poll until they finish.",
+        "Never pretend to know what you don't know; admit you don't know.",
     ] {
         assert!(
             !management.contains(excluded),
@@ -1345,13 +1359,13 @@ fn psyche_interraction_claude_briefness_is_typed_and_target_scoped() {
     assert!(!agents.contains(CLAUDE_BRIEFNESS));
     assert!(claude.contains(CLAUDE_BRIEFNESS));
     for output in [&agents, &claude] {
-        assert_eq!(
-            output
-                .matches("Never pretend to know what you don't know; admit you don't know.")
-                .count(),
-            1,
-            "psyche interaction direct loading includes tenets once"
+        assert!(
+            !output.contains("Never pretend to know what you don't know; admit you don't know."),
+            "psyche interaction keeps tenets separate"
         );
+        assert!(output.contains("Preserve approved meaning until the psyche changes it."));
+        assert!(!output.contains("Keep the last approved wording as the current draft."));
+        assert!(!output.contains("Apply clarifications by changing only the clause they address."));
     }
     assert!(
         claude.find(CENTRAL).expect("central emitted")

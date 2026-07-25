@@ -279,18 +279,18 @@
             test -f "$handover"
             expected_management=$TMPDIR/management
             printf '%s\n' \
-              'Delegate assigned work to child workers.' \
-              'Poll until they finish.' \
-              'Keep observations, hypotheses, and unknowns distinct.' \
-              'Return unresolved authority, safety, privacy, or scope to the caller.' \
-              'Return a concise synthesis to the caller.' \
+              'Reserve your context for managing subagents.' \
+              'Use no tools except subagent coordination.' \
+              'Delegate all task work.' \
+              'Never block on subagents.' \
+              'Return a synthesis to the caller.' \
               > "$expected_management"
             cmp "$management" "$expected_management"
             grep -F '(Skill (management management Meta Mechanism [|Use when coordinating delegated work for a caller.|] [AgentsSkill ClaudeSkill]))' "$manifest" >/dev/null
             grep -F '(Skill (psyche-interraction psyche-interraction Meta Mechanism [|Use when interacting directly with the psyche.|] [AgentsSkill ClaudeSkill]))' "$manifest" >/dev/null
             grep -F '(Skill (tenets tenets Meta Mechanism [|Use in every agent task.|] [AgentsSkill ClaudeSkill]))' "$manifest" >/dev/null
-            grep -F '(management skills/management.md [tenets] RuntimeSkill)' "$index" >/dev/null
-            grep -F '(psyche-interraction skills/psyche-interraction.md [tenets] RuntimeSkill)' "$index" >/dev/null
+            grep -F '(management skills/management.md [] RuntimeSkill)' "$index" >/dev/null
+            grep -F '(psyche-interraction skills/psyche-interraction.md [] RuntimeSkill)' "$index" >/dev/null
             grep -F '(psyche-interraction-claude-briefness skills/psyche-interraction-claude-briefness.md [] RuntimeSkill)' "$index" >/dev/null
             grep -F '(psyche-interraction-continuation skills/psyche-interraction-continuation.md [] RuntimeSkill)' "$index" >/dev/null
             grep -F '(tenets skills/tenets.md [] RuntimeSkill)' "$index" >/dev/null
@@ -322,8 +322,23 @@
             for packet in "$workspace"/.claude/agents/*.md "$workspace"/.codex/agents/*.toml "$workspace"/.pi/agents/*.md; do
               test "$(grep -oF "Never pretend to know what you don't know; admit you don't know." "$packet" | wc -l)" -eq 1
             done
+            for output in "$workspace/.agents/skills/management/SKILL.md" "$workspace/.claude/skills/management/SKILL.md"; do
+              grep -F 'Reserve your context for managing subagents.' "$output" >/dev/null
+              grep -F 'Use no tools except subagent coordination.' "$output" >/dev/null
+              grep -F 'Delegate all task work.' "$output" >/dev/null
+              grep -F 'Never block on subagents.' "$output" >/dev/null
+              grep -F 'Return a synthesis to the caller.' "$output" >/dev/null
+              ! grep -F 'Poll until they finish.' "$output"
+              ! grep -F "Never pretend to know what you don't know; admit you don't know." "$output"
+            done
             ! grep -F 'Use the fewest words that preserve the answer.' "$workspace/.agents/skills/psyche-interraction/SKILL.md"
             grep -F 'Use the fewest words that preserve the answer.' "$workspace/.claude/skills/psyche-interraction/SKILL.md" >/dev/null
+            for output in "$workspace/.agents/skills/psyche-interraction/SKILL.md" "$workspace/.claude/skills/psyche-interraction/SKILL.md"; do
+              grep -F 'Preserve approved meaning until the psyche changes it.' "$output" >/dev/null
+              ! grep -F 'Keep the last approved wording as the current draft.' "$output"
+              ! grep -F 'Apply clarifications by changing only the clause they address.' "$output"
+              ! grep -F "Never pretend to know what you don't know; admit you don't know." "$output"
+            done
             touch "$out"
           '';
           human-interaction-removed-from-active-and-generated =

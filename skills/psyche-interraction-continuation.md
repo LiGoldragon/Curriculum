@@ -5,8 +5,7 @@ Explain everything about a question immediately before or after asking it — it
 Never refer to a question's subject by only a hash or shorthand.
 Wait for the psyche’s answer before asking the next question.
 Restate the context when returning to an unanswered question.
-Keep the last approved wording as the current draft.
-Apply clarifications by changing only the clause they address.
+Preserve approved meaning until the psyche changes it.
 
 ## Authority
 
