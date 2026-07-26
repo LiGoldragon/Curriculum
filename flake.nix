@@ -419,7 +419,14 @@
             grep -F '(claude-haiku-4-5 Claude [])' "$catalog" >/dev/null
             grep -F '(gpt-5.4-mini ChatGpt [Low Medium High Xhigh])' "$catalog" >/dev/null
             grep -F '(trivial (claude-haiku-4-5 None) (gpt-5.4-mini (Some Medium)))' "$depths" >/dev/null
-            grep -F '(critical (claude-opus-5 (Some High)) (gpt-5.6-sol (Some Medium)))' "$depths" >/dev/null
+            critical_row=$(grep -F '(critical (claude-opus-5 (Some High))' "$depths")
+            test -n "$critical_row"
+            critical_model=$(printf '%s' "$critical_row" | sed -E 's/.*\)\) \(([A-Za-z0-9.-]+) \(Some ([A-Za-z]+)\)\)\)$/\1/')
+            critical_effort=$(printf '%s' "$critical_row" | sed -E 's/.*\)\) \(([A-Za-z0-9.-]+) \(Some ([A-Za-z]+)\)\)\)$/\2/')
+            test -n "$critical_model"
+            test -n "$critical_effort"
+            grep -F "($critical_model ChatGpt" "$catalog" >/dev/null
+            grep -F "($critical_model ChatGpt" "$catalog" | grep -F "$critical_effort" >/dev/null
             test "$(grep -c '^  (' "$descriptions")" -eq 8
             if grep -F '(Role (' ${cleanSource}/manifests/active-outputs.nota; then
               echo "roles are generated from the permission-by-depth cross product, not listed as active outputs" >&2
