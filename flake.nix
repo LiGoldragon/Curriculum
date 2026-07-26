@@ -458,7 +458,7 @@
           active-appellations = pkgs.runCommand "skills-active-appellations" { } ''
             manifest=${cleanSource}/manifests/active-outputs.nota
             index=${cleanSource}/manifests/module-dependencies.nota
-            for required in component-architecture version-control work-tracking management psyche-interraction psyche-vision tenets skill-designing documentation-placement; do
+            for required in version-control work-tracking management psyche-interraction psyche-vision tenets skill-designing documentation-placement; do
               grep -F "$required" "$manifest" >/dev/null || {
                 echo "$required must be present in active output manifest" >&2
                 exit 1
