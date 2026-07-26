@@ -243,10 +243,9 @@ fn generation_fails_on_duplicate_headings() {
 
 #[test]
 fn repository_visibility_doctrine_defaults_public_without_weakening_privacy() {
-    let publication = include_str!("../skills/repository-publication.md");
-    let management = include_str!("../skills/repository-management.md");
-    assert!(publication.contains("Do not publish private material"));
-    assert!(management.contains("public visibility as default"));
+    let lifecycle = include_str!("../skills/repository-lifecycle.md");
+    assert!(lifecycle.contains("Do not publish private material"));
+    assert!(lifecycle.contains("public visibility as default"));
 }
 
 #[test]
