@@ -10,6 +10,7 @@ use pulldown_cmark::{Event, HeadingLevel, Parser, Tag, TagEnd};
 use crate::{
     error::{Error, Result},
     schema::assembly::{FrontmatterEntry, OutputSurface},
+    template::{RenderTarget, TargetTemplate},
     workspace_path::WorkspacePath,
 };
 
@@ -86,14 +87,19 @@ impl MarkdownFragment {
         }
     }
 
-    pub fn read(path: WorkspacePath) -> Result<Self> {
+    /// Read a source fragment and resolve its target conditionals.
+    ///
+    /// A fragment with no conditional is read verbatim, so templating cannot
+    /// change any output that does not ask for it.
+    pub fn read(path: WorkspacePath, target: RenderTarget) -> Result<Self> {
         let full_path = path.full_path();
-        fs::read_to_string(&full_path)
-            .map(|text| Self { path, text })
-            .map_err(|source| Error::ReadFile {
-                path: full_path,
-                source,
-            })
+        let source = fs::read_to_string(&full_path).map_err(|source| Error::ReadFile {
+            path: full_path,
+            source,
+        })?;
+        let source_path = path.relative_path().to_string_lossy().into_owned();
+        let text = TargetTemplate::new(&source_path, &source).render(target)?;
+        Ok(Self { path, text })
     }
 
     pub fn normalized_text(

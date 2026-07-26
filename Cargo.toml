@@ -19,6 +19,7 @@ default = ["nota-text"]
 nota-text = []
 
 [dependencies]
+minijinja = "2"
 nota = { package = "nota", git = "https://github.com/LiGoldragon/nota.git", branch = "main" }
 pulldown-cmark = "0.13"
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }

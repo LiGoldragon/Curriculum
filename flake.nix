@@ -283,8 +283,15 @@
               'Reserve your context for managing subagents.' \
               'Use no tools except subagent coordination.' \
               'Delegate all task work.' \
-              'Never block on subagents.' \
+              'Do other work while agents run.' \
               'Return a synthesis to the caller.' \
+              "" \
+              '{% if codex %}' \
+              'Keep a wait active while agents run; you are resumed only through it.' \
+              'Pass the longest timeout the wait accepts. Omitting it defaults to thirty seconds.' \
+              'A psyche message interrupts the wait immediately, so a long wait costs no responsiveness.' \
+              'Say nothing when a wait returns with nothing finished.' \
+              '{% endif %}' \
               > "$expected_management"
             cmp "$management" "$expected_management"
             grep -F '(Skill (management management Meta Mechanism [|Use when coordinating delegated work for a caller.|] [AgentsSkill ClaudeSkill]))' "$manifest" >/dev/null
@@ -327,10 +334,24 @@
               grep -F 'Reserve your context for managing subagents.' "$output" >/dev/null
               grep -F 'Use no tools except subagent coordination.' "$output" >/dev/null
               grep -F 'Delegate all task work.' "$output" >/dev/null
-              grep -F 'Never block on subagents.' "$output" >/dev/null
+              grep -F 'Do other work while agents run.' "$output" >/dev/null
               grep -F 'Return a synthesis to the caller.' "$output" >/dev/null
+              ! grep -F 'Never block on subagents.' "$output"
               ! grep -F 'Poll until they finish.' "$output"
               ! grep -F "Never pretend to know what you don't know; admit you don't know." "$output"
+            done
+            codex_wait_lines=(
+              'Keep a wait active while agents run; you are resumed only through it.'
+              'Pass the longest timeout the wait accepts. Omitting it defaults to thirty seconds.'
+              'A psyche message interrupts the wait immediately, so a long wait costs no responsiveness.'
+              'Say nothing when a wait returns with nothing finished.'
+            )
+            for wait_line in "''${codex_wait_lines[@]}"; do
+              grep -F "$wait_line" "$workspace/.agents/skills/management/SKILL.md" >/dev/null
+              ! grep -F "$wait_line" "$workspace/.claude/skills/management/SKILL.md"
+              for packet in "$workspace"/.claude/agents/*.md "$workspace"/.pi/agents/*.md "$workspace"/.codex/agents/*.toml; do
+                ! grep -F "$wait_line" "$packet"
+              done
             done
             ! grep -F 'Use the fewest words that preserve the answer.' "$workspace/.agents/skills/psyche-interraction/SKILL.md"
             grep -F 'Use the fewest words that preserve the answer.' "$workspace/.claude/skills/psyche-interraction/SKILL.md" >/dev/null

@@ -33,11 +33,41 @@ workers do not discover doctrine through a runtime index.
 - `schema/assembly.schema`: schema-authored generator interface source.
 - `src/schema/assembly.rs`: generated Rust interface from `schema/assembly.schema`.
 
+## Target Conditionals
+
+A flat source may gate lines on the harness the output is rendered for:
+
+```
+{% if codex %}
+Codex-only line.
+{% endif %}
+```
+
+The grammar is closed. Only `{% if <target> %}`, `{% else %}`, and
+`{% endif %}` are accepted, each alone on its own line apart from indentation,
+where `<target>` is `claude`, `codex`, or `pi`. Expressions, filters, loops,
+`{{ }}`, includes, and `{% raw %}` are rejected before rendering, and an unknown
+target name fails generation naming the file, the line, and the known targets.
+Rendering runs with `UndefinedBehavior::Strict`.
+
+Target is one value per output surface rather than a set of flags, so exactly one
+target is true in every render by construction. A fragment containing no brace is
+read verbatim, so a source without a conditional cannot change through templating.
+
+Because a stray space defeats a marker scan — `{ % if codex % }` is not a tag and
+would ship to an agent as doctrine — generation fails if any brace survives into
+a generated file. Consequently no source may contain a brace outside the
+conditional grammar, including inside fenced code blocks. This document and
+`AGENTS.md` are not generated outputs and carry the syntax instead.
+
 ## Output Targets
 
 Skill targets:
 
-- `AgentsSkill`: `.agents/skills/<name>/SKILL.md`, shared by Pi and Codex.
+- `AgentsSkill`: `.agents/skills/<name>/SKILL.md`, shared by Pi and Codex, and
+  rendered for Codex. A Codex-only block on this surface therefore also reaches
+  Pi, which is accepted only while Pi is unused; a returning Pi needs its own
+  skill destination.
 - `ClaudeSkill`: `.claude/skills/<name>/SKILL.md`.
 
 Role targets, where `<role>` is `<permission>-<depth>`:
@@ -128,6 +158,7 @@ Removed active sources have no archive or compatibility model.
 
 - `src/assembly.rs`: manifest loading, validation, module expansion, generated output planning, cleanup inventory, and rendering coordination.
 - `src/markdown.rs`: markdown normalization and relative-link rebasing.
+- `src/template.rs`: render targets, the closed conditional grammar, and blank-line collapse.
 - `src/schema/assembly.rs`: generated Rust schema interface.
 - `tests/generation.rs`: generation, stale cleanup, manifest, dependency, and validation witnesses.
 

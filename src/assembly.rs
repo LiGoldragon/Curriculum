@@ -24,6 +24,7 @@ use crate::{
         TargetModuleInsertions, TargetSurface, ToolRestriction, UniversalRoleModules,
         VisualizationReport, VisualizationRequest,
     },
+    template::RenderTarget,
     trunk_guard::TrunkDescendantGuard,
     workspace_path::WorkspacePath,
 };
@@ -1443,12 +1444,60 @@ impl OutputSurface {
         }
     }
 
+    /// The harness this surface's target conditionals render for.
+    ///
+    /// `AgentsSkill` renders for Codex. Pi natively scans `.agents/skills` as
+    /// well, so a Codex-only block on this surface also reaches Pi. That is
+    /// accepted only while Pi is unused; a returning Pi needs its own skill
+    /// destination before any further Codex-only skill content is added.
+    fn render_target(&self) -> RenderTarget {
+        match self {
+            Self::ClaudeSkill | Self::ClaudeAgent => RenderTarget::Claude,
+            Self::AgentsSkill | Self::CodexAgent => RenderTarget::Codex,
+            Self::PiAgent => RenderTarget::Pi,
+            Self::Workspace => unreachable!("no manifest renders a workspace surface"),
+        }
+    }
+
     fn is_skill(&self) -> bool {
         matches!(self, Self::AgentsSkill | Self::ClaudeSkill)
     }
 
     fn is_role(&self) -> bool {
         matches!(self, Self::ClaudeAgent | Self::CodexAgent | Self::PiAgent)
+    }
+}
+
+/// A fully rendered output that must reach the workspace with no brace in it.
+///
+/// The check is brace-level rather than a scan for the six Jinja markers,
+/// because the dangerous case is the near miss: `{ % if codex % }` is not a tag,
+/// so it renders as literal text and would ship a conditional to an agent as
+/// doctrine while containing no `{%`. No source or generated file carries a
+/// brace today, so the cost of the stricter rule is nothing and the guarantee
+/// is total.
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct BraceFreeOutput<'a> {
+    path: PathBuf,
+    text: &'a str,
+}
+
+impl<'a> BraceFreeOutput<'a> {
+    fn new(path: PathBuf, text: &'a str) -> Self {
+        Self { path, text }
+    }
+
+    fn validate(&self) -> Result<()> {
+        for (index, line) in self.text.lines().enumerate() {
+            if line.contains(['{', '}']) {
+                return Err(Error::TemplateLeak {
+                    path: self.path.clone(),
+                    line: index + 1,
+                    line_text: line.to_owned(),
+                });
+            }
+        }
+        Ok(())
     }
 }
 
@@ -1621,13 +1670,15 @@ impl ManifestAssembler {
     }
 
     fn render(&self, output_path: &WorkspacePath) -> Result<String> {
-        match self.manifest.output_kind {
-            OutputKind::Markdown => self.render_markdown(output_path),
-            OutputKind::Toml => self.render_toml(output_path),
+        let rendered = match self.manifest.output_kind {
+            OutputKind::Markdown => self.render_markdown(output_path)?,
+            OutputKind::Toml => self.render_toml(output_path)?,
             OutputKind::Nota => {
                 unreachable!("derived NOTA outputs render without module manifests")
             }
-        }
+        };
+        BraceFreeOutput::new(output_path.full_path(), &rendered).validate()?;
+        Ok(rendered)
     }
 
     fn render_markdown(&self, output_path: &WorkspacePath) -> Result<String> {
@@ -1685,9 +1736,11 @@ impl ManifestAssembler {
                 text,
             ));
         }
+        let target = self.manifest.output_surface.render_target();
         for module_path in self.manifest.modules.payload() {
             fragments.push(MarkdownFragment::read(
                 self.module_workspace_path(module_path)?,
+                target,
             )?);
         }
         Ok(fragments)
