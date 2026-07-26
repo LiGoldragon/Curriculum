@@ -53,6 +53,7 @@
   (Skill (tenets tenets Meta Mechanism [|Use in every agent task.|] [AgentsSkill ClaudeSkill]))
   (Skill (context-handover context-handover Meta Mechanism [|Use when carrying the psyche's vision into another session.|] [AgentsSkill ClaudeSkill]))
   (Skill (intent-log intent-log Meta Topic [|Intent log rules.|] [AgentsSkill ClaudeSkill]))
+  (Skill (design-log design-log Meta Mechanism [|Use when psyche design words accumulate across a train.|] [AgentsSkill ClaudeSkill]))
   (Skill (main-feature-integration main-feature-integration Workflow Mechanism [|Main feature integration rules.|] [AgentsSkill ClaudeSkill]))
   (Skill (protos-syntax protos-syntax Architecture Topic [|Protos syntax rules.|] [AgentsSkill ClaudeSkill]))
 ]

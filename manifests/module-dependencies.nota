@@ -70,6 +70,7 @@
   (codex-skill-loading skills/codex-skill-loading.md [] RoleComposition)
   (context-handover skills/context-handover.md [] RuntimeSkill)
   (intent-log skills/intent-log.md [] RuntimeSkill)
+  (design-log skills/design-log.md [] RuntimeSkill)
   (main-feature-integration skills/main-feature-integration.md [] RuntimeSkill)
   (protos-syntax skills/protos-syntax.md [] RuntimeSkill)
   (nixos-vm-testing skills/nixos-vm-testing.md [] RoleComposition)
