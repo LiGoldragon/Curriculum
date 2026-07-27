@@ -46,7 +46,7 @@ fn generation_writes_derived_skill_surfaces_with_manifest_frontmatter() {
     fixture.write_default_manifest();
     fixture.write_source_file(
         "skills/example.md",
-        "---\nname: stale\n---\n\n# Skill — example\n\n## Rule\n\nKeep the prose.\n",
+        "---\nname: stale\ndescription: Example skill.\n---\n\n# Skill — example\n\n## Rule\n\nKeep the prose.\n",
     );
 
     let report = fixture
@@ -81,7 +81,7 @@ fn generation_allows_fenced_frontmatter_examples_inside_modules() {
     fixture.write_default_manifest();
     fixture.write_source_file(
         "skills/example.md",
-        "# Skill — example\n\n## Rule\n\n```markdown\n---\nname: example\n---\n```\n",
+        "---\ndescription: Example skill.\n---\n\n# Skill — example\n\n## Rule\n\n```markdown\n---\nname: example\n---\n```\n",
     );
 
     fixture
@@ -99,7 +99,7 @@ fn generation_rejects_second_unfenced_frontmatter_delimiter_in_skill() {
     fixture.write_default_manifest();
     fixture.write_source_file(
         "skills/example.md",
-        "# Skill — example\n\n## Rule\n\n---\n\nKeep the prose.\n",
+        "---\ndescription: Example skill.\n---\n\n# Skill — example\n\n## Rule\n\n---\n\nKeep the prose.\n",
     );
 
     let error = fixture
@@ -118,7 +118,7 @@ fn generation_does_not_rebase_link_syntax_inside_code_spans() {
     fixture.write_default_manifest();
     fixture.write_source_file(
         "skills/example.md",
-        "# Skill — example\n\n## Rule\n\nUse `[text](url)` only as a literal example.\n",
+        "---\ndescription: Example skill.\n---\n\n# Skill — example\n\n## Rule\n\nUse `[text](url)` only as a literal example.\n",
     );
 
     fixture
@@ -133,7 +133,10 @@ fn generation_does_not_rebase_link_syntax_inside_code_spans() {
 fn generation_allows_zero_or_one_title_and_rejects_multiple_titles() {
     let zero_title = Fixture::new();
     zero_title.write_default_manifest();
-    zero_title.write_source_file("skills/example.md", "No title.\n");
+    zero_title.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example skill.\n---\n\nNo title.\n",
+    );
     zero_title
         .generate(GenerationMode::Write)
         .expect("zero titles generate");
@@ -144,7 +147,10 @@ fn generation_allows_zero_or_one_title_and_rejects_multiple_titles() {
 
     let one_title = Fixture::new();
     one_title.write_default_manifest();
-    one_title.write_source_file("skills/example.md", "# Skill — example\n\nOne title.\n");
+    one_title.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example skill.\n---\n\n# Skill — example\n\nOne title.\n",
+    );
     one_title
         .generate(GenerationMode::Write)
         .expect("one title generates");
@@ -156,7 +162,10 @@ fn generation_allows_zero_or_one_title_and_rejects_multiple_titles() {
 
     let multiple_titles = Fixture::new();
     multiple_titles.write_default_manifest();
-    multiple_titles.write_source_file("skills/example.md", "# First\n\n# Second\n");
+    multiple_titles.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example skill.\n---\n\n# First\n\n# Second\n",
+    );
     let error = multiple_titles
         .generate(GenerationMode::Write)
         .expect_err("multiple titles fail");
@@ -231,7 +240,7 @@ fn generation_fails_on_duplicate_headings() {
     fixture.write_default_manifest();
     fixture.write_source_file(
         "skills/example.md",
-        "# Skill — example\n\n## Repeat\n\nFirst.\n\n## Repeat\n\nSecond.\n",
+        "---\ndescription: Example skill.\n---\n\n# Skill — example\n\n## Repeat\n\nFirst.\n\n## Repeat\n\nSecond.\n",
     );
 
     let error = fixture
@@ -282,47 +291,12 @@ fn management_is_subagent_scoped_and_has_no_psyche_interaction_doctrine() {
 #[test]
 fn harness_api_fields_do_not_leak_into_general_management_doctrine() {
     let fields = ["turnBudget", "toolBudget", "timeoutMs", "maxRuntimeMs"];
-    for (name, source) in [
-        ("management", include_str!("../skills/management.md")),
-        (
-            "manager-boundary",
-            include_str!("../skills/manager-boundary.md"),
-        ),
-        (
-            "manager-intent-classification",
-            include_str!("../skills/manager-intent-classification.md"),
-        ),
-        (
-            "manager-safeguards",
-            include_str!("../skills/manager-safeguards.md"),
-        ),
-        (
-            "manager-dispatch",
-            include_str!("../skills/manager-dispatch.md"),
-        ),
-        (
-            "manager-liveness",
-            include_str!("../skills/manager-liveness.md"),
-        ),
-        (
-            "manager-decisions",
-            include_str!("../skills/manager-decisions.md"),
-        ),
-        (
-            "manager-communication",
-            include_str!("../skills/manager-communication.md"),
-        ),
-        (
-            "manager-synthesis",
-            include_str!("../skills/manager-synthesis.md"),
-        ),
-    ] {
-        for field in fields {
-            assert!(
-                !source.contains(field),
-                "general {name} doctrine leaks harness API field {field}"
-            );
-        }
+    let management = include_str!("../skills/management.md");
+    for field in fields {
+        assert!(
+            !management.contains(field),
+            "general management doctrine leaks harness API field {field}"
+        );
     }
 
     let fixture = Fixture::new();
@@ -375,7 +349,12 @@ fn pi_extension_update_protocol_uses_declarative_source_ownership() {
 fn psyche_interraction_claude_briefness_is_typed_and_target_scoped() {
     const CENTRAL: &str = "## Central\nBe very brief unless writing a context handover.\nAlign with the psyche’s vision.\nAsk the psyche *until the vision is clear.*\n";
     const CLAUDE_BRIEFNESS: &str = "Use the fewest words that preserve the answer.\nDo not repeat context the psyche already knows.\n";
-    assert_eq!(include_str!("../skills/psyche-interraction.md"), CENTRAL);
+    const PSYCHE_INTERRACTION_FRONTMATTER: &str =
+        "---\ndescription: The psyche is the one being answered.\n---\n\n";
+    assert_eq!(
+        include_str!("../skills/psyche-interraction.md"),
+        format!("{PSYCHE_INTERRACTION_FRONTMATTER}{CENTRAL}")
+    );
     assert_eq!(
         include_str!("../skills/psyche-interraction-claude-briefness.md"),
         CLAUDE_BRIEFNESS
@@ -427,13 +406,9 @@ fn psyche_interraction_claude_briefness_is_typed_and_target_scoped() {
 
 #[test]
 fn host_reboot_requires_specific_psyche_approval() {
-    for source in [
-        include_str!("../skills/manager-safeguards.md"),
-        include_str!("../skills/operating-system-operations.md"),
-    ] {
-        assert!(source.contains("Require explicit psyche approval"));
-        assert!(source.contains("reboot"));
-    }
+    let source = include_str!("../skills/operating-system.md");
+    assert!(source.contains("Require explicit psyche approval"));
+    assert!(source.contains("reboot"));
 }
 
 #[test]
@@ -455,7 +430,7 @@ fn generation_strips_source_maintenance_notes_from_runtime_surfaces() {
     fixture.write_default_manifest();
     fixture.write_source_file(
         "skills/example.md",
-        "# Skill - example\n\n## Rule\n\nGenerated.\n\n## Source Maintenance Notes\n\nMaintainer-only synchronization steps.\n",
+        "---\ndescription: Example skill.\n---\n\n# Skill - example\n\n## Rule\n\nGenerated.\n\n## Source Maintenance Notes\n\nMaintainer-only synchronization steps.\n",
     );
 
     fixture
@@ -475,7 +450,7 @@ fn target_module_insertions_apply_only_to_matching_generated_surfaces() {
     let fixture = Fixture::new();
     fixture.write_source_file(
         "manifests/active-outputs.nota",
-        "[(Skill (management management Meta Mechanism [Management skill] [AgentsSkill ClaudeSkill]))]\n",
+        "[(Skill (management management Meta Mechanism [AgentsSkill ClaudeSkill]))]\n",
     );
     fixture.write_role_cross_product_sources();
     fixture.write_universal_role_modules(
@@ -488,7 +463,7 @@ fn target_module_insertions_apply_only_to_matching_generated_surfaces() {
     );
     fixture.write_source_file(
         "skills/management.md",
-        "# Skill - management\n\n## Shared Rule\n\nShared management.\n",
+        "---\ndescription: Management skill.\n---\n\n# Skill - management\n\n## Shared Rule\n\nShared management.\n",
     );
     fixture.write_source_file(
         "skills/claude-management.md",
@@ -526,7 +501,7 @@ fn generation_rejects_direct_module_dependency_cycle() {
     fixture.write_role_cross_product_sources();
     fixture.write_source_file(
         "manifests/active-outputs.nota",
-        "[(Skill (example example Craft Topic [Example skill.] [AgentsSkill]))]\n",
+        "[(Skill (example example Craft Topic [AgentsSkill]))]\n",
     );
     fixture.write_source_file(
         "manifests/module-dependencies.nota",
@@ -558,7 +533,7 @@ fn generation_rejects_transitive_module_dependency_cycle() {
     fixture.write_role_cross_product_sources();
     fixture.write_source_file(
         "manifests/active-outputs.nota",
-        "[(Skill (example first Craft Topic [Example skill.] [AgentsSkill]))]\n",
+        "[(Skill (example first Craft Topic [AgentsSkill]))]\n",
     );
     fixture.write_source_file(
         "manifests/module-dependencies.nota",
@@ -590,7 +565,7 @@ fn generation_rejects_role_composition_module_as_skill_output() {
     fixture.write_role_cross_product_sources();
     fixture.write_source_file(
         "manifests/active-outputs.nota",
-        "[(Skill (edit-coordination-core edit-coordination-core Workflow Mechanism [Internal role component.] [AgentsSkill]))]\n",
+        "[(Skill (edit-coordination-core edit-coordination-core Workflow Mechanism [AgentsSkill]))]\n",
     );
     fixture.write_source_file(
         "manifests/module-dependencies.nota",
@@ -629,7 +604,7 @@ fn check_mode_reports_stale_output_with_guidance() {
     fixture.write_default_manifest();
     fixture.write_source_file(
         "skills/example.md",
-        "# Skill — example\n\n## Rule\n\nGenerated.\n",
+        "---\ndescription: Example skill.\n---\n\n# Skill — example\n\n## Rule\n\nGenerated.\n",
     );
     fixture.write_workspace_file(".agents/skills/example/SKILL.md", "old\n");
     fixture.write_workspace_file(".claude/skills/example/SKILL.md", "old\n");
@@ -651,7 +626,10 @@ fn generation_rejects_skill_with_oversized_serialized_block() {
     fixture.write_default_manifest();
     fixture.write_source_file(
         "skills/example.md",
-        &format!("# Skill — example\n\n## Rule\n\n{}\n", "x".repeat(33_000)),
+        &format!(
+            "---\ndescription: Example skill.\n---\n\n# Skill — example\n\n## Rule\n\n{}\n",
+            "x".repeat(33_000)
+        ),
     );
 
     let error = fixture
@@ -718,7 +696,7 @@ fn write_mode_prunes_generated_skill_directories_before_writing() {
     fixture.write_default_manifest();
     fixture.write_source_file(
         "skills/example.md",
-        "# Skill — example\n\n## Rule\n\nGenerated.\n",
+        "---\ndescription: Example skill.\n---\n\n# Skill — example\n\n## Rule\n\nGenerated.\n",
     );
     fixture.write_workspace_file(".agents/skills/old/SKILL.md", "stale\n");
     fixture.write_workspace_file(".claude/skills/old/SKILL.md", "stale\n");
@@ -783,7 +761,10 @@ fn trunk_divergence_refuses_regeneration_when_trunk_has_unreached_commits() {
 fn role_cross_product_writes_one_packet_per_permission_depth_and_surface() {
     let fixture = Fixture::new();
     fixture.write_default_manifest();
-    fixture.write_source_file("skills/example.md", "# Skill - example\n\nExample rule.\n");
+    fixture.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example skill.\n---\n\n# Skill - example\n\nExample rule.\n",
+    );
 
     fixture
         .generate(GenerationMode::Write)
@@ -815,7 +796,10 @@ fn permission_body_precedes_the_shared_body_only_for_restricted_permissions() {
     const SHARED_SECOND: &str = "Finish everything that does not depend on what you return.";
     let fixture = Fixture::new();
     fixture.write_default_manifest();
-    fixture.write_source_file("skills/example.md", "# Skill - example\n\nExample rule.\n");
+    fixture.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example skill.\n---\n\n# Skill - example\n\nExample rule.\n",
+    );
 
     fixture
         .generate(GenerationMode::Write)
@@ -837,7 +821,10 @@ fn permission_body_precedes_the_shared_body_only_for_restricted_permissions() {
 fn restricted_permissions_block_editing_tools_on_the_surfaces_that_carry_them() {
     let fixture = Fixture::new();
     fixture.write_default_manifest();
-    fixture.write_source_file("skills/example.md", "# Skill - example\n\nExample rule.\n");
+    fixture.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example skill.\n---\n\n# Skill - example\n\nExample rule.\n",
+    );
 
     fixture
         .generate(GenerationMode::Write)
@@ -866,7 +853,10 @@ fn restricted_permissions_block_editing_tools_on_the_surfaces_that_carry_them() 
 fn depth_rows_resolve_models_by_provider_and_omit_effort_for_effortless_models() {
     let fixture = Fixture::new();
     fixture.write_default_manifest();
-    fixture.write_source_file("skills/example.md", "# Skill - example\n\nExample rule.\n");
+    fixture.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example skill.\n---\n\n# Skill - example\n\nExample rule.\n",
+    );
 
     fixture
         .generate(GenerationMode::Write)
@@ -1075,14 +1065,17 @@ fn universal_role_modules_expand_into_every_generated_role_packet() {
     let fixture = Fixture::new();
     fixture.write_source_file(
         "manifests/active-outputs.nota",
-        "[(Skill (example example Craft Topic [Example skill.] [AgentsSkill]))]\n",
+        "[(Skill (example example Craft Topic [AgentsSkill]))]\n",
     );
     fixture.write_role_cross_product_sources();
     fixture.write_universal_role_modules(
         "[shared feature]\n",
         "[(example skills/example.md [] RuntimeSkill) (shared skills/shared.md [] RoleComposition) (feature skills/feature.md [shared] RoleComposition)]\n",
     );
-    fixture.write_source_file("skills/example.md", "# Skill - example\n\nExample rule.\n");
+    fixture.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example skill.\n---\n\n# Skill - example\n\nExample rule.\n",
+    );
     fixture.write_source_file("skills/shared.md", "# Module - shared\n\nShared rule.\n");
     fixture.write_source_file("skills/feature.md", "# Module - feature\n\nFeature rule.\n");
 
@@ -1111,7 +1104,10 @@ fn universal_role_modules_expand_into_every_generated_role_packet() {
 fn visualization_reports_every_generated_role_packet_composition() {
     let fixture = Fixture::new();
     fixture.write_default_manifest();
-    fixture.write_source_file("skills/example.md", "# Skill - example\n\nExample rule.\n");
+    fixture.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example skill.\n---\n\n# Skill - example\n\nExample rule.\n",
+    );
 
     let report = fixture.visualize().expect("visualization succeeds");
 
@@ -1142,7 +1138,10 @@ fn visualization_reports_every_generated_role_packet_composition() {
 fn write_mode_removes_role_outputs_the_inventory_no_longer_claims() {
     let fixture = Fixture::new();
     fixture.write_default_manifest();
-    fixture.write_source_file("skills/example.md", "# Skill - example\n\nExample rule.\n");
+    fixture.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example skill.\n---\n\n# Skill - example\n\nExample rule.\n",
+    );
     fixture.write_workspace_file(".claude/agents/retired.md", "stale\n");
     fixture.write_workspace_file(
         "skills/generated-role-outputs.nota",
@@ -1236,7 +1235,7 @@ fn target_conditionals_render_per_harness_surface() {
     );
     fixture.write_source_file(
         "skills/example.md",
-        "Shared line.\n\n{% if claude %}\nClaude line.\n{% endif %}\n{% if codex %}\nCodex line.\n{% endif %}\n{% if pi %}\nPi line.\n{% endif %}\n",
+        "---\ndescription: Example skill.\n---\n\nShared line.\n\n{% if claude %}\nClaude line.\n{% endif %}\n{% if codex %}\nCodex line.\n{% endif %}\n{% if pi %}\nPi line.\n{% endif %}\n",
     );
 
     fixture
@@ -1295,7 +1294,7 @@ fn a_false_target_block_leaves_no_blank_line_behind() {
     fixture.write_default_manifest();
     fixture.write_source_file(
         "skills/example.md",
-        "First line.\nSecond line.\n\n{% if codex %}\nCodex line.\n{% endif %}\n",
+        "---\ndescription: Example skill.\n---\n\nFirst line.\nSecond line.\n\n{% if codex %}\nCodex line.\n{% endif %}\n",
     );
 
     fixture
@@ -1320,7 +1319,10 @@ fn a_misspelled_target_fails_generation_and_names_the_known_targets() {
     ] {
         let fixture = Fixture::new();
         fixture.write_default_manifest();
-        fixture.write_source_file("skills/example.md", source);
+        fixture.write_source_file(
+            "skills/example.md",
+            &format!("---\ndescription: Example skill.\n---\n\n{source}"),
+        );
 
         let error = fixture
             .generate(GenerationMode::Write)
@@ -1350,7 +1352,10 @@ fn the_conditional_grammar_stays_closed() {
     ] {
         let fixture = Fixture::new();
         fixture.write_default_manifest();
-        fixture.write_source_file("skills/example.md", source);
+        fixture.write_source_file(
+            "skills/example.md",
+            &format!("---\ndescription: Example skill.\n---\n\n{source}"),
+        );
 
         let error = fixture
             .generate(GenerationMode::Write)
@@ -1419,7 +1424,7 @@ impl Fixture {
     fn write_default_manifest(&self) {
         self.write_source_file(
             "manifests/active-outputs.nota",
-            "[(Skill (example example Craft Topic [Example skill.] [AgentsSkill ClaudeSkill]))]\n",
+            "[(Skill (example example Craft Topic [AgentsSkill ClaudeSkill]))]\n",
         );
         self.write_source_file(
             "manifests/module-dependencies.nota",

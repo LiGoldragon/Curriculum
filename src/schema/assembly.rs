@@ -364,7 +364,6 @@ pub struct ActiveSkill {
     pub module_identifier: ModuleIdentifier,
     pub skill_category: SkillCategory,
     pub skill_tier: SkillTier,
-    pub skill_description: SkillDescription,
     pub target_surfaces: TargetSurfaces,
 }
 
@@ -836,14 +835,6 @@ pub enum SkillTier {
     Topic,
     Mechanism,
 }
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct SkillDescription(String);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -1577,25 +1568,6 @@ impl From<Vec<OutputPath>> for GeneratedRoleOutputs {
 }
 
 #[rustfmt::skip]
-impl SkillDescription {
-    pub fn new(payload: impl Into<String>) -> Self {
-        Self(payload.into())
-    }
-    pub fn payload(&self) -> &String {
-        &self.0
-    }
-    pub fn into_payload(self) -> String {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<String> for SkillDescription {
-    fn from(payload: String) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
 impl TargetSurfaces {
     pub fn new(payload: Vec<TargetSurface>) -> Self {
         Self(payload)
@@ -1945,27 +1917,6 @@ impl AsRef<str> for RoleDepthIdentifier {
 
 #[rustfmt::skip]
 impl PartialEq<&str> for RoleDepthIdentifier {
-    fn eq(&self, other: &&str) -> bool {
-        self.payload() == other
-    }
-}
-
-#[rustfmt::skip]
-impl std::fmt::Display for SkillDescription {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.payload().fmt(formatter)
-    }
-}
-
-#[rustfmt::skip]
-impl AsRef<str> for SkillDescription {
-    fn as_ref(&self) -> &str {
-        self.payload().as_str()
-    }
-}
-
-#[rustfmt::skip]
-impl PartialEq<&str> for SkillDescription {
     fn eq(&self, other: &&str) -> bool {
         self.payload() == other
     }

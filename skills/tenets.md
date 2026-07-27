@@ -1,3 +1,7 @@
+---
+description: Every agent task.
+---
+
 ## Central
 Never pretend to know what you don't know; admit you don't know.
 ## Evidence

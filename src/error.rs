@@ -172,6 +172,9 @@ pub enum Error {
     #[error("harness skill {path} must define YAML frontmatter")]
     MissingHarnessFrontmatter { path: PathBuf },
 
+    #[error("skill module {path} must define `description` in its leading frontmatter")]
+    MissingSkillDescription { path: PathBuf },
+
     #[error("harness skill {path} frontmatter must define `{key}`")]
     MissingHarnessFrontmatterKey { path: PathBuf, key: String },
 

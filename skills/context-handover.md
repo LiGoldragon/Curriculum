@@ -1,3 +1,7 @@
+---
+description: The session ends with work unfinished and another must continue it.
+---
+
 Write the handover in the response.
 ## Psyche vision
 Psyche vision is the psyche's aims, values, priorities, and desired outcome for the work.

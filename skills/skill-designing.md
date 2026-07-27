@@ -1,16 +1,28 @@
+---
+description: A skill is being written or changed.
+---
+
 Write skills with brutal minimalism.
-Descriptions say when the skill applies.
 State unusual, impactful instructions once and directly.
 Flag anything noisy, unclear, unsafe, or misplaced. Explain what each proposed change preserves, changes, or removes.
 
+A description names the situation that should make an agent load the skill,
+in the words of the task at hand. State a trigger, not a topic.
+Open with the situation itself. A shared formula carries nothing.
+Repeat neither the skill's name nor the word "skill".
+No two descriptions may match the same situation.
+Length is free. Spend it on what separates this skill from its neighbours.
+Nothing in a description appears in the skill. The description is the situation
+before loading; the skill is what to do after.
+
 ## Cut these
 
-- A line whose meaning a competent reader must guess.
-- A line that restates the skill or role name.
-- A line true of any competent agent.
-- A line naming the desired end state without teaching the move, the test, or the case.
-- A line pairing a goal with a mechanism. The reader cannot tell which one binds.
-- A line that explains or justifies a rule instead of directing an action.
+A line whose meaning a competent reader must guess.
+A line that restates the skill or role name.
+A line true of any competent agent.
+A line naming the desired end state without teaching the move, the test, or the case.
+A line pairing a goal with a mechanism. The reader cannot tell which one binds.
+A line that explains or justifies a rule instead of directing an action.
 
 ## Keep these
 

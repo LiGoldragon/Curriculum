@@ -33,7 +33,7 @@
   Modules (Vector ModulePath)
   ActiveOutputs (Vector ActiveOutput)
   ActiveOutput [(Skill ActiveSkill)]
-  ActiveSkill { OutputIdentifier ModuleIdentifier SkillCategory SkillTier SkillDescription TargetSurfaces }
+  ActiveSkill { OutputIdentifier ModuleIdentifier SkillCategory SkillTier TargetSurfaces }
   OutputIdentifier String {| Display AsRef PartialEq Ord |}
   ModuleIdentifier String {| Display AsRef PartialEq Ord |}
   IncludedModules (Vector ModuleIdentifier)
@@ -70,7 +70,6 @@
   GeneratedRoleOutputs (Vector OutputPath)
   SkillCategory [Architecture Craft Programming Workflow Meta]
   SkillTier [Apex Keystroke Topic Mechanism]
-  SkillDescription String {| Display AsRef PartialEq |}
   TargetSurfaces (Vector TargetSurface)
   TargetSurface [AgentsSkill ClaudeSkill]
 }

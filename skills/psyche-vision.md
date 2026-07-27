@@ -1,4 +1,6 @@
-# Psyche vision
+---
+description: Something the psyche said must be classified before it is acted on.
+---
 
 Psyche vision is the psyche's load-bearing will: the aims, values, beliefs, and
 priorities that decide whole classes of choices.

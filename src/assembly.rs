@@ -1,7 +1,7 @@
 use std::{
     collections::{BTreeMap, BTreeSet},
     env, fs, io,
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use nota::{NotaDecode, NotaEncode, NotaSource};
@@ -9,7 +9,7 @@ use triad_runtime::{ComponentArgument, ComponentCommand};
 
 use crate::{
     error::{Error, Result},
-    markdown::{MarkdownAssembly, MarkdownFragment},
+    markdown::{MarkdownAssembly, MarkdownFragment, SourceFrontmatter},
     schema::assembly::{
         ActiveOutput, ActiveOutputs, ActiveSkill, ByteCount, EffortLevel, Frontmatter,
         FrontmatterEntry, FrontmatterKey, FrontmatterValue, GeneratedFile, GeneratedFiles,
@@ -247,6 +247,7 @@ impl GenerationSource {
         let role_descriptions: RoleDescriptions =
             SourceFile::new(self.source_root.clone(), role_descriptions_path).read()?;
         GenerationConfiguration::active(
+            self.source_root.clone(),
             active_outputs,
             module_dependencies,
             target_module_insertions,
@@ -607,7 +608,7 @@ impl GeneratedRole {
             permission.permission_identifier.as_ref(),
             depth.depth_identifier.as_ref()
         ));
-        let packet_body = Self::render_packet_body(&output_identifier, permission);
+        let packet_body = Self::render_packet_body(permission);
         Self {
             output_identifier,
             role_description,
@@ -618,11 +619,10 @@ impl GeneratedRole {
         }
     }
 
-    fn render_packet_body(
-        output_identifier: &OutputIdentifier,
-        permission: &ResolvedPermission,
-    ) -> String {
-        let mut packet_body = format!("# Role — {}\n\n", output_identifier.as_ref());
+    /// The role packet's own body carries no synthesized title; only the
+    /// permission body and the shared closing body.
+    fn render_packet_body(permission: &ResolvedPermission) -> String {
+        let mut packet_body = String::new();
         if !permission.permission_body.is_empty() {
             packet_body.push_str(&permission.permission_body);
             packet_body.push('\n');
@@ -906,6 +906,7 @@ impl GeneratedRoleIndex {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct GenerationConfiguration {
+    source_root: PathBuf,
     active_outputs: ActiveOutputs,
     module_dependencies: ModuleDependencies,
     target_module_insertions: TargetModuleInsertions,
@@ -916,6 +917,7 @@ struct GenerationConfiguration {
 
 impl GenerationConfiguration {
     fn active(
+        source_root: PathBuf,
         active_outputs: ActiveOutputs,
         module_dependencies: ModuleDependencies,
         target_module_insertions: TargetModuleInsertions,
@@ -927,6 +929,7 @@ impl GenerationConfiguration {
             SkillModuleCompositionIndex::new(skill_module_compositions, &active_outputs)?;
         let generated_roles = GeneratedRoleIndex::new(role_generation_sources)?;
         Ok(Self {
+            source_root,
             active_outputs,
             module_dependencies,
             target_module_insertions,
@@ -957,9 +960,11 @@ impl GenerationConfiguration {
         let module_index = self.module_index()?;
         let mut manifests = Vec::new();
         for skill in self.active_skills() {
-            for manifest in
-                skill.first_class_manifests(&module_index, &self.skill_module_compositions)?
-            {
+            for manifest in skill.first_class_manifests(
+                &module_index,
+                &self.skill_module_compositions,
+                &self.source_root,
+            )? {
                 manifests.push(manifest);
             }
         }
@@ -1117,11 +1122,13 @@ impl ActiveSkill {
         &self,
         module_index: &ModuleIndex,
         skill_module_compositions: &SkillModuleCompositionIndex,
+        source_root: &Path,
     ) -> Result<Vec<Manifest>> {
         let mut module_identifiers = vec![self.module_identifier.clone()];
         module_identifiers
             .extend(skill_module_compositions.included_modules(&self.output_identifier));
         let mut manifests = Vec::new();
+        let mut resolved_frontmatter = Option::<Frontmatter>::None;
         for surface in self.target_surfaces.payload() {
             let output_surface = OutputSurface::from(surface);
             let modules = Modules::new(module_index.expanded_paths(
@@ -1129,30 +1136,48 @@ impl ActiveSkill {
                 ModuleUse::SkillContent,
                 output_surface,
             )?);
+            // The module must resolve (kind, cycle, and presence checks
+            // above) before its source is read for a description, so a
+            // structurally invalid module fails with its structural error
+            // rather than a description error. Reading happens once and is
+            // reused across target surfaces.
+            if resolved_frontmatter.is_none() {
+                resolved_frontmatter = Some(self.frontmatter(module_index, source_root)?);
+            }
+            let frontmatter = resolved_frontmatter
+                .clone()
+                .expect("frontmatter resolved above");
             manifests.push(Manifest {
                 output_path: OutputPath::new(
                     output_surface.skill_path(self.output_identifier.as_ref()),
                 ),
                 output_kind: OutputKind::Markdown,
                 output_surface,
-                frontmatter: self.frontmatter(),
+                frontmatter,
                 modules: modules.clone(),
             });
         }
         Ok(manifests)
     }
 
-    fn frontmatter(&self) -> Frontmatter {
-        Frontmatter::new(vec![
+    /// The skill's description lives in its own module source file's
+    /// leading frontmatter, not in the active-outputs manifest, so the
+    /// psyche can see and edit it where the skill's prose lives.
+    fn frontmatter(&self, module_index: &ModuleIndex, source_root: &Path) -> Result<Frontmatter> {
+        let dependency = module_index.dependency(&self.module_identifier)?;
+        let module_path =
+            WorkspacePath::new(source_root.to_path_buf(), dependency.module_path.as_ref())?;
+        let description = SourceFrontmatter::read(module_path.full_path())?.description()?;
+        Ok(Frontmatter::new(vec![
             FrontmatterEntry {
                 frontmatter_key: FrontmatterKey::new("name"),
                 frontmatter_value: FrontmatterValue::new(self.output_identifier.as_ref()),
             },
             FrontmatterEntry {
                 frontmatter_key: FrontmatterKey::new("description"),
-                frontmatter_value: FrontmatterValue::new(self.skill_description.as_ref()),
+                frontmatter_value: FrontmatterValue::new(description),
             },
-        ])
+        ]))
     }
 }
 

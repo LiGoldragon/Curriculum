@@ -1,31 +1,34 @@
 ;; Active generated output manifest for skill generation.
 ;; This file lists active outputs only; absence means inactive.
-;; Skill fields: output id, module id, category, tier, description, target surfaces.
+;; Skill fields: output id, module id, category, tier, target surfaces.
+;; Each skill's description lives in its own module source file's leading
+;; frontmatter; the generator reads it from there, not from this manifest.
 ;; Generated roles are the permission-by-depth cross product and live in
 ;; role-permissions.nota, role-depths.nota, and role-descriptions.nota.
 ;; Dependency data lives in module-dependencies.nota; universal role modules live in universal-role-modules.nota.
 
 [
-  (Skill (engine-analysis engine-analysis Architecture Topic [|Engine analysis rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (versioning versioning Workflow Keystroke [|Versioning rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (nix-workflow nix-workflow Programming Topic [|Nix workflow rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (operating-system-operations operating-system-operations Workflow Mechanism [|Operating system operations rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (pi-extension-updates pi-extension-updates Workflow Mechanism [|Pi extension updates rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (edit-coordination edit-coordination Workflow Mechanism [|Edit coordination rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (disk-hygiene disk-hygiene Workflow Mechanism [|Disk hygiene rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (documentation-placement documentation-placement Workflow Mechanism [|Documentation placement rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (version-control version-control Workflow Mechanism [|Version control rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (testing testing Workflow Mechanism [|Testing rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (feature-development feature-development Workflow Mechanism [|Feature development rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (work-tracking work-tracking Workflow Mechanism [|Work tracking rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (repository-lifecycle repository-lifecycle Workflow Mechanism [|Repository lifecycle rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (skill-designing skill-designing Workflow Mechanism [|Use when designing a skill.|] [AgentsSkill ClaudeSkill]))
-  (Skill (management management Meta Mechanism [|Use when coordinating delegated work for a caller.|] [AgentsSkill ClaudeSkill]))
-  (Skill (psyche-interraction psyche-interraction Meta Mechanism [|Use when interacting directly with the psyche.|] [AgentsSkill ClaudeSkill]))
-  (Skill (psyche-vision psyche-vision Meta Topic [|Psyche vision rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (tenets tenets Meta Mechanism [|Use in every agent task.|] [AgentsSkill ClaudeSkill]))
-  (Skill (context-handover context-handover Meta Mechanism [|Use when carrying the psyche's vision into another session.|] [AgentsSkill ClaudeSkill]))
-  (Skill (intent-log intent-log Meta Topic [|Intent log rules.|] [AgentsSkill ClaudeSkill]))
-  (Skill (design-log design-log Meta Mechanism [|Use when psyche design words accumulate across a train.|] [AgentsSkill ClaudeSkill]))
-  (Skill (main-feature-integration main-feature-integration Workflow Mechanism [|Main feature integration rules.|] [AgentsSkill ClaudeSkill]))
+  (Skill (engine-analysis engine-analysis Architecture Topic [AgentsSkill ClaudeSkill]))
+  (Skill (versioning versioning Workflow Keystroke [AgentsSkill ClaudeSkill]))
+  (Skill (nix-workflow nix-workflow Programming Topic [AgentsSkill ClaudeSkill]))
+  (Skill (operating-system operating-system Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (pi-extension-updates pi-extension-updates Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (edit-coordination edit-coordination Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (disk-hygiene disk-hygiene Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (documentation-placement documentation-placement Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (version-control version-control Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (testing testing Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (feature-development feature-development Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (beads beads Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (working working Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (repository-lifecycle repository-lifecycle Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (skill-designing skill-designing Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (management management Meta Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (psyche-interraction psyche-interraction Meta Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (psyche-vision psyche-vision Meta Topic [AgentsSkill ClaudeSkill]))
+  (Skill (tenets tenets Meta Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (context-handover context-handover Meta Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (intent-log intent-log Meta Topic [AgentsSkill ClaudeSkill]))
+  (Skill (design-log design-log Meta Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (main-feature-integration main-feature-integration Workflow Mechanism [AgentsSkill ClaudeSkill]))
 ]

@@ -436,6 +436,53 @@ impl<'a> MarkdownBody<'a> {
     }
 }
 
+/// A skill module source's own leading frontmatter block. This is the
+/// single place a skill's `description` is written; the generator reads it
+/// from here rather than from a manifest.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SourceFrontmatter {
+    path: PathBuf,
+    text: String,
+}
+
+impl SourceFrontmatter {
+    pub fn read(path: PathBuf) -> Result<Self> {
+        let text = fs::read_to_string(&path).map_err(|source| Error::ReadFile {
+            path: path.clone(),
+            source,
+        })?;
+        Ok(Self { path, text })
+    }
+
+    pub fn description(&self) -> Result<String> {
+        let mut lines = self.text.lines();
+        if !matches!(lines.next(), Some("---")) {
+            return Err(Error::MissingSkillDescription {
+                path: self.path.clone(),
+            });
+        }
+        for line in lines {
+            if line == "---" {
+                break;
+            }
+            if let Some(value) = line.strip_prefix("description:") {
+                return Ok(Self::unquoted(value.trim()));
+            }
+        }
+        Err(Error::MissingSkillDescription {
+            path: self.path.clone(),
+        })
+    }
+
+    fn unquoted(value: &str) -> String {
+        value
+            .strip_prefix('\'')
+            .and_then(|rest| rest.strip_suffix('\''))
+            .map(|inner| inner.replace("''", "'"))
+            .unwrap_or_else(|| value.to_owned())
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct SourceMaintenanceNotes {
     text: String,
