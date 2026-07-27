@@ -281,10 +281,8 @@
             expected_management=$TMPDIR/management
             printf '%s\n' \
               'Reserve your context for managing subagents.' \
-              'Use no tools except subagent coordination.' \
               'Delegate all task work.' \
-              'Do other work while agents run.' \
-              'Return a synthesis to the caller.' \
+              'Read and write beads, reports, design documents, and the design log.' \
               "" \
               '{% if codex %}' \
               'Keep a wait active while agents run; you are resumed only through it.' \
@@ -332,11 +330,11 @@
             done
             for output in "$workspace/.agents/skills/management/SKILL.md" "$workspace/.claude/skills/management/SKILL.md"; do
               grep -F 'Reserve your context for managing subagents.' "$output" >/dev/null
-              grep -F 'Use no tools except subagent coordination.' "$output" >/dev/null
               grep -F 'Delegate all task work.' "$output" >/dev/null
-              grep -F 'Do other work while agents run.' "$output" >/dev/null
-              grep -F 'Return a synthesis to the caller.' "$output" >/dev/null
+              grep -F 'Read and write beads, reports, design documents, and the design log.' "$output" >/dev/null
               ! grep -F 'Never block on subagents.' "$output"
+              ! grep -F 'Use no tools except subagent coordination.' "$output"
+              ! grep -F 'Do other work while agents run.' "$output"
               ! grep -F 'Poll until they finish.' "$output"
               ! grep -F "Never pretend to know what you don't know; admit you don't know." "$output"
             done
