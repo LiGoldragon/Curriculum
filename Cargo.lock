@@ -669,6 +669,7 @@ dependencies = [
  "schema-rust",
  "tempfile",
  "thiserror",
+ "triad-runtime",
 ]
 
 [[package]]

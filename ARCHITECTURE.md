@@ -9,7 +9,8 @@ generator that assembles harness-native skill and role files into consuming work
 The active surface is manifest-driven: active skill outputs are listed in one NOTA
 manifest, roles are the permission-by-depth cross product declared in three role
 manifests, module source paths and dependencies live in sidecar NOTA indexes, and
-generated files are written into the workspace root passed to the CLI.
+generated files are written into the workspace root carried by the CLI's one
+NOTA argument.
 
 The generator treats instruction prose as reusable source material. Harness
 metadata and output identity live in manifests, while flat markdown sources stay
@@ -143,6 +144,13 @@ Removed active sources have no archive or compatibility model.
 ## Constraints
 
 - The generator is a Rust CLI.
+- Every generator entry point — the `skills` binary and the `generate-skills`,
+  `check-skills`, and `visualize-skills` flake apps that wrap it — takes
+  exactly one argument: a NOTA payload carrying its fully typed configuration
+  (an inline literal or a `.nota` file path), per
+  `standard-component-architecture.md`. No entry point accepts a bare
+  workspace-root path or any other flag; a stray argument fails NOTA decoding
+  rather than being silently treated as a path.
 - Generator inputs are NOTA where practical, including the active manifest,
   module dependency index, target module insertion index, and universal role module manifest.
 - Generator outputs are NOTA where applicable, including generated-role inventory files.

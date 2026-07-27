@@ -7,14 +7,27 @@ Run the generator or checker against a consuming workspace through the repositor
 Inspect the assembled repository without writing workspace output:
 
 ```sh
-nix run github:LiGoldragon/skills#visualize-skills -- <workspace-root>
+nix run github:LiGoldragon/skills#visualize-skills
 ```
 
 The deterministic NOTA report lists each generated role, shows each target
 packet's ordered module composition, and lists every virtual generated output by
 relative path, UTF-8 byte count, and newline count (the same line measure as
 `wc -l`). The command renders from canonical manifests and sources but does not
-read or write `<workspace-root>`.
+read or write the workspace.
+
+`generate-skills` and `check-skills` follow the same entry-point contract and
+by default run against the current working directory. Every generator entry
+point — the flake apps and the `skills` binary they wrap — takes exactly one
+argument: a NOTA payload carrying its fully typed configuration (an inline
+NOTA literal or a path to a `.nota` file), never a bare flag or path. To
+target a workspace other than `$PWD`, pass a full replacement request as that
+one argument, for example:
+
+```sh
+nix run github:LiGoldragon/skills#generate-skills -- \
+  '(Generate ($SKILLS_SOURCE_ROOT /path/to/workspace manifests/active-outputs.nota Write))'
+```
 
 Source guidance belongs in flat `skills/*.md` files. Roles are generated as the
 permission-by-depth cross product declared in `manifests/role-permissions.nota`,

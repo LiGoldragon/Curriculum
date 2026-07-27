@@ -161,14 +161,26 @@
             script = pkgs.writeShellApplication {
               inherit name;
               runtimeInputs = [ skillsPackage ];
+              # The single-argument rule (standard-component-architecture.md:
+              # "Give every executable exactly one argument: a NOTA payload
+              # carrying its fully typed configuration") applies to this
+              # wrapper too. It never treats its one optional argument as a
+              # bare workspace-root path: omitted, the fixed request file
+              # below runs against $PWD; given, the argument is forwarded
+              # verbatim as the `skills` binary's one NOTA argument (inline
+              # literal or a path to a `.nota` file), so a stray flag like
+              # `--write` fails NOTA decoding loudly instead of silently
+              # becoming a directory name.
               text = ''
                 if [ "$#" -gt 1 ]; then
-                  echo "usage: ${name} [workspace-root]" >&2
+                  echo "usage: ${name} [nota-payload]" >&2
                   exit 2
                 fi
-                workspace_root="''${1:-$PWD}"
                 export SKILLS_SOURCE_ROOT=${cleanSource}
-                export SKILLS_WORKSPACE_ROOT="$workspace_root"
+                export SKILLS_WORKSPACE_ROOT="$PWD"
+                if [ "$#" -eq 1 ]; then
+                  exec skills "$1"
+                fi
                 exec skills ${cleanSource}/${requestFile}
               '';
             };

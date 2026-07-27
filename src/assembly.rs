@@ -5,6 +5,7 @@ use std::{
 };
 
 use nota::{NotaDecode, NotaEncode, NotaSource};
+use triad_runtime::{ComponentArgument, ComponentCommand};
 
 use crate::{
     error::{Error, Result},
@@ -51,86 +52,50 @@ const EXECUTION_LIMIT_MAXIMUMS: &[&str] = &[
     "turn",
 ];
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// The generator's process entry point. Per the standing single-argument
+/// rule (`standard-component-architecture.md`: "Give every executable
+/// exactly one argument: a NOTA payload carrying its fully typed
+/// configuration"), the only CLI input is one NOTA operand — an inline
+/// literal or a `.nota` file path — resolved by
+/// `triad_runtime::ComponentCommand`, the same argument harness `orchestrate`
+/// and `spirit-judge` use. No bare positional path, no second argument, and
+/// no argument-shaped-like-a-flag is ever silently accepted as a filesystem
+/// path.
+#[derive(Clone, Debug)]
 pub struct CommandLine {
-    arguments: Vec<String>,
+    command: ComponentCommand,
 }
 
 impl CommandLine {
     pub fn from_environment() -> Self {
         Self {
-            arguments: env::args().skip(1).collect(),
+            command: ComponentCommand::from_environment(),
         }
     }
 
     pub fn run(&self) -> Result<GenerationOutcome> {
-        let operation = RequestArgument::new(self.arguments.clone())
-            .read()?
-            .parse()?;
+        let operation = self.operation()?;
         operation.guard_source()?;
         operation.execute()
     }
-}
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-struct RequestArgument {
-    arguments: Vec<String>,
-}
-
-impl RequestArgument {
-    fn new(arguments: Vec<String>) -> Self {
-        Self { arguments }
-    }
-
-    fn read(self) -> Result<RequestText> {
-        if self.arguments.len() != 1 {
-            return Err(Error::ArgumentCount {
-                count: self.arguments.len(),
-            });
-        }
-        let argument = self.arguments.into_iter().next().expect("length checked");
-        if argument.trim_start().starts_with('(') {
-            Ok(RequestText::new(argument))
-        } else {
-            RequestFile::new(PathBuf::from(argument)).read()
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-struct RequestFile {
-    path: PathBuf,
-}
-
-impl RequestFile {
-    fn new(path: PathBuf) -> Self {
-        Self { path }
-    }
-
-    fn read(self) -> Result<RequestText> {
-        fs::read_to_string(&self.path)
-            .map(RequestText::new)
-            .map_err(|source| Error::ReadFile {
-                path: self.path,
-                source,
-            })
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-struct RequestText {
-    text: String,
-}
-
-impl RequestText {
-    fn new(text: impl Into<String>) -> Self {
-        Self { text: text.into() }
-    }
-
-    fn parse(&self) -> Result<Operation> {
-        NotaSource::new(&self.text)
+    fn operation(&self) -> Result<Operation> {
+        let text = self.argument_text()?;
+        NotaSource::new(&text)
             .parse::<Operation>()
             .map_err(Error::DecodeNotaArgument)
+    }
+
+    fn argument_text(&self) -> Result<String> {
+        match self.command.nota_argument()? {
+            ComponentArgument::InlineNota(argument) => Ok(argument.into_string()),
+            ComponentArgument::NotaFile(file) => Self::read_nota_file(file.into_path()),
+            ComponentArgument::SignalFile(file) => Self::read_nota_file(file.into_path()),
+        }
+    }
+
+    fn read_nota_file(path: PathBuf) -> Result<String> {
+        fs::read_to_string(&path).map_err(|source| Error::ReadFile { path, source })
     }
 }
 

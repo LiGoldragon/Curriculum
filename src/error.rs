@@ -4,8 +4,8 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("expected exactly one NOTA argument or manifest file path, found {count}")]
-    ArgumentCount { count: usize },
+    #[error("component argument error: {0}")]
+    Argument(#[from] triad_runtime::ArgumentError),
 
     #[error("read {path}: {source}")]
     ReadFile { path: PathBuf, source: io::Error },
@@ -242,12 +242,12 @@ pub enum Error {
     PathEscapesRoot { root: PathBuf, path: PathBuf },
 
     #[error(
-        "generated output is stale: {path}. Update the locked `skills` input, run `nix run .#generate-skills -- <workspace-root>`, then rerun `nix run .#check-skills -- <workspace-root>`."
+        "generated output is stale: {path}. Update the locked `skills` input, run `nix run .#generate-skills` from the workspace root, then rerun `nix run .#check-skills`."
     )]
     StaleOutput { path: PathBuf },
 
     #[error(
-        "stale generated archived/deleted skill output remains: {path}. Update the locked `skills` input, run `nix run .#generate-skills -- <workspace-root>`, then rerun `nix run .#check-skills -- <workspace-root>`."
+        "stale generated archived/deleted skill output remains: {path}. Update the locked `skills` input, run `nix run .#generate-skills` from the workspace root, then rerun `nix run .#check-skills`."
     )]
     StaleGeneratedOutput { path: PathBuf },
 
