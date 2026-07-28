@@ -29,7 +29,9 @@ nix run github:LiGoldragon/skills#generate-skills -- \
   '(Generate ($SKILLS_SOURCE_ROOT /path/to/workspace manifests/active-outputs.nota Write))'
 ```
 
-Source guidance belongs in flat `skills/*.md` files. Roles are generated as the
+Source guidance belongs in flat `skills/*.md` files. Each source file declares
+its description and dependencies in leading frontmatter. The generator validates
+those dependencies and surfaces them in generated skill descriptions. Roles are generated as the
 permission-by-depth cross product declared in `manifests/role-permissions.nota`,
 `manifests/role-depths.nota`, and `manifests/role-descriptions.nota`; there are
 no role source files. Generated runtime files are deployment output.

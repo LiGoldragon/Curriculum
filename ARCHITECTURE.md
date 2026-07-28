@@ -8,7 +8,7 @@ This repository owns flat skill sources, output manifests, and the Rust
 generator that assembles harness-native skill and role files into consuming workspaces.
 The active surface is manifest-driven: active skill outputs are listed in one NOTA
 manifest, roles are the permission-by-depth cross product declared in three role
-manifests, module source paths and dependencies live in sidecar NOTA indexes, and
+manifests, module source paths and kinds live in a sidecar NOTA index, and
 generated files are written into the workspace root carried by the CLI's one
 NOTA argument.
 
@@ -21,9 +21,9 @@ workers do not discover doctrine through a runtime index.
 
 ## Source Surfaces
 
-- `skills/<name>.md`: flat source files for runtime skills and role-packet components.
+- `skills/<name>.md`: flat source files for runtime skills and role-packet components. Their leading frontmatter owns a runtime skill's description and every module's dependency list.
 - `manifests/active-outputs.nota`: active `Skill` outputs; presence means active.
-- `manifests/module-dependencies.nota`: module identifier, source path, dependency module identifiers, and explicit source module kind (`RuntimeSkill` or `RoleComposition`).
+- `manifests/module-dependencies.nota`: module identifier, source path, and explicit source module kind (`RuntimeSkill` or `RoleComposition`).
 - `manifests/target-module-insertions.nota`: target-specific module overlays keyed by base module and output surface.
 - `manifests/universal-role-modules.nota`: the `general-instructions` and `tenets` modules included in every generated role packet.
 - `manifests/skill-module-compositions.nota`: typed ordered modules appended to a named active skill after its primary module.
@@ -90,8 +90,9 @@ Visualization:
 ## Assembly Model
 
 The active skill surface is manifest-owned: one active-outputs manifest lists
-generated `Skill` outputs, where presence means active; sidecar indexes map
-module identifiers to source paths, dependencies, target overlays, and universal
+generated `Skill` outputs, where presence means active; the source frontmatter
+maps each module to its dependencies while sidecar indexes map identifiers to
+source paths, kinds, target overlays, and universal
 role modules. `skills/general-instructions.md` and `skills/tenets.md` provide
 universal cross-agent role doctrine; skill-, repository-, and harness-specific
 instruction stays in its owning source.
@@ -118,9 +119,9 @@ Assembly is ordered concatenation of source modules after manifest expansion.
 For skills, the active skill's module expands through the dependency index,
 target-specific insertions, and any typed ordered skill composition.
 
-Module dependencies are typed by module identifier rather than inferred from
-markdown links or filesystem layout. The dependency index also carries source
-module kind. `RuntimeSkill` modules may emit as first-class skills, and
+Module dependencies are declared by module identifier in source frontmatter rather
+than inferred from markdown links or filesystem layout. The dependency index carries
+source module kind. `RuntimeSkill` modules may emit as first-class skills, and
 `RoleComposition` modules are generator-only role packet components that may be
 dependency-expanded into roles but cannot be emitted as runtime skills. Target
 insertions are data, not model choice: a base module, output surface, and
@@ -130,9 +131,10 @@ repeated prose; the generator includes them in the owning packet or skill.
 
 ## Ownership Boundaries
 
-Source markdown owns reusable instruction body. Manifests own generated output
-identity, target surfaces, descriptions, tiers, harness metadata, and role
-model and permission data.
+Source markdown owns reusable instruction body, skill descriptions, and dependencies.
+Manifests own generated output identity, target surfaces, tiers, harness metadata,
+and role model and permission data. Generated skill descriptions preserve the source
+description and name declared dependencies.
 
 Generated outputs carry the harness-required frontmatter or TOML wrapper, but
 they carry no provenance header. The source repository is the provenance.
@@ -152,7 +154,7 @@ Removed active sources have no archive or compatibility model.
   workspace-root path or any other flag; a stray argument fails NOTA decoding
   rather than being silently treated as a path.
 - Generator inputs are NOTA where practical, including the active manifest,
-  module dependency index, target module insertion index, and universal role module manifest.
+  module kind index, target module insertion index, and universal role module manifest.
 - Generator outputs are NOTA where applicable, including generated-role inventory files.
 - Interfaces are schema-authored in `schema/assembly.schema`; Rust schema types are generated, not hand-authored in parallel.
 - Normalization changes only structure required for valid output: one frontmatter block, heading levels, relative links, and duplicate-title handling.

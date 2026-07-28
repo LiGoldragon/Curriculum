@@ -731,7 +731,6 @@ pub struct SkillModuleComposition {
 pub struct ModuleDependency {
     pub module_identifier: ModuleIdentifier,
     pub module_path: ModulePath,
-    pub dependency_modules: DependencyModules,
     pub module_kind: ModuleKind,
 }
 
@@ -754,14 +753,6 @@ pub enum ModuleKind {
     RuntimeSkill,
     RoleComposition,
 }
-
-#[rustfmt::skip]
-#[cfg_attr(
-    feature = "nota-text",
-    derive(nota::NotaDecode, nota::NotaDecodeTraced, nota::NotaEncode)
-)]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct DependencyModules(Vec<ModuleIdentifier>);
 
 #[rustfmt::skip]
 #[cfg_attr(
@@ -1506,25 +1497,6 @@ impl SkillModuleCompositions {
 #[rustfmt::skip]
 impl From<Vec<SkillModuleComposition>> for SkillModuleCompositions {
     fn from(payload: Vec<SkillModuleComposition>) -> Self {
-        Self::new(payload)
-    }
-}
-
-#[rustfmt::skip]
-impl DependencyModules {
-    pub fn new(payload: Vec<ModuleIdentifier>) -> Self {
-        Self(payload)
-    }
-    pub fn payload(&self) -> &Vec<ModuleIdentifier> {
-        &self.0
-    }
-    pub fn into_payload(self) -> Vec<ModuleIdentifier> {
-        self.0
-    }
-}
-#[rustfmt::skip]
-impl From<Vec<ModuleIdentifier>> for DependencyModules {
-    fn from(payload: Vec<ModuleIdentifier>) -> Self {
         Self::new(payload)
     }
 }

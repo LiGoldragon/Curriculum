@@ -1,36 +1,36 @@
 ;; Active flat source index.
-;; Each record is: module id, flat source path, dependency module ids, module kind.
+;; Each record is: module id, flat source path, module kind.
 ;; RuntimeSkill modules may emit as skills; RoleComposition modules are
 ;; generator-only role packet components.
+;; Each source file's frontmatter declares its own dependencies.
 ;; Target-specific module insertion lives in target-module-insertions.nota.
 ;; Universal role packet modules live in universal-role-modules.nota.
-;; The active output manifest decides what emits; this file records source module edges and kind.
+;; The active output manifest decides what emits; this file records source module identity and kind.
 [
-  (general-instructions skills/general-instructions.md [] RoleComposition)
-  (edit-coordination skills/edit-coordination.md [] RuntimeSkill)
-  (engine-analysis skills/engine-analysis.md [] RuntimeSkill)
-  (versioning skills/versioning.md [] RuntimeSkill)
-  (nix-workflow skills/nix-workflow.md [] RuntimeSkill)
-  (operating-system skills/operating-system.md [] RuntimeSkill)
-  (pi-extension-updates skills/pi-extension-updates.md [] RuntimeSkill)
-  (disk-hygiene skills/disk-hygiene.md [] RuntimeSkill)
-  (documentation-placement skills/documentation-placement.md [] RuntimeSkill)
-  (version-control skills/version-control.md [] RuntimeSkill)
-  (testing skills/testing.md [] RuntimeSkill)
-  (feature-development skills/feature-development.md [] RuntimeSkill)
-  (beads skills/beads.md [] RuntimeSkill)
-  (working skills/working.md [] RuntimeSkill)
-  (repository-lifecycle skills/repository-lifecycle.md [] RuntimeSkill)
-  (skill-designing skills/skill-designing.md [] RuntimeSkill)
-  (management skills/management.md [] RuntimeSkill)
-  (psyche-interraction skills/psyche-interraction.md [] RuntimeSkill)
-  (psyche-interraction-claude-briefness skills/psyche-interraction-claude-briefness.md [] RuntimeSkill)
-  (psyche-interraction-continuation skills/psyche-interraction-continuation.md [] RuntimeSkill)
-  (psyche-vision skills/psyche-vision.md [] RuntimeSkill)
-  (tenets skills/tenets.md [] RuntimeSkill)
-  (codex-skill-loading skills/codex-skill-loading.md [] RoleComposition)
-  (context-handover skills/context-handover.md [] RuntimeSkill)
-  (intent-log skills/intent-log.md [] RuntimeSkill)
-  (design-log skills/design-log.md [] RuntimeSkill)
-  (main-feature-integration skills/main-feature-integration.md [] RuntimeSkill)
+  (general-instructions skills/general-instructions.md RoleComposition)
+  (edit-coordination skills/edit-coordination.md RuntimeSkill)
+  (engine-analysis skills/engine-analysis.md RuntimeSkill)
+  (versioning skills/versioning.md RuntimeSkill)
+  (nix-workflow skills/nix-workflow.md RuntimeSkill)
+  (operating-system skills/operating-system.md RuntimeSkill)
+  (pi-extension-updates skills/pi-extension-updates.md RuntimeSkill)
+  (disk-hygiene skills/disk-hygiene.md RuntimeSkill)
+  (documentation-placement skills/documentation-placement.md RuntimeSkill)
+  (version-control skills/version-control.md RuntimeSkill)
+  (testing skills/testing.md RuntimeSkill)
+  (feature-development skills/feature-development.md RuntimeSkill)
+  (beads skills/beads.md RuntimeSkill)
+  (working skills/working.md RuntimeSkill)
+  (repository-lifecycle skills/repository-lifecycle.md RuntimeSkill)
+  (skill-designing skills/skill-designing.md RuntimeSkill)
+  (management skills/management.md RuntimeSkill)
+  (psyche-interraction skills/psyche-interraction.md RuntimeSkill)
+  (psyche-vision skills/psyche-vision.md RuntimeSkill)
+  (tenets skills/tenets.md RuntimeSkill)
+  (codex-skill-loading skills/codex-skill-loading.md RoleComposition)
+  (context-handover skills/context-handover.md RuntimeSkill)
+  (intent-log skills/intent-log.md RuntimeSkill)
+  (design-log skills/design-log.md RuntimeSkill)
+  (main-feature-integration skills/main-feature-integration.md RuntimeSkill)
+  (secrets skills/secrets.md RuntimeSkill)
 ]

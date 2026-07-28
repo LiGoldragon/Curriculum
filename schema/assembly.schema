@@ -62,9 +62,8 @@
   UniversalRoleModules (Vector ModuleIdentifier)
   SkillModuleCompositions (Vector SkillModuleComposition)
   SkillModuleComposition { OutputIdentifier IncludedModules }
-  ModuleDependency { ModuleIdentifier ModulePath DependencyModules ModuleKind }
+  ModuleDependency { ModuleIdentifier ModulePath ModuleKind }
   ModuleKind [RuntimeSkill RoleComposition]
-  DependencyModules (Vector ModuleIdentifier)
   TargetModuleInsertions (Vector TargetModuleInsertion)
   TargetModuleInsertion { ModuleIdentifier OutputSurface IncludedModules }
   GeneratedRoleOutputs (Vector OutputPath)

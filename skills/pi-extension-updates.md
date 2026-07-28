@@ -1,5 +1,6 @@
 ---
 description: A Pi extension is out of date.
+dependencies: []
 ---
 
 Treat installed Pi files as read-only evidence; change through declarative source.

@@ -1,5 +1,6 @@
 ---
 description: The psyche states something that will still guide work after this task is forgotten.
+dependencies: []
 ---
 
 Record only explicit psyche values, aims, or beliefs that guide many decisions.

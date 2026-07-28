@@ -1,5 +1,6 @@
 ---
 description: A skill is being written or changed.
+dependencies: []
 ---
 
 Write skills with brutal minimalism.

@@ -20,6 +20,7 @@
   (Skill (testing testing Workflow Mechanism [AgentsSkill ClaudeSkill]))
   (Skill (feature-development feature-development Workflow Mechanism [AgentsSkill ClaudeSkill]))
   (Skill (beads beads Workflow Mechanism [AgentsSkill ClaudeSkill]))
+  (Skill (secrets secrets Workflow Mechanism [AgentsSkill ClaudeSkill]))
   (Skill (working working Workflow Mechanism [AgentsSkill ClaudeSkill]))
   (Skill (repository-lifecycle repository-lifecycle Workflow Mechanism [AgentsSkill ClaudeSkill]))
   (Skill (skill-designing skill-designing Workflow Mechanism [AgentsSkill ClaudeSkill]))

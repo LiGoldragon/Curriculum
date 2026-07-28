@@ -1,5 +1,6 @@
 ---
 description: The session ends with work unfinished and another must continue it.
+dependencies: []
 ---
 
 Write the handover as a bead in the workspace repository, and give its id in the response.

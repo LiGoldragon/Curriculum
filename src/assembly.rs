@@ -951,6 +951,7 @@ impl GenerationConfiguration {
 
     fn module_index(&self) -> Result<ModuleIndex> {
         ModuleIndex::new(
+            self.source_root.clone(),
             self.module_dependencies.clone(),
             self.target_module_insertions.clone(),
         )
@@ -1168,6 +1169,17 @@ impl ActiveSkill {
         let module_path =
             WorkspacePath::new(source_root.to_path_buf(), dependency.module_path.as_ref())?;
         let description = SourceFrontmatter::read(module_path.full_path())?.description()?;
+        let requirements = dependency.dependency_modules();
+        let description = if requirements.is_empty() {
+            description
+        } else {
+            let requirements = requirements
+                .iter()
+                .map(|requirement| requirement.as_ref())
+                .collect::<Vec<_>>()
+                .join(", ");
+            format!("{description} Requires: {requirements}.")
+        };
         Ok(Frontmatter::new(vec![
             FrontmatterEntry {
                 frontmatter_key: FrontmatterKey::new("name"),
@@ -1183,12 +1195,13 @@ impl ActiveSkill {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct ModuleIndex {
-    entries: BTreeMap<ModuleIdentifier, ModuleDependency>,
+    entries: BTreeMap<ModuleIdentifier, SourceModule>,
     target_module_insertions: TargetModuleInsertions,
 }
 
 impl ModuleIndex {
     fn new(
+        source_root: PathBuf,
         module_dependencies: ModuleDependencies,
         target_module_insertions: TargetModuleInsertions,
     ) -> Result<Self> {
@@ -1196,8 +1209,18 @@ impl ModuleIndex {
         for dependency in module_dependencies.into_payload() {
             dependency.require_flat_source_path()?;
             let module_identifier = dependency.module_identifier.clone();
+            let module_path =
+                WorkspacePath::new(source_root.clone(), dependency.module_path.as_ref())?;
+            let dependency_modules =
+                SourceFrontmatter::read(module_path.full_path())?.dependencies()?;
             if entries
-                .insert(module_identifier.clone(), dependency)
+                .insert(
+                    module_identifier.clone(),
+                    SourceModule {
+                        dependency,
+                        dependency_modules,
+                    },
+                )
                 .is_some()
             {
                 return Err(Error::DuplicateModule {
@@ -1224,7 +1247,7 @@ impl ModuleIndex {
         Ok(expansion.into_paths())
     }
 
-    fn dependency(&self, module_identifier: &ModuleIdentifier) -> Result<&ModuleDependency> {
+    fn dependency(&self, module_identifier: &ModuleIdentifier) -> Result<&SourceModule> {
         self.entries
             .get(module_identifier)
             .ok_or_else(|| Error::MissingModule {
@@ -1316,7 +1339,7 @@ impl<'a> ModuleExpansion<'a> {
         let dependency = self.module_index.dependency(module_identifier)?;
         dependency.require_accepted(self.module_use)?;
         self.visiting.push(module_identifier.clone());
-        for dependency_identifier in dependency.dependency_modules.payload() {
+        for dependency_identifier in dependency.dependency_modules() {
             self.append(dependency_identifier)?;
         }
         self.visiting.pop();
@@ -1333,6 +1356,30 @@ impl<'a> ModuleExpansion<'a> {
 
     fn into_paths(self) -> Vec<ModulePath> {
         self.paths
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct SourceModule {
+    dependency: ModuleDependency,
+    dependency_modules: Vec<ModuleIdentifier>,
+}
+
+impl SourceModule {
+    fn dependency_modules(&self) -> &[ModuleIdentifier] {
+        &self.dependency_modules
+    }
+
+    fn require_accepted(&self, module_use: ModuleUse) -> Result<()> {
+        self.dependency.require_accepted(module_use)
+    }
+}
+
+impl std::ops::Deref for SourceModule {
+    type Target = ModuleDependency;
+
+    fn deref(&self) -> &Self::Target {
+        &self.dependency
     }
 }
 

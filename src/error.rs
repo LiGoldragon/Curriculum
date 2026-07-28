@@ -175,6 +175,15 @@ pub enum Error {
     #[error("skill module {path} must define `description` in its leading frontmatter")]
     MissingSkillDescription { path: PathBuf },
 
+    #[error("skill module {path} must define `dependencies` in its leading frontmatter")]
+    MissingSkillDependencies { path: PathBuf },
+
+    #[error("skill module {path} has invalid `dependencies`: {value}")]
+    InvalidSkillDependencies { path: PathBuf, value: String },
+
+    #[error("skill module {path} lists dependency `{dependency}` more than once")]
+    DuplicateSkillDependency { path: PathBuf, dependency: String },
+
     #[error("harness skill {path} frontmatter must define `{key}`")]
     MissingHarnessFrontmatterKey { path: PathBuf, key: String },
 

@@ -1,5 +1,6 @@
 ---
 description: Every agent task.
+dependencies: []
 ---
 
 ## Central

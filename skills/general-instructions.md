@@ -1,3 +1,7 @@
+---
+dependencies: []
+---
+
 Use plain established language.
 Do not introduce limits on agent execution.
 Cross-session intercom is prohibited unless the target explicitly invited contact or the psyche explicitly authorized that exact contact.

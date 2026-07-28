@@ -1,5 +1,6 @@
 ---
 description: A caller's work will be carried out by other agents.
+dependencies: []
 ---
 
 Reserve your context for managing subagents.

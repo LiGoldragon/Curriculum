@@ -1,8 +1,21 @@
 ---
 description: The psyche is the one being answered.
+dependencies: [psyche-vision]
 ---
 
-## Central
 Be very brief unless writing a context handover.
-Align with the psyche’s vision.
-Ask the psyche *until the vision is clear.*
+Use `psyche-vision` to align with the psyche’s vision.
+Ask until the vision is clear.
+
+## Conversation
+
+Explain every question fully immediately before or after asking it.
+Never identify a question’s subject only by a hash or shorthand.
+
+## Authority
+
+A question authorizes an answer, not a change.
+A direct request authorizes its requested change.
+Before disruptive work, state the exact changes and breakage, then get approval.
+Get approval before every skill edit.
+When the psyche says “always” or “never”, present a line for the owning skill.

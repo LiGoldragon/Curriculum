@@ -182,7 +182,7 @@ fn generation_rejects_nested_legacy_module_source_paths() {
     fixture.write_source_file("skills/example.md", "# example\n");
     fixture.write_source_file(
         "manifests/module-dependencies.nota",
-        "[(example modules/example/full.md [] RuntimeSkill)]\n",
+        "[(example modules/example/full.md RuntimeSkill)]\n",
     );
 
     let error = fixture
@@ -346,27 +346,28 @@ fn pi_extension_update_protocol_uses_declarative_source_ownership() {
 }
 
 #[test]
-fn psyche_interraction_claude_briefness_is_typed_and_target_scoped() {
-    const CENTRAL: &str = "## Central\nBe very brief unless writing a context handover.\nAlign with the psyche’s vision.\nAsk the psyche *until the vision is clear.*\n";
-    const CLAUDE_BRIEFNESS: &str = "Use the fewest words that preserve the answer.\nDo not repeat context the psyche already knows.\n";
-    const PSYCHE_INTERRACTION_FRONTMATTER: &str =
-        "---\ndescription: The psyche is the one being answered.\n---\n\n";
-    assert_eq!(
-        include_str!("../skills/psyche-interraction.md"),
-        format!("{PSYCHE_INTERRACTION_FRONTMATTER}{CENTRAL}")
-    );
-    assert_eq!(
-        include_str!("../skills/psyche-interraction-claude-briefness.md"),
-        CLAUDE_BRIEFNESS
-    );
-    for interaction_source in [
-        include_str!("../skills/management.md"),
-        include_str!("../skills/psyche-interraction.md"),
-        include_str!("../skills/psyche-interraction-continuation.md"),
+fn psyche_interraction_owns_authority_and_requires_psyche_vision() {
+    let source = include_str!("../skills/psyche-interraction.md");
+    for required in [
+        "Be very brief unless writing a context handover.",
+        "Use `psyche-vision` to align with the psyche’s vision.",
+        "Ask until the vision is clear.",
+        "Explain every question fully immediately before or after asking it.",
+        "Never identify a question’s subject only by a hash or shorthand.",
+        "A question authorizes an answer, not a change.",
+        "A direct request authorizes its requested change.",
+        "Before disruptive work, state the exact changes and breakage, then get approval.",
+        "Get approval before every skill edit.",
+        "When the psyche says “always” or “never”, present a line for the owning skill.",
     ] {
-        assert!(!interaction_source.contains("## Basic tenets"));
-        assert!(!interaction_source.contains("## Delegation"));
+        assert!(
+            source.contains(required),
+            "missing psyche interaction rule: {required}"
+        );
     }
+    assert!(source.contains("dependencies: [psyche-vision]"));
+    assert!(!source.contains("## Delivery"));
+    assert!(!source.contains("Treat quoted conversations as context"));
 
     let fixture = Fixture::new();
     fixture
@@ -374,34 +375,32 @@ fn psyche_interraction_claude_briefness_is_typed_and_target_scoped() {
         .expect("psyche interaction profile generates");
     let agents = fixture.read_workspace_file(".agents/skills/psyche-interraction/SKILL.md");
     let claude = fixture.read_workspace_file(".claude/skills/psyche-interraction/SKILL.md");
-    assert!(!agents.contains(CLAUDE_BRIEFNESS));
-    assert!(claude.contains(CLAUDE_BRIEFNESS));
+    assert_eq!(agents, claude);
     for output in [&agents, &claude] {
         assert!(
             !output.contains("Never pretend to know what you don't know; admit you don't know."),
             "psyche interaction keeps tenets separate"
         );
-        assert!(output.contains("Preserve approved meaning until the psyche changes it."));
-        assert!(!output.contains("Keep the last approved wording as the current draft."));
-        assert!(!output.contains("Apply clarifications by changing only the clause they address."));
+        assert!(output.contains("Psyche vision is the psyche’s conception"));
+        assert!(!output.contains("## Delivery"));
     }
-    assert!(
-        claude.find(CENTRAL).expect("central emitted")
-            < claude.find(CLAUDE_BRIEFNESS).expect("briefness emitted")
+    let frontmatter = flat_frontmatter(&agents);
+    assert_eq!(
+        frontmatter.get("description").map(String::as_str),
+        Some("The psyche is the one being answered. Requires: psyche-vision.")
     );
-    assert!(
-        claude.find(CLAUDE_BRIEFNESS).expect("briefness emitted")
-            < claude
-                .find("## Conversation")
-                .expect("conversation emitted")
-    );
-    assert_eq!(claude.matches(CLAUDE_BRIEFNESS).count(), 1);
-    assert!(!agents.contains("Use the fewest words that preserve the answer."));
     assert!(
         !Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("skills/claude-psyche-interraction.md")
+            .join("skills/psyche-interraction-continuation.md")
             .exists()
     );
+}
+
+#[test]
+fn design_log_keeps_the_agent_antecedent_for_each_psyche_ruling() {
+    let source = include_str!("../skills/design-log.md");
+    assert!(source.contains("with the agent text it answered"));
+    assert!(source.contains("or a note that there was none"));
 }
 
 #[test]
@@ -455,7 +454,7 @@ fn target_module_insertions_apply_only_to_matching_generated_surfaces() {
     fixture.write_role_cross_product_sources();
     fixture.write_universal_role_modules(
         "[management]\n",
-        "[(management skills/management.md [] RuntimeSkill) (claude-management skills/claude-management.md [] RuntimeSkill)]\n",
+        "[(management skills/management.md RuntimeSkill) (claude-management skills/claude-management.md RuntimeSkill)]\n",
     );
     fixture.write_source_file(
         "manifests/target-module-insertions.nota",
@@ -505,7 +504,11 @@ fn generation_rejects_direct_module_dependency_cycle() {
     );
     fixture.write_source_file(
         "manifests/module-dependencies.nota",
-        "[(example skills/example.md [example] RuntimeSkill)]\n",
+        "[(example skills/example.md RuntimeSkill)]\n",
+    );
+    fixture.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example.\ndependencies: [example]\n---\n\nExample.\n",
     );
 
     let error = fixture
@@ -528,6 +531,24 @@ fn generation_rejects_direct_module_dependency_cycle() {
 }
 
 #[test]
+fn generation_requires_dependencies_in_source_frontmatter() {
+    let fixture = Fixture::new();
+    fixture.write_default_manifest();
+    fixture.write_file(
+        fixture.source.path(),
+        "skills/example.md",
+        "---\ndescription: Example.\n---\n\nExample.\n",
+    );
+
+    assert!(matches!(
+        fixture
+            .generate(GenerationMode::Write)
+            .expect_err("dependency declaration is required"),
+        Error::MissingSkillDependencies { .. }
+    ));
+}
+
+#[test]
 fn generation_rejects_transitive_module_dependency_cycle() {
     let fixture = Fixture::new();
     fixture.write_role_cross_product_sources();
@@ -537,7 +558,19 @@ fn generation_rejects_transitive_module_dependency_cycle() {
     );
     fixture.write_source_file(
         "manifests/module-dependencies.nota",
-        "[(first skills/first.md [second] RuntimeSkill) (second skills/second.md [third] RuntimeSkill) (third skills/third.md [second] RuntimeSkill)]\n",
+        "[(first skills/first.md RuntimeSkill) (second skills/second.md RuntimeSkill) (third skills/third.md RuntimeSkill)]\n",
+    );
+    fixture.write_source_file(
+        "skills/first.md",
+        "---\ndescription: First.\ndependencies: [second]\n---\n\nFirst.\n",
+    );
+    fixture.write_source_file(
+        "skills/second.md",
+        "---\ndescription: Second.\ndependencies: [third]\n---\n\nSecond.\n",
+    );
+    fixture.write_source_file(
+        "skills/third.md",
+        "---\ndescription: Third.\ndependencies: [second]\n---\n\nThird.\n",
     );
 
     let error = fixture
@@ -569,8 +602,9 @@ fn generation_rejects_role_composition_module_as_skill_output() {
     );
     fixture.write_source_file(
         "manifests/module-dependencies.nota",
-        "[(edit-coordination-core skills/edit-coordination-core.md [] RoleComposition)]\n",
+        "[(edit-coordination-core skills/edit-coordination-core.md RoleComposition)]\n",
     );
+    fixture.write_source_file("skills/edit-coordination-core.md", "Role-only content.\n");
 
     let error = fixture
         .generate(GenerationMode::Write)
@@ -1070,14 +1104,17 @@ fn universal_role_modules_expand_into_every_generated_role_packet() {
     fixture.write_role_cross_product_sources();
     fixture.write_universal_role_modules(
         "[shared feature]\n",
-        "[(example skills/example.md [] RuntimeSkill) (shared skills/shared.md [] RoleComposition) (feature skills/feature.md [shared] RoleComposition)]\n",
+        "[(example skills/example.md RuntimeSkill) (shared skills/shared.md RoleComposition) (feature skills/feature.md RoleComposition)]\n",
     );
     fixture.write_source_file(
         "skills/example.md",
         "---\ndescription: Example skill.\n---\n\n# Skill - example\n\nExample rule.\n",
     );
     fixture.write_source_file("skills/shared.md", "# Module - shared\n\nShared rule.\n");
-    fixture.write_source_file("skills/feature.md", "# Module - feature\n\nFeature rule.\n");
+    fixture.write_source_file(
+        "skills/feature.md",
+        "---\ndependencies: [shared]\n---\n\n# Module - feature\n\nFeature rule.\n",
+    );
 
     fixture
         .generate(GenerationMode::Write)
@@ -1231,7 +1268,7 @@ fn target_conditionals_render_per_harness_surface() {
     fixture.write_default_manifest();
     fixture.write_universal_role_modules(
         "[example]\n",
-        "[(example skills/example.md [] RuntimeSkill)]\n",
+        "[(example skills/example.md RuntimeSkill)]\n",
     );
     fixture.write_source_file(
         "skills/example.md",
@@ -1428,7 +1465,7 @@ impl Fixture {
         );
         self.write_source_file(
             "manifests/module-dependencies.nota",
-            "[(example skills/example.md [] RuntimeSkill)]\n",
+            "[(example skills/example.md RuntimeSkill)]\n",
         );
         self.write_role_cross_product_sources();
     }
@@ -1460,7 +1497,16 @@ impl Fixture {
     }
 
     fn write_source_file(&self, path: &str, text: &str) {
-        self.write_file(self.source.path(), path, text);
+        let text = if path.starts_with("skills/") && !text.contains("dependencies:") {
+            if let Some((frontmatter, body)) = text.split_once("---\n\n") {
+                format!("{frontmatter}dependencies: []\n---\n\n{body}")
+            } else {
+                format!("---\ndependencies: []\n---\n\n{text}")
+            }
+        } else {
+            text.to_owned()
+        };
+        self.write_file(self.source.path(), path, &text);
     }
 
     fn write_workspace_file(&self, path: &str, text: &str) {

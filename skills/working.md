@@ -1,5 +1,6 @@
 ---
 description: Doing work in a repository.
+dependencies: []
 ---
 
 Read the AGENTS.md of the repository you work in.

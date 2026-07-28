@@ -9,7 +9,7 @@ use pulldown_cmark::{Event, HeadingLevel, Parser, Tag, TagEnd};
 
 use crate::{
     error::{Error, Result},
-    schema::assembly::{FrontmatterEntry, OutputSurface},
+    schema::assembly::{FrontmatterEntry, ModuleIdentifier, OutputSurface},
     template::{RenderTarget, TargetTemplate},
     workspace_path::WorkspacePath,
 };
@@ -455,23 +455,80 @@ impl SourceFrontmatter {
     }
 
     pub fn description(&self) -> Result<String> {
+        self.metadata()?
+            .description
+            .ok_or_else(|| Error::MissingSkillDescription {
+                path: self.path.clone(),
+            })
+    }
+
+    pub fn dependencies(&self) -> Result<Vec<ModuleIdentifier>> {
+        self.metadata()?
+            .dependencies
+            .ok_or_else(|| Error::MissingSkillDependencies {
+                path: self.path.clone(),
+            })
+    }
+
+    fn metadata(&self) -> Result<SourceSkillMetadata> {
         let mut lines = self.text.lines();
         if !matches!(lines.next(), Some("---")) {
             return Err(Error::MissingSkillDescription {
                 path: self.path.clone(),
             });
         }
+        let mut description = None;
+        let mut dependencies = None;
         for line in lines {
             if line == "---" {
                 break;
             }
             if let Some(value) = line.strip_prefix("description:") {
-                return Ok(Self::unquoted(value.trim()));
+                description = Some(Self::unquoted(value.trim()));
+            }
+            if let Some(value) = line.strip_prefix("dependencies:") {
+                dependencies = Some(self.parse_dependencies(value.trim())?);
             }
         }
-        Err(Error::MissingSkillDescription {
-            path: self.path.clone(),
+        Ok(SourceSkillMetadata {
+            description,
+            dependencies,
         })
+    }
+
+    fn parse_dependencies(&self, value: &str) -> Result<Vec<ModuleIdentifier>> {
+        let inner = value
+            .strip_prefix('[')
+            .and_then(|value| value.strip_suffix(']'))
+            .ok_or_else(|| Error::InvalidSkillDependencies {
+                path: self.path.clone(),
+                value: value.to_owned(),
+            })?;
+        if inner.trim().is_empty() {
+            return Ok(Vec::new());
+        }
+        let mut seen = BTreeSet::new();
+        let mut dependencies = Vec::new();
+        for dependency in inner.split(',').map(str::trim) {
+            if dependency.is_empty()
+                || !dependency.chars().all(|character| {
+                    character.is_ascii_lowercase() || character.is_ascii_digit() || character == '-'
+                })
+            {
+                return Err(Error::InvalidSkillDependencies {
+                    path: self.path.clone(),
+                    value: value.to_owned(),
+                });
+            }
+            if !seen.insert(dependency) {
+                return Err(Error::DuplicateSkillDependency {
+                    path: self.path.clone(),
+                    dependency: dependency.to_owned(),
+                });
+            }
+            dependencies.push(ModuleIdentifier::new(dependency));
+        }
+        Ok(dependencies)
     }
 
     fn unquoted(value: &str) -> String {
@@ -481,6 +538,12 @@ impl SourceFrontmatter {
             .map(|inner| inner.replace("''", "'"))
             .unwrap_or_else(|| value.to_owned())
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct SourceSkillMetadata {
+    description: Option<String>,
+    dependencies: Option<Vec<ModuleIdentifier>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
