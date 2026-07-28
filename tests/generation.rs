@@ -258,6 +258,49 @@ fn repository_visibility_doctrine_defaults_public_without_weakening_privacy() {
 }
 
 #[test]
+fn beads_hosted_creation_uses_v1_settings_token_and_secrets() {
+    let source = include_str!("../skills/beads.md");
+    for required in [
+        "dependencies: [secrets]",
+        "gopass show -o dolthub.com/api-token",
+        "directly to curl’s supported secret-input interface",
+        "GET https://www.dolthub.com/api/v1alpha1/user",
+        "POST https://www.dolthub.com/api/v1alpha1/database",
+        "Authorization: token ...",
+        "ownerName`, `repoName`, and `visibility",
+        "400 no such repository",
+        "409 already exists",
+        "bd dolt remote add",
+    ] {
+        assert!(source.contains(required), "missing Beads rule: {required}");
+    }
+    for forbidden in ["API v2", "/api/v2/", "Authorization: Bearer"] {
+        assert!(!source.contains(forbidden), "stale Beads rule: {forbidden}");
+    }
+
+    let fixture = Fixture::new();
+    fixture
+        .generate_from_repo(GenerationMode::Write)
+        .expect("Beads profile generates");
+    for path in [
+        ".agents/skills/beads/SKILL.md",
+        ".claude/skills/beads/SKILL.md",
+    ] {
+        let output = fixture.read_workspace_file(path);
+        assert!(
+            output.contains("/api/v1alpha1/database"),
+            "{path} keeps v1 creation"
+        );
+        assert!(!output.contains("/api/v2/"), "{path} excludes v2 creation");
+        assert!(
+            !output.contains("Authorization: Bearer"),
+            "{path} excludes Bearer auth"
+        );
+        assert!(output.contains("Requires: secrets."));
+    }
+}
+
+#[test]
 fn management_is_subagent_scoped_and_has_no_psyche_interaction_doctrine() {
     let management = include_str!("../skills/management.md");
     for required in [

@@ -43,8 +43,10 @@ Wait and retry an embedded-Dolt lock instead of concurrent access.
 
 When repository metadata identifies the owner, repository name, and GitHub visibility, create and attach its missing DoltHub database.
 Use one database per repository, named from that metadata, with matching visibility and no suffix.
-Create hosted state through DoltHub API v2.
-Configure the Beads remote with `bd dolt remote add`.
+Use `secrets` to connect `gopass show -o dolthub.com/api-token` directly to curl’s supported secret-input interface; keep the token out of agent output, arguments, and environment.
+Authenticate `GET https://www.dolthub.com/api/v1alpha1/user` and `POST https://www.dolthub.com/api/v1alpha1/database` with `Authorization: token ...`; send `ownerName`, `repoName`, and `visibility` to create the matching database.
+Treat a missing-database read returning `400 no such repository` as absent and a creation response returning `409 already exists` as success.
+Configure the canonical Beads remote with `bd dolt remote add`.
 Use `secrets` for PAT and JWK delivery.
 When Dolt needs a missing JWK credential, import it through Dolt’s supported stdin contract.
 Persistent credential import is allowed when that supported contract requires it and the task authorizes credential setup.
