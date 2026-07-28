@@ -35,6 +35,7 @@ Beads in another repository are named by id in text. No link crosses databases.
 ## Store
 
 Verify the selected store before using it.
+Do not use Orchestrate claims for Beads database writes.
 Run `bd init` only when `.beads` is absent.
 Run `bd bootstrap` when an existing scaffold has no usable database.
 Use embedded Dolt sequentially.
