@@ -1,21 +1,5 @@
 ---
-description: Something the psyche said must be classified before it is acted on.
+description: The psyche's conception of a piece of work needs a name.
 ---
 
-Psyche vision is the psyche's load-bearing will: the aims, values, beliefs, and
-priorities that decide whole classes of choices.
-
-## Test
-
-Ask whether the statement would still guide the work if every current mechanism
-were replaced. If yes, it is vision. If no, it is matter.
-
-## Not vision
-
-A mechanism, artifact, name, status, or implementation decision.
-Approval, recency, and emotional salience do not turn matter into vision.
-
-## Handling
-
-Never infer or manufacture vision.
-When a statement is not clearly vision, treat it as matter.
+Psyche vision is the psyche’s conception of what a piece of work should become: its desired state, character, boundaries, and explicit constraints. It gives the work its shape and orients implementation choices, but is not itself an implementation plan.
