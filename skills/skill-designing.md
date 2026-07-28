@@ -26,7 +26,7 @@ A line that explains or justifies a rule instead of directing an action.
 
 ## Keep these
 
-Every line directs an action.
+Minimal is the requirement. Imperative is often the shortest form of it, not the only one.
 Agents already behave in the usual way, so an instruction matching default behavior changes nothing.
 State a rule only where it diverges from what an agent would do untold.
 Unusual lines carry the behavior change. Remove them only after everything else.

@@ -262,8 +262,9 @@ fn management_is_subagent_scoped_and_has_no_psyche_interaction_doctrine() {
     let management = include_str!("../skills/management.md");
     for required in [
         "Reserve your context for managing subagents.",
+        "Never block on subagents.",
         "Delegate all task work.",
-        "Read and write beads, reports, design documents, and the design log.",
+        "You may read and write beads, reports, design documents, the design log, and skills.",
     ] {
         assert!(
             management.contains(required),
@@ -274,7 +275,6 @@ fn management_is_subagent_scoped_and_has_no_psyche_interaction_doctrine() {
         "Align with the psyche’s vision.",
         "Ask the psyche *until the vision is clear.*",
         "Never wait for subagents; they report asynchronously.",
-        "Never block on subagents.",
         "Use no tools except subagent coordination.",
         "Do other work while agents run.",
         "Return a synthesis to the caller.",

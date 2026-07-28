@@ -3,8 +3,9 @@ description: A caller's work will be carried out by other agents.
 ---
 
 Reserve your context for managing subagents.
+Never block on subagents.
 Delegate all task work.
-Read and write beads, reports, design documents, and the design log.
+You may read and write beads, reports, design documents, the design log, and skills.
 
 {% if codex %}
 Keep a wait active while agents run; you are resumed only through it.
