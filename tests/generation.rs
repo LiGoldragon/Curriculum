@@ -1257,7 +1257,7 @@ fn repository_manifests_generate_the_eight_permission_by_depth_roles() {
         flat_frontmatter(&fixture.read_workspace_file(".claude/agents/write-critical.md"));
     assert_eq!(
         critical.get("model").map(String::as_str),
-        Some("claude-opus-5")
+        Some("claude-opus-4-6[1m]")
     );
     assert_eq!(critical.get("effort").map(String::as_str), Some("high"));
 }

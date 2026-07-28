@@ -41,7 +41,7 @@ Use embedded Dolt sequentially.
 Wait and retry an embedded-Dolt lock instead of concurrent access.
 
 When repository metadata identifies the owner, repository name, and GitHub visibility, create and attach its missing DoltHub database.
-Use one database per repository, named `ligoldragon/<repo>`, with matching visibility and no suffix.
+Use one database per repository, named from that metadata, with matching visibility and no suffix.
 Create hosted state through DoltHub API v2.
 Configure the Beads remote with `bd dolt remote add`.
 Use `secrets` for PAT and JWK delivery.
