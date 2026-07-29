@@ -302,7 +302,7 @@
             grep -F '(claude-haiku-4-5 Claude [])' "$catalog" >/dev/null
             grep -F '(gpt-5.4-mini ChatGpt [Low Medium High Xhigh])' "$catalog" >/dev/null
             grep -F '(trivial (claude-haiku-4-5 None) (gpt-5.4-mini (Some Medium)))' "$depths" >/dev/null
-            critical_row=$(grep -F '(critical ([|claude-opus-4-6[1m]|] (Some High))' "$depths")
+            critical_row=$(grep -F '(critical ([|claude-opus-4-5[1m]|] (Some High))' "$depths")
             test -n "$critical_row"
             critical_model=$(printf '%s' "$critical_row" | sed -E 's/.*\)\) \(([A-Za-z0-9.-]+) \(Some ([A-Za-z]+)\)\)\)$/\1/')
             critical_effort=$(printf '%s' "$critical_row" | sed -E 's/.*\)\) \(([A-Za-z0-9.-]+) \(Some ([A-Za-z]+)\)\)\)$/\2/')

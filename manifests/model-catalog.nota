@@ -3,7 +3,7 @@
 [
   (claude-haiku-4-5 Claude [])
   (claude-sonnet-5 Claude [Low Medium High Xhigh])
-  ([|claude-opus-4-6[1m]|] Claude [Low Medium High Xhigh])
+  ([|claude-opus-4-5[1m]|] Claude [Low Medium High Xhigh])
   (gpt-5.4-mini ChatGpt [Low Medium High Xhigh])
   (gpt-5.6-luna ChatGpt [Low Medium High Xhigh])
   (gpt-5.6-terra ChatGpt [Low Medium High Xhigh])
