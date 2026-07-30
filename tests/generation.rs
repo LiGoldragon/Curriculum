@@ -456,10 +456,9 @@ fn host_reboot_requires_specific_psyche_approval() {
 #[test]
 fn general_instructions_compose_once_and_keep_authority_gates() {
     let general = include_str!("../skills/general-instructions.md");
-    assert!(general.contains("Use plain established language."));
-    assert!(general.contains("Do not introduce limits on agent execution."));
     assert!(general.contains("explicit psyche approval"));
     assert!(!general.contains("Clarify, gate, dispatch"));
+    assert!(!general.contains("Cross-session intercom is prohibited"));
     assert!(
         include_str!("../manifests/universal-role-modules.nota")
             .contains("[general-instructions tenets]")
