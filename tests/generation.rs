@@ -461,7 +461,11 @@ fn general_instructions_compose_once_and_keep_authority_gates() {
     assert!(!general.contains("Cross-session intercom is prohibited"));
     assert!(
         include_str!("../manifests/universal-role-modules.nota")
-            .contains("[general-instructions tenets]")
+            .contains("[general-instructions]")
+    );
+    assert!(
+        !include_str!("../manifests/universal-role-modules.nota").contains("tenets"),
+        "tenets is a loadable skill and must not be auto-injected into roles"
     );
 }
 
@@ -867,9 +871,8 @@ fn role_cross_product_writes_one_packet_per_permission_depth_and_surface() {
 
 #[test]
 fn permission_body_precedes_the_shared_body_only_for_restricted_permissions() {
-    const SHARED_FIRST: &str =
+    const SHARED_BODY: &str =
         "The brief is your authority. Decide what it settles; return what it does not.";
-    const SHARED_SECOND: &str = "Finish everything that does not depend on what you return.";
     let fixture = Fixture::new();
     fixture.write_default_manifest();
     fixture.write_source_file(
@@ -886,11 +889,9 @@ fn permission_body_precedes_the_shared_body_only_for_restricted_permissions() {
     assert!(read_packet.contains("Read body."));
     assert!(!write_packet.contains("Read body."));
     for packet in [&read_packet, &write_packet] {
-        assert!(packet.contains(SHARED_FIRST));
-        assert!(packet.contains(SHARED_SECOND));
-        assert!(packet.find(SHARED_FIRST) < packet.find(SHARED_SECOND));
+        assert!(packet.contains(SHARED_BODY));
     }
-    assert!(read_packet.find("Read body.") < read_packet.find(SHARED_FIRST));
+    assert!(read_packet.find("Read body.") < read_packet.find(SHARED_BODY));
 }
 
 #[test]

@@ -408,9 +408,9 @@ impl SkillModuleCompositionIndex {
     }
 }
 
-/// Every generated role packet ends its own body with these two lines. A
-/// permission that carries body text places that text immediately before them.
-const SHARED_ROLE_BODY: &str = "The brief is your authority. Decide what it settles; return what it does not.\nFinish everything that does not depend on what you return.";
+/// Every generated role packet ends its own body with this line. A
+/// permission that carries body text places that text immediately before it.
+const SHARED_ROLE_BODY: &str = "The brief is your authority. Decide what it settles; return what it does not.";
 
 /// Pi names a ChatGPT model provider-qualified; Codex names the same model
 /// bare.
