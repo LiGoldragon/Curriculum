@@ -87,9 +87,9 @@ impl CommandLine {
     }
 
     fn argument_text(&self) -> Result<String> {
-        match self.command.nota_argument()? {
-            ComponentArgument::InlineNota(argument) => Ok(argument.into_string()),
-            ComponentArgument::NotaFile(file) => Self::read_dotos_file(file.into_path()),
+        match self.command.dotos_argument()? {
+            ComponentArgument::InlineDotos(argument) => Ok(argument.into_string()),
+            ComponentArgument::DotosFile(file) => Self::read_dotos_file(file.into_path()),
             ComponentArgument::SignalFile(file) => Self::read_dotos_file(file.into_path()),
         }
     }

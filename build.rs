@@ -1,4 +1,4 @@
-use std::{env, fs, path::PathBuf};
+use std::{env, path::PathBuf};
 
 use schema_rust::build::{CargoSchemaMetadata, GenerationDriver, GenerationPlan, ModuleEmission};
 
@@ -30,18 +30,7 @@ impl SchemaBuild {
                 .expect("generate skills schema artifacts")
                 .write_or_check("SKILLS_UPDATE_SCHEMA_ARTIFACTS")
                 .expect("checked-in skills schema artifacts are fresh");
-            self.migrate_schema_artifacts_to_dotos();
         }
         CargoSchemaMetadata::new("skills").emit_schema_directory(&self.crate_root);
-    }
-
-    fn migrate_schema_artifacts_to_dotos(&self) {
-        let artifact = self.crate_root.join("src/schema/assembly.rs");
-        let source = fs::read_to_string(&artifact).expect("read generated schema artifact");
-        let dotos = source
-            .replace("nota-text", "dotos-text")
-            .replace("Nota", "Dotos")
-            .replace("nota", "dotos");
-        fs::write(artifact, dotos).expect("write DOTOS schema artifact");
     }
 }

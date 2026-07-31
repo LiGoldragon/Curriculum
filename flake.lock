@@ -15,23 +15,6 @@
         "type": "github"
       }
     },
-    "dotos-source": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1785523644,
-        "narHash": "sha256-JhSAtetUNDe7PqJuXDeEm0sXSqS9sNNrVdTy1sdOw9s=",
-        "owner": "LiGoldragon",
-        "repo": "dotos",
-        "rev": "1facca44fbcb37633f71fcf6f73bd693fbe56a5e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "LiGoldragon",
-        "repo": "dotos",
-        "rev": "1facca44fbcb37633f71fcf6f73bd693fbe56a5e",
-        "type": "github"
-      }
-    },
     "fenix": {
       "inputs": {
         "nixpkgs": [
@@ -90,23 +73,6 @@
         "type": "github"
       }
     },
-    "kameo-source": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1781859599,
-        "narHash": "sha256-yEide3elYr0mtRUStsD3AlOwdl/sKWtslj3vBp8VzVE=",
-        "owner": "LiGoldragon",
-        "repo": "kameo",
-        "rev": "f491b45d7dcb55e5837eddde3d5d7ca8ceaa9f01",
-        "type": "github"
-      },
-      "original": {
-        "owner": "LiGoldragon",
-        "ref": "main",
-        "repo": "kameo",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1782175435,
@@ -125,15 +91,9 @@
     },
     "root": {
       "inputs": {
-        "dotos-source": "dotos-source",
         "flake-utils": "flake-utils",
-        "kameo-source": "kameo-source",
         "nixpkgs": "nixpkgs",
-        "rust-build": "rust-build",
-        "schema-rust-source": "schema-rust-source",
-        "schema-source": "schema-source",
-        "signal-frame-source": "signal-frame-source",
-        "triad-runtime-source": "triad-runtime-source"
+        "rust-build": "rust-build"
       }
     },
     "rust-analyzer-src": {
@@ -176,56 +136,6 @@
         "type": "github"
       }
     },
-    "schema-rust-source": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1783214401,
-        "narHash": "sha256-cnoqgjW8X4crb5RBbt1tfCbtE1M1flNfl+0QY8FzFss=",
-        "owner": "LiGoldragon",
-        "repo": "schema-rust",
-        "rev": "72c71ffc558fee0d29c5b0517013de46e0307597",
-        "type": "github"
-      },
-      "original": {
-        "owner": "LiGoldragon",
-        "repo": "schema-rust",
-        "type": "github"
-      }
-    },
-    "schema-source": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1783222520,
-        "narHash": "sha256-BRRzVoCKwJVSoRmy3dhWQaw1V6+Ba/FklAZjFkcAmhE=",
-        "owner": "LiGoldragon",
-        "repo": "schema",
-        "rev": "f351f90d3b8898205cf3057f3c253a5e451180a9",
-        "type": "github"
-      },
-      "original": {
-        "owner": "LiGoldragon",
-        "repo": "schema",
-        "rev": "f351f90d3b8898205cf3057f3c253a5e451180a9",
-        "type": "github"
-      }
-    },
-    "signal-frame-source": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1783222439,
-        "narHash": "sha256-zENsOLXSrpZPvnhEaGPgCWT0AMBVekhdz+AHlWLm25k=",
-        "owner": "LiGoldragon",
-        "repo": "signal-frame",
-        "rev": "bb86bef67e478ff52690a4dcceec8f22d2b005ad",
-        "type": "github"
-      },
-      "original": {
-        "owner": "LiGoldragon",
-        "repo": "signal-frame",
-        "rev": "bb86bef67e478ff52690a4dcceec8f22d2b005ad",
-        "type": "github"
-      }
-    },
     "systems": {
       "locked": {
         "lastModified": 1681028828,
@@ -253,23 +163,6 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
-        "type": "github"
-      }
-    },
-    "triad-runtime-source": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1783227049,
-        "narHash": "sha256-xG3atTakbEv9afdVAtHk+8dXUcXKsVqiJOe4V/UdFvg=",
-        "owner": "LiGoldragon",
-        "repo": "triad-runtime",
-        "rev": "0031b5519572f4571bf3895f78221de9404d4810",
-        "type": "github"
-      },
-      "original": {
-        "owner": "LiGoldragon",
-        "repo": "triad-runtime",
-        "rev": "0031b5519572f4571bf3895f78221de9404d4810",
         "type": "github"
       }
     }

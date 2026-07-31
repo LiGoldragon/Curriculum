@@ -92,6 +92,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
 
 [[package]]
+name = "content-identity"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/content-identity.git?rev=ac0075842799b3ece8909ad0eb4b8a92b596b188#ac0075842799b3ece8909ad0eb4b8a92b596b188"
+dependencies = [
+ "blake3",
+ "getrandom 0.3.4",
+ "rkyv",
+ "thiserror",
+]
+
+[[package]]
 name = "cpufeatures"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -103,7 +114,7 @@ dependencies = [
 [[package]]
 name = "dotos"
 version = "0.10.0"
-source = "git+https://github.com/LiGoldragon/dotos.git?rev=1facca44fbcb37633f71fcf6f73bd693fbe56a5e#1facca44fbcb37633f71fcf6f73bd693fbe56a5e"
+source = "git+https://github.com/LiGoldragon/dotos.git?rev=80c7b17f7ad3#80c7b17f7ad3cf547d2624c6a243e5de5f85c9f3"
 dependencies = [
  "dotos-derive",
  "rkyv",
@@ -112,7 +123,7 @@ dependencies = [
 [[package]]
 name = "dotos-derive"
 version = "0.5.0"
-source = "git+https://github.com/LiGoldragon/dotos.git?rev=1facca44fbcb37633f71fcf6f73bd693fbe56a5e#1facca44fbcb37633f71fcf6f73bd693fbe56a5e"
+source = "git+https://github.com/LiGoldragon/dotos.git?rev=80c7b17f7ad3#80c7b17f7ad3cf547d2624c6a243e5de5f85c9f3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -258,13 +269,25 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "899def5c37c4fd7b2664648c28120ecec138e4d395b459e5ca34f9cce2dd77fd"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "r-efi 5.3.0",
+ "wasip2",
+]
+
+[[package]]
+name = "getrandom"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "300e883d756b2e4ec94e02791f39b04b522276138852cfc41d9fb7e904106099"
 dependencies = [
  "cfg-if",
  "libc",
- "r-efi",
+ "r-efi 6.0.0",
 ]
 
 [[package]]
@@ -303,7 +326,7 @@ dependencies = [
 [[package]]
 name = "kameo"
 version = "0.20.0"
-source = "git+https://github.com/LiGoldragon/kameo.git?branch=main#f491b45d7dcb55e5837eddde3d5d7ca8ceaa9f01"
+source = "git+https://github.com/LiGoldragon/kameo.git?rev=f491b45d7dcb55e5837eddde3d5d7ca8ceaa9f01#f491b45d7dcb55e5837eddde3d5d7ca8ceaa9f01"
 dependencies = [
  "downcast-rs",
  "dyn-clone",
@@ -317,7 +340,7 @@ dependencies = [
 [[package]]
 name = "kameo_macros"
 version = "0.20.0"
-source = "git+https://github.com/LiGoldragon/kameo.git?branch=main#f491b45d7dcb55e5837eddde3d5d7ca8ceaa9f01"
+source = "git+https://github.com/LiGoldragon/kameo.git?rev=f491b45d7dcb55e5837eddde3d5d7ca8ceaa9f01#f491b45d7dcb55e5837eddde3d5d7ca8ceaa9f01"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -391,22 +414,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "nota"
-version = "0.5.1"
-source = "git+https://github.com/LiGoldragon/nota.git?branch=main#ce7c564de0a0518eaa1938d55dccc460a67cadb4"
+name = "name-table"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/name-table.git?rev=a1705ef512efec28925ae3ffc9faa5a2aa4dc4a8#a1705ef512efec28925ae3ffc9faa5a2aa4dc4a8"
 dependencies = [
- "nota-derive",
+ "content-identity",
  "rkyv",
-]
-
-[[package]]
-name = "nota-derive"
-version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/nota.git?branch=main#ce7c564de0a0518eaa1938d55dccc460a67cadb4"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
+ "thiserror",
 ]
 
 [[package]]
@@ -450,6 +464,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fd00f0bb2e90d81d1044c2b32617f68fcb9fa3bb7640c23e9c748e53fb30934"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "protos"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/protos.git?rev=9bce5ed8efadeb157811b256aa69a1f88cd5314f#9bce5ed8efadeb157811b256aa69a1f88cd5314f"
+dependencies = [
+ "content-identity",
+ "name-table",
+ "signal-frame",
+ "structural-codec",
 ]
 
 [[package]]
@@ -502,6 +527,12 @@ dependencies = [
 
 [[package]]
 name = "r-efi"
+version = "5.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
+
+[[package]]
+name = "r-efi"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
@@ -513,6 +544,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a063ea72381527c2a0561da9c80000ef822bdd7c3241b1cc1b12100e3df081ee"
 dependencies = [
  "ptr_meta",
+]
+
+[[package]]
+name = "raw-discovery"
+version = "0.2.0"
+source = "git+https://github.com/LiGoldragon/raw-discovery.git?rev=c27a9efabb1981c8b3d887c870fff82fc7daf49c#c27a9efabb1981c8b3d887c870fff82fc7daf49c"
+dependencies = [
+ "content-identity",
+ "rkyv",
+ "thiserror",
 ]
 
 [[package]]
@@ -574,40 +615,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
-name = "schema"
-version = "0.2.0"
-source = "git+https://github.com/LiGoldragon/schema.git?branch=drop-next#f351f90d3b8898205cf3057f3c253a5e451180a9"
+name = "schema-language"
+version = "0.3.0"
+source = "git+https://github.com/LiGoldragon/schema-language.git?rev=b834873de2a14c783f4be4f1af2dbb21f17ecd83#b834873de2a14c783f4be4f1af2dbb21f17ecd83"
 dependencies = [
  "blake3",
- "nota",
+ "dotos",
  "rkyv",
- "schema-cc",
- "thiserror",
-]
-
-[[package]]
-name = "schema-cc"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/schema.git?branch=drop-next#f351f90d3b8898205cf3057f3c253a5e451180a9"
-dependencies = [
- "nota",
- "prettyplease",
- "proc-macro2",
- "quote",
- "syn",
  "thiserror",
 ]
 
 [[package]]
 name = "schema-rust"
-version = "0.5.3"
-source = "git+https://github.com/LiGoldragon/schema-rust.git?branch=main#72c71ffc558fee0d29c5b0517013de46e0307597"
+version = "0.10.0"
+source = "git+https://github.com/LiGoldragon/schema-rust.git?rev=6179a7cf1394083244dd3f3e1d2709f9ec08f7db#6179a7cf1394083244dd3f3e1d2709f9ec08f7db"
 dependencies = [
- "nota",
+ "dotos",
  "prettyplease",
  "proc-macro2",
+ "protos",
  "quote",
- "schema",
+ "schema-language",
  "syn",
  "thiserror",
  "triad-runtime",
@@ -651,8 +679,8 @@ checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
 name = "signal-frame"
-version = "0.3.0"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=drop-next#bb86bef67e478ff52690a4dcceec8f22d2b005ad"
+version = "0.4.0"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?rev=0786fbe8caf27552afcdd5deb85bc82ec6088337#0786fbe8caf27552afcdd5deb85bc82ec6088337"
 dependencies = [
  "paste",
  "rkyv",
@@ -663,7 +691,7 @@ dependencies = [
 [[package]]
 name = "signal-frame-macros"
 version = "0.1.1"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?branch=drop-next#bb86bef67e478ff52690a4dcceec8f22d2b005ad"
+source = "git+https://github.com/LiGoldragon/signal-frame.git?rev=0786fbe8caf27552afcdd5deb85bc82ec6088337#0786fbe8caf27552afcdd5deb85bc82ec6088337"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -708,6 +736,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "structural-codec"
+version = "0.5.0"
+source = "git+https://github.com/LiGoldragon/structural-codec.git?rev=e5fa1b3bbdde13f3dac205920b16a2e73f3d4487#e5fa1b3bbdde13f3dac205920b16a2e73f3d4487"
+dependencies = [
+ "content-identity",
+ "name-table",
+ "raw-discovery",
+ "rkyv",
+ "thiserror",
+]
+
+[[package]]
 name = "syn"
 version = "2.0.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -725,7 +765,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom",
+ "getrandom 0.4.3",
  "once_cell",
  "rustix",
  "windows-sys",
@@ -826,8 +866,8 @@ dependencies = [
 
 [[package]]
 name = "triad-runtime"
-version = "0.6.1"
-source = "git+https://github.com/LiGoldragon/triad-runtime.git?branch=drop-next#0031b5519572f4571bf3895f78221de9404d4810"
+version = "0.8.0"
+source = "git+https://github.com/LiGoldragon/triad-runtime.git?rev=e44c07dbf314#e44c07dbf31497af95eb461826bb9502115fbcfe"
 dependencies = [
  "kameo",
  "rkyv",
@@ -870,6 +910,15 @@ name = "wasi"
 version = "0.11.1+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
+
+[[package]]
+name = "wasip2"
+version = "1.0.4+wasi-0.2.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b67efb37e106e55ce722a510d6b5f9c17f083e5fc79afc2badeb12cc313d9487"
+dependencies = [
+ "wit-bindgen",
+]
 
 [[package]]
 name = "wasm-bindgen"
@@ -930,3 +979,9 @@ checksum = "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc"
 dependencies = [
  "windows-link",
 ]
+
+[[package]]
+name = "wit-bindgen"
+version = "0.57.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"

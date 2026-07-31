@@ -8,30 +8,6 @@
       url = "github:LiGoldragon/rust-build";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    dotos-source = {
-      url = "github:LiGoldragon/dotos/1facca44fbcb37633f71fcf6f73bd693fbe56a5e";
-      flake = false;
-    };
-    schema-source = {
-      url = "github:LiGoldragon/schema/f351f90d3b8898205cf3057f3c253a5e451180a9";
-      flake = false;
-    };
-    schema-rust-source = {
-      url = "github:LiGoldragon/schema-rust";
-      flake = false;
-    };
-    signal-frame-source = {
-      url = "github:LiGoldragon/signal-frame/bb86bef67e478ff52690a4dcceec8f22d2b005ad";
-      flake = false;
-    };
-    triad-runtime-source = {
-      url = "github:LiGoldragon/triad-runtime/0031b5519572f4571bf3895f78221de9404d4810";
-      flake = false;
-    };
-    kameo-source = {
-      url = "github:LiGoldragon/kameo/main";
-      flake = false;
-    };
   };
 
   outputs =
@@ -40,12 +16,6 @@
       nixpkgs,
       flake-utils,
       rust-build,
-      dotos-source,
-      schema-source,
-      schema-rust-source,
-      signal-frame-source,
-      triad-runtime-source,
-      kameo-source,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -59,97 +29,24 @@
           type == "directory"
           || pkgs.lib.hasSuffix ".md" path
           || pkgs.lib.hasSuffix ".dotos" path
-          || pkgs.lib.hasSuffix ".schema" path;
+          || pkgs.lib.hasSuffix ".schema" path
+          || pkgs.lib.hasSuffix ".rs" path;
 
         cleanSource = rust.cleanSource {
           root = ./.;
           extraFilters = [ skillSourceFilter ];
         };
 
-        src = pkgs.runCommand "skills-source-with-flake-input-patches" { } ''
-            mkdir -p "$out"
-            cp -R ${cleanSource}/. "$out"/
-            chmod -R u+w "$out"
-            mkdir -p "$out/vendor-sources"
-            cp -R ${dotos-source} "$out/vendor-sources/dotos"
-            cp -R ${schema-source} "$out/vendor-sources/schema"
-            cp -R ${schema-rust-source} "$out/vendor-sources/schema-rust"
-            cp -R ${signal-frame-source} "$out/vendor-sources/signal-frame"
-            cp -R ${triad-runtime-source} "$out/vendor-sources/triad-runtime"
-            cp -R ${kameo-source} "$out/vendor-sources/kameo"
-            chmod -R u+w "$out/vendor-sources"
-            cat >> "$out/Cargo.toml" <<'EOF'
-
-          [patch."https://github.com/LiGoldragon/dotos.git"]
-          dotos = { path = "vendor-sources/dotos" }
-          dotos-derive = { path = "vendor-sources/dotos/derive" }
-
-          [patch."https://github.com/LiGoldragon/schema.git"]
-          schema = { path = "vendor-sources/schema" }
-          schema-cc = { path = "vendor-sources/schema/schema-cc" }
-
-          [patch."https://github.com/LiGoldragon/schema-rust.git"]
-          schema-rust = { path = "vendor-sources/schema-rust" }
-
-          [patch."https://github.com/LiGoldragon/signal-frame.git"]
-          signal-frame = { path = "vendor-sources/signal-frame" }
-          signal-frame-macros = { path = "vendor-sources/signal-frame/macros" }
-
-          [patch."https://github.com/LiGoldragon/triad-runtime.git"]
-          triad-runtime = { path = "vendor-sources/triad-runtime" }
-
-          [patch."https://github.com/LiGoldragon/kameo.git"]
-          kameo = { path = "vendor-sources/kameo" }
-          kameo_macros = { path = "vendor-sources/kameo/macros" }
-          EOF
-        '';
-
-        patchedCargoLock = pkgs.runCommand "skills-patched-Cargo.lock" { } ''
-          ${pkgs.python3}/bin/python3 - ${./Cargo.lock} "$out" <<'PYEOF'
-          import re
-          import sys
-
-          path_dependency_names = {
-              "kameo",
-              "kameo_macros",
-              "dotos",
-              "dotos-derive",
-              "schema",
-              "schema-cc",
-              "schema-rust",
-              "signal-frame",
-              "signal-frame-macros",
-              "triad-runtime",
-          }
-          source_text = open(sys.argv[1]).read()
-          blocks = source_text.split("[[package]]")
-          header, entries = blocks[0], blocks[1:]
-
-          def field(entry, name):
-              found = re.search(r'^%s = "([^"]*)"' % name, entry, re.M)
-              return found.group(1) if found else ""
-
-          stripped = []
-          for entry in entries:
-              if field(entry, "name") in path_dependency_names:
-                  entry = "\n".join(
-                      line for line in entry.split("\n")
-                      if not line.startswith('source = "git+https://github.com/LiGoldragon/')
-                  )
-              stripped.append(entry)
-
-          open(sys.argv[2], "w").write(header + "".join("[[package]]" + entry for entry in stripped))
-          PYEOF
-        '';
+        src = cleanSource;
 
         cargoVendorDirectory = craneLib.vendorCargoDeps {
           inherit src;
-          cargoLock = patchedCargoLock;
+          cargoLock = ./Cargo.lock;
         };
 
         commonArguments = {
           inherit src cargoVendorDirectory;
-          cargoLock = patchedCargoLock;
+          cargoLock = ./Cargo.lock;
           strictDeps = true;
         };
         cargoArtifacts = craneLib.buildDepsOnly commonArguments;
@@ -297,20 +194,20 @@
               manifests/nested-role-relations.dotos; do
               test ! -e "${cleanSource}/$retired"
             done
-            grep -F '(read [|Do not edit files, commit, or push. Fetching, cloning, and tool queries are fine.|] Restricted)' "$permissions" >/dev/null
-            grep -F '(write [] Unrestricted)' "$permissions" >/dev/null
-            grep -F '(claude-haiku-4-5 Claude [])' "$catalog" >/dev/null
-            grep -F '(gpt-5.4-mini ChatGpt [Low Medium High Xhigh])' "$catalog" >/dev/null
-            grep -F '(trivial (claude-haiku-4-5 None) (gpt-5.4-mini (Some Medium)))' "$depths" >/dev/null
-            critical_row=$(grep -F '(critical ([|claude-opus-4-6[1m]|] (Some High))' "$depths")
+            grep -F '{read (|Do not edit files, commit, or push. Fetching, cloning, and tool queries are fine.|) Restricted}' "$permissions" >/dev/null
+            grep -F '{write (||) Unrestricted}' "$permissions" >/dev/null
+            grep -F '{claude-haiku-4-5 Claude []}' "$catalog" >/dev/null
+            grep -F '{gpt-5.4-mini ChatGpt [Low Medium High Xhigh]}' "$catalog" >/dev/null
+            grep -F '{trivial {claude-haiku-4-5 None} {gpt-5.4-mini Some.Medium}}' "$depths" >/dev/null
+            critical_row=$(grep -F '{critical {(|claude-opus-4-6[1m]|) Some.High}' "$depths")
             test -n "$critical_row"
-            critical_model=$(printf '%s' "$critical_row" | sed -E 's/.*\)\) \(([A-Za-z0-9.-]+) \(Some ([A-Za-z]+)\)\)\)$/\1/')
-            critical_effort=$(printf '%s' "$critical_row" | sed -E 's/.*\)\) \(([A-Za-z0-9.-]+) \(Some ([A-Za-z]+)\)\)\)$/\2/')
+            critical_model=$(printf '%s' "$critical_row" | sed -E 's/.*\{([A-Za-z0-9.-]+) Some\.[A-Za-z]+\}\}$/\1/')
+            critical_effort=$(printf '%s' "$critical_row" | sed -E 's/.*\{[A-Za-z0-9.-]+ Some\.([A-Za-z]+)\}\}$/\1/')
             test -n "$critical_model"
             test -n "$critical_effort"
-            grep -F "($critical_model ChatGpt" "$catalog" >/dev/null
-            grep -F "($critical_model ChatGpt" "$catalog" | grep -F "$critical_effort" >/dev/null
-            test "$(grep -c '^  (' "$descriptions")" -eq 8
+            grep -F "{$critical_model ChatGpt" "$catalog" >/dev/null
+            grep -F "{$critical_model ChatGpt" "$catalog" | grep -F "$critical_effort" >/dev/null
+            test "$(grep -c '^  {' "$descriptions")" -eq 8
             if grep -F '(Role (' ${cleanSource}/manifests/active-outputs.dotos; then
               echo "roles are generated from the permission-by-depth cross product, not listed as active outputs" >&2
               exit 1
