@@ -1,0 +1,5 @@
+;; DOTOS permission: identifier, body text, tool restriction.
+[
+  {read (|Do not edit files, commit, or push. Fetching, cloning, and tool queries are fine.|) Restricted}
+  {write (||) Unrestricted}
+]

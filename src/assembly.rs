@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use nota::{NotaDecode, NotaEncode, NotaSource};
+use dotos::{DotosDecode, DotosEncode, DotosSource};
 use triad_runtime::{ComponentArgument, ComponentCommand};
 
 use crate::{
@@ -31,7 +31,7 @@ use crate::{
 };
 
 const GENERATED_SKILL_BLOCK_BYTE_LIMIT: usize = 32 * 1024;
-const RETIRED_SKILL_INDEX_PATH: &str = "skills/skills.nota";
+const RETIRED_SKILL_INDEX_PATH: &str = "skills/skills.dotos";
 const RETIRED_CURRENT_DESTINATION_PHRASES: &[&str] = &[
     "Repo Operator",
     "Weave Operator",
@@ -54,9 +54,9 @@ const EXECUTION_LIMIT_MAXIMUMS: &[&str] = &[
 
 /// The generator's process entry point. Per the standing single-argument
 /// rule (`standard-component-architecture.md`: "Give every executable
-/// exactly one argument: a NOTA payload carrying its fully typed
-/// configuration"), the only CLI input is one NOTA operand — an inline
-/// literal or a `.nota` file path — resolved by
+/// exactly one argument: a DOTOS payload carrying its fully typed
+/// configuration"), the only CLI input is one DOTOS operand — an inline
+/// literal or a `.dotos` file path — resolved by
 /// `triad_runtime::ComponentCommand`, the same argument harness `orchestrate`
 /// and `spirit-judge` use. No bare positional path, no second argument, and
 /// no argument-shaped-like-a-flag is ever silently accepted as a filesystem
@@ -81,20 +81,20 @@ impl CommandLine {
 
     fn operation(&self) -> Result<Operation> {
         let text = self.argument_text()?;
-        NotaSource::new(&text)
+        DotosSource::new(&text)
             .parse::<Operation>()
-            .map_err(Error::DecodeNotaArgument)
+            .map_err(Error::DecodeDotosArgument)
     }
 
     fn argument_text(&self) -> Result<String> {
         match self.command.nota_argument()? {
             ComponentArgument::InlineNota(argument) => Ok(argument.into_string()),
-            ComponentArgument::NotaFile(file) => Self::read_nota_file(file.into_path()),
-            ComponentArgument::SignalFile(file) => Self::read_nota_file(file.into_path()),
+            ComponentArgument::NotaFile(file) => Self::read_dotos_file(file.into_path()),
+            ComponentArgument::SignalFile(file) => Self::read_dotos_file(file.into_path()),
         }
     }
 
-    fn read_nota_file(path: PathBuf) -> Result<String> {
+    fn read_dotos_file(path: PathBuf) -> Result<String> {
         fs::read_to_string(&path).map_err(|source| Error::ReadFile { path, source })
     }
 }
@@ -210,40 +210,40 @@ impl GenerationSource {
         .read()?;
         let dependency_path = PathBuf::from(self.manifest_path.as_ref())
             .parent()
-            .map(|parent| parent.join("module-dependencies.nota"))
-            .unwrap_or_else(|| PathBuf::from("module-dependencies.nota"));
+            .map(|parent| parent.join("module-dependencies.dotos"))
+            .unwrap_or_else(|| PathBuf::from("module-dependencies.dotos"));
         let module_dependencies: ModuleDependencies =
             SourceFile::new(self.source_root.clone(), dependency_path).read()?;
         let manifest_directory = PathBuf::from(self.manifest_path.as_ref())
             .parent()
             .map(PathBuf::from)
             .unwrap_or_default();
-        let insertion_path = manifest_directory.join("target-module-insertions.nota");
+        let insertion_path = manifest_directory.join("target-module-insertions.dotos");
         let target_module_insertions: TargetModuleInsertions =
             SourceFile::new(self.source_root.clone(), insertion_path)
                 .read_optional()?
                 .unwrap_or_else(|| TargetModuleInsertions::new(Vec::new()));
-        let universal_role_modules_path = manifest_directory.join("universal-role-modules.nota");
+        let universal_role_modules_path = manifest_directory.join("universal-role-modules.dotos");
         let universal_role_modules: UniversalRoleModules =
             SourceFile::new(self.source_root.clone(), universal_role_modules_path)
                 .read_optional()?
                 .unwrap_or_else(|| UniversalRoleModules::new(Vec::new()));
         let skill_module_compositions_path =
-            manifest_directory.join("skill-module-compositions.nota");
+            manifest_directory.join("skill-module-compositions.dotos");
         let skill_module_compositions: SkillModuleCompositions =
             SourceFile::new(self.source_root.clone(), skill_module_compositions_path)
                 .read_optional()?
                 .unwrap_or_else(|| SkillModuleCompositions::new(Vec::new()));
-        let model_catalog_path = manifest_directory.join("model-catalog.nota");
+        let model_catalog_path = manifest_directory.join("model-catalog.dotos");
         let model_catalog: ModelCatalog =
             SourceFile::new(self.source_root.clone(), model_catalog_path).read()?;
-        let role_permissions_path = manifest_directory.join("role-permissions.nota");
+        let role_permissions_path = manifest_directory.join("role-permissions.dotos");
         let role_permissions: RolePermissions =
             SourceFile::new(self.source_root.clone(), role_permissions_path).read()?;
-        let role_depths_path = manifest_directory.join("role-depths.nota");
+        let role_depths_path = manifest_directory.join("role-depths.dotos");
         let role_depths: RoleDepths =
             SourceFile::new(self.source_root.clone(), role_depths_path).read()?;
-        let role_descriptions_path = manifest_directory.join("role-descriptions.nota");
+        let role_descriptions_path = manifest_directory.join("role-descriptions.dotos");
         let role_descriptions: RoleDescriptions =
             SourceFile::new(self.source_root.clone(), role_descriptions_path).read()?;
         GenerationConfiguration::active(
@@ -279,7 +279,7 @@ impl SourceFile {
 
     fn read<T>(&self) -> Result<T>
     where
-        T: NotaDecode,
+        T: DotosDecode,
     {
         let workspace_path =
             WorkspacePath::new(self.source_root.clone(), self.relative_path.clone())?;
@@ -288,23 +288,23 @@ impl SourceFile {
             path: path.clone(),
             source,
         })?;
-        NotaSource::new(&text)
+        DotosSource::new(&text)
             .parse::<T>()
-            .map_err(|source| Error::DecodeNota { path, source })
+            .map_err(|source| Error::DecodeDotos { path, source })
     }
 
     fn read_optional<T>(&self) -> Result<Option<T>>
     where
-        T: NotaDecode,
+        T: DotosDecode,
     {
         let workspace_path =
             WorkspacePath::new(self.source_root.clone(), self.relative_path.clone())?;
         let path = workspace_path.full_path();
         match fs::read_to_string(&path) {
-            Ok(text) => NotaSource::new(&text)
+            Ok(text) => DotosSource::new(&text)
                 .parse::<T>()
                 .map(Some)
-                .map_err(|source| Error::DecodeNota { path, source }),
+                .map_err(|source| Error::DecodeDotos { path, source }),
             Err(source) if source.kind() == io::ErrorKind::NotFound => Ok(None),
             Err(source) => Err(Error::ReadFile { path, source }),
         }
@@ -410,7 +410,8 @@ impl SkillModuleCompositionIndex {
 
 /// Every generated role packet ends its own body with this line. A
 /// permission that carries body text places that text immediately before it.
-const SHARED_ROLE_BODY: &str = "The brief is your authority. Decide what it settles; return what it does not.";
+const SHARED_ROLE_BODY: &str =
+    "The brief is your authority. Decide what it settles; return what it does not.";
 
 /// Pi names a ChatGPT model provider-qualified; Codex names the same model
 /// bare.
@@ -1710,8 +1711,8 @@ impl ManifestAssembler {
         let rendered = match self.manifest.output_kind {
             OutputKind::Markdown => self.render_markdown(output_path)?,
             OutputKind::Toml => self.render_toml(output_path)?,
-            OutputKind::Nota => {
-                unreachable!("derived NOTA outputs render without module manifests")
+            OutputKind::Dotos => {
+                unreachable!("derived DOTOS outputs render without module manifests")
             }
         };
         BraceFreeOutput::new(output_path.full_path(), &rendered).validate()?;
@@ -1768,7 +1769,7 @@ impl ManifestAssembler {
             fragments.push(MarkdownFragment::from_text(
                 WorkspacePath::new(
                     self.source_root.clone(),
-                    PathBuf::from("manifests/role-permissions.nota"),
+                    PathBuf::from("manifests/role-permissions.dotos"),
                 )?,
                 text,
             ));
@@ -1942,11 +1943,11 @@ impl RoleOutputInventory {
     }
 
     fn relative_path() -> OutputPath {
-        OutputPath::new("skills/generated-role-outputs.nota")
+        OutputPath::new("skills/generated-role-outputs.dotos")
     }
 
     fn render(&self) -> String {
-        GeneratedRoleOutputs::new(self.output_paths.clone()).to_nota()
+        GeneratedRoleOutputs::new(self.output_paths.clone()).to_dotos()
     }
 
     fn contains(&self, output_path: &OutputPath) -> bool {
@@ -1990,9 +1991,9 @@ impl RoleOutputInventoryFile {
         let path = workspace_path.full_path();
         match fs::read_to_string(&path) {
             Ok(text) => {
-                let generated_outputs = NotaSource::new(&text)
+                let generated_outputs = DotosSource::new(&text)
                     .parse::<GeneratedRoleOutputs>()
-                    .map_err(|source| Error::DecodeNota { path, source })?;
+                    .map_err(|source| Error::DecodeDotos { path, source })?;
                 Ok(RoleOutputInventory::new(generated_outputs.into_payload()))
             }
             Err(source) if source.kind() == io::ErrorKind::NotFound => {
@@ -2135,7 +2136,7 @@ impl StaleOutputScan {
 }
 
 impl GenerationReport {
-    pub fn to_nota_text(&self) -> String {
-        GenerationOutcome::Generated(self.clone()).to_nota()
+    pub fn to_dotos_text(&self) -> String {
+        GenerationOutcome::Generated(self.clone()).to_dotos()
     }
 }

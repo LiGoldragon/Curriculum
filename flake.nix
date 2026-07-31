@@ -8,8 +8,8 @@
       url = "github:LiGoldragon/rust-build";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nota-source = {
-      url = "github:LiGoldragon/nota/ce7c564de0a0518eaa1938d55dccc460a67cadb4";
+    dotos-source = {
+      url = "github:LiGoldragon/dotos/1facca44fbcb37633f71fcf6f73bd693fbe56a5e";
       flake = false;
     };
     schema-source = {
@@ -40,7 +40,7 @@
       nixpkgs,
       flake-utils,
       rust-build,
-      nota-source,
+      dotos-source,
       schema-source,
       schema-rust-source,
       signal-frame-source,
@@ -58,7 +58,7 @@
           path: type:
           type == "directory"
           || pkgs.lib.hasSuffix ".md" path
-          || pkgs.lib.hasSuffix ".nota" path
+          || pkgs.lib.hasSuffix ".dotos" path
           || pkgs.lib.hasSuffix ".schema" path;
 
         cleanSource = rust.cleanSource {
@@ -71,7 +71,7 @@
             cp -R ${cleanSource}/. "$out"/
             chmod -R u+w "$out"
             mkdir -p "$out/vendor-sources"
-            cp -R ${nota-source} "$out/vendor-sources/nota"
+            cp -R ${dotos-source} "$out/vendor-sources/dotos"
             cp -R ${schema-source} "$out/vendor-sources/schema"
             cp -R ${schema-rust-source} "$out/vendor-sources/schema-rust"
             cp -R ${signal-frame-source} "$out/vendor-sources/signal-frame"
@@ -80,9 +80,9 @@
             chmod -R u+w "$out/vendor-sources"
             cat >> "$out/Cargo.toml" <<'EOF'
 
-          [patch."https://github.com/LiGoldragon/nota.git"]
-          nota = { path = "vendor-sources/nota" }
-          nota-derive = { path = "vendor-sources/nota/derive" }
+          [patch."https://github.com/LiGoldragon/dotos.git"]
+          dotos = { path = "vendor-sources/dotos" }
+          dotos-derive = { path = "vendor-sources/dotos/derive" }
 
           [patch."https://github.com/LiGoldragon/schema.git"]
           schema = { path = "vendor-sources/schema" }
@@ -112,8 +112,8 @@
           path_dependency_names = {
               "kameo",
               "kameo_macros",
-              "nota",
-              "nota-derive",
+              "dotos",
+              "dotos-derive",
               "schema",
               "schema-cc",
               "schema-rust",
@@ -162,18 +162,18 @@
               inherit name;
               runtimeInputs = [ skillsPackage ];
               # The single-argument rule (standard-component-architecture.md:
-              # "Give every executable exactly one argument: a NOTA payload
+              # "Give every executable exactly one argument: a DOTOS payload
               # carrying its fully typed configuration") applies to this
               # wrapper too. It never treats its one optional argument as a
               # bare workspace-root path: omitted, the fixed request file
               # below runs against $PWD; given, the argument is forwarded
-              # verbatim as the `skills` binary's one NOTA argument (inline
-              # literal or a path to a `.nota` file), so a stray flag like
-              # `--write` fails NOTA decoding loudly instead of silently
+              # verbatim as the `skills` binary's one DOTOS argument (inline
+              # literal or a path to a `.dotos` file), so a stray flag like
+              # `--write` fails DOTOS decoding loudly instead of silently
               # becoming a directory name.
               text = ''
                 if [ "$#" -gt 1 ]; then
-                  echo "usage: ${name} [nota-payload]" >&2
+                  echo "usage: ${name} [dotos-payload]" >&2
                   exit 2
                 fi
                 export SKILLS_SOURCE_ROOT=${cleanSource}
@@ -203,9 +203,9 @@
             program = "${skillsPackage}/bin/skills";
             meta.description = "Run the skills generator CLI";
           };
-          generate-skills = generatorApp "generate-skills" "skills-generate.nota";
-          check-skills = generatorApp "check-skills" "skills-check.nota";
-          visualize-skills = generatorApp "visualize-skills" "skills-visualize.nota";
+          generate-skills = generatorApp "generate-skills" "skills-generate.dotos";
+          check-skills = generatorApp "check-skills" "skills-check.dotos";
+          visualize-skills = generatorApp "visualize-skills" "skills-visualize.dotos";
           default = skills;
         };
 
@@ -222,19 +222,19 @@
             }
           );
           no-hard-coded-generation-roots = pkgs.runCommand "skills-no-hard-coded-generation-roots" { } ''
-            grep -F '$SKILLS_SOURCE_ROOT' ${cleanSource}/skills-check.nota >/dev/null
-            grep -F '$SKILLS_WORKSPACE_ROOT' ${cleanSource}/skills-check.nota >/dev/null
-            grep -F '$SKILLS_SOURCE_ROOT' ${cleanSource}/skills-generate.nota >/dev/null
-            grep -F '$SKILLS_WORKSPACE_ROOT' ${cleanSource}/skills-generate.nota >/dev/null
-            if grep -n -E '/(home|git)/' ${cleanSource}/skills-check.nota ${cleanSource}/skills-generate.nota; then
+            grep -F '$SKILLS_SOURCE_ROOT' ${cleanSource}/skills-check.dotos >/dev/null
+            grep -F '$SKILLS_WORKSPACE_ROOT' ${cleanSource}/skills-check.dotos >/dev/null
+            grep -F '$SKILLS_SOURCE_ROOT' ${cleanSource}/skills-generate.dotos >/dev/null
+            grep -F '$SKILLS_WORKSPACE_ROOT' ${cleanSource}/skills-generate.dotos >/dev/null
+            if grep -n -E '/(home|git)/' ${cleanSource}/skills-check.dotos ${cleanSource}/skills-generate.dotos; then
               echo "generation requests must not hard-code source or workspace roots" >&2
               exit 1
             fi
             touch "$out"
           '';
           check-request-is-non-writing = pkgs.runCommand "skills-check-request-is-non-writing" { } ''
-            grep -F ' Check))' ${cleanSource}/skills-check.nota >/dev/null
-            if grep -F ' Write))' ${cleanSource}/skills-check.nota; then
+            grep -F ' Check}' ${cleanSource}/skills-check.dotos >/dev/null
+            if grep -F ' Write}' ${cleanSource}/skills-check.dotos; then
               echo "check request must not use Write mode" >&2
               exit 1
             fi
@@ -243,20 +243,20 @@
           generation-requests-use-active-manifest =
             pkgs.runCommand "skills-generation-requests-use-active-manifest" { }
               ''
-                grep -F 'manifests/active-outputs.nota' ${cleanSource}/skills-check.nota >/dev/null
-                grep -F 'manifests/active-outputs.nota' ${cleanSource}/skills-generate.nota >/dev/null
-                if find ${cleanSource}/manifests -mindepth 2 -type f -name '*.nota' | grep .; then
+                grep -F 'manifests/active-outputs.dotos' ${cleanSource}/skills-check.dotos >/dev/null
+                grep -F 'manifests/active-outputs.dotos' ${cleanSource}/skills-generate.dotos >/dev/null
+                if find ${cleanSource}/manifests -mindepth 2 -type f -name '*.dotos' | grep .; then
                   echo "generation must be driven by the single active output manifest, not per-output manifests" >&2
                   exit 1
                 fi
                 touch "$out"
               '';
           flat-active-source-layout = pkgs.runCommand "skills-flat-active-source-layout" { } ''
-            index=${cleanSource}/manifests/module-dependencies.nota
-            manifest=${cleanSource}/manifests/active-outputs.nota
+            index=${cleanSource}/manifests/module-dependencies.dotos
+            manifest=${cleanSource}/manifests/active-outputs.dotos
             test ! -e ${cleanSource}/modules
             test ! -e ${cleanSource}/skills/archive
-            test ! -e ${cleanSource}/manifests/skills-roster.nota
+            test ! -e ${cleanSource}/manifests/skills-roster.dotos
             if grep -E 'modules/|/full\.md|architecture-editor|skills/archive' "$index" "$manifest"; then
               echo "active source manifests must use flat current paths and names" >&2
               exit 1
@@ -280,21 +280,21 @@
                 printf 'stale\n' > "$workspace/.claude/skills/human-interaction/SKILL.md"
                 export SKILLS_SOURCE_ROOT=${cleanSource}
                 export SKILLS_WORKSPACE_ROOT="$workspace"
-                ${skillsPackage}/bin/skills ${cleanSource}/skills-generate.nota >/dev/null
+                ${skillsPackage}/bin/skills ${cleanSource}/skills-generate.dotos >/dev/null
                 test ! -e "$workspace/.agents/skills/human-interaction/SKILL.md"
                 test ! -e "$workspace/.claude/skills/human-interaction/SKILL.md"
                 touch "$out"
               '';
           role-cross-product-manifests = pkgs.runCommand "skills-role-cross-product-manifests" { } ''
-            permissions=${cleanSource}/manifests/role-permissions.nota
-            depths=${cleanSource}/manifests/role-depths.nota
-            descriptions=${cleanSource}/manifests/role-descriptions.nota
-            catalog=${cleanSource}/manifests/model-catalog.nota
+            permissions=${cleanSource}/manifests/role-permissions.dotos
+            depths=${cleanSource}/manifests/role-depths.dotos
+            descriptions=${cleanSource}/manifests/role-descriptions.dotos
+            catalog=${cleanSource}/manifests/model-catalog.dotos
             for retired in \
-              manifests/role-model-assignments.nota \
-              manifests/role-model-profiles.nota \
-              manifests/role-optional-skills.nota \
-              manifests/nested-role-relations.nota; do
+              manifests/role-model-assignments.dotos \
+              manifests/role-model-profiles.dotos \
+              manifests/role-optional-skills.dotos \
+              manifests/nested-role-relations.dotos; do
               test ! -e "${cleanSource}/$retired"
             done
             grep -F '(read [|Do not edit files, commit, or push. Fetching, cloning, and tool queries are fine.|] Restricted)' "$permissions" >/dev/null
@@ -311,14 +311,14 @@
             grep -F "($critical_model ChatGpt" "$catalog" >/dev/null
             grep -F "($critical_model ChatGpt" "$catalog" | grep -F "$critical_effort" >/dev/null
             test "$(grep -c '^  (' "$descriptions")" -eq 8
-            if grep -F '(Role (' ${cleanSource}/manifests/active-outputs.nota; then
+            if grep -F '(Role (' ${cleanSource}/manifests/active-outputs.dotos; then
               echo "roles are generated from the permission-by-depth cross product, not listed as active outputs" >&2
               exit 1
             fi
             workspace=$TMPDIR/workspace
             export SKILLS_SOURCE_ROOT=${cleanSource}
             export SKILLS_WORKSPACE_ROOT="$workspace"
-            ${skillsPackage}/bin/skills ${cleanSource}/skills-generate.nota >/dev/null
+            ${skillsPackage}/bin/skills ${cleanSource}/skills-generate.dotos >/dev/null
             for permission in read write; do
               for depth in trivial ordinary demanding critical; do
                 test -f "$workspace/.claude/agents/$permission-$depth.md"

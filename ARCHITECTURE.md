@@ -6,11 +6,11 @@
 
 This repository owns flat skill sources, output manifests, and the Rust
 generator that assembles harness-native skill and role files into consuming workspaces.
-The active surface is manifest-driven: active skill outputs are listed in one NOTA
+The active surface is manifest-driven: active skill outputs are listed in one DOTOS
 manifest, roles are the permission-by-depth cross product declared in three role
-manifests, module source paths and kinds live in a sidecar NOTA index, and
+manifests, module source paths and kinds live in a sidecar DOTOS index, and
 generated files are written into the workspace root carried by the CLI's one
-NOTA argument.
+DOTOS argument.
 
 The generator treats instruction prose as reusable source material. Harness
 metadata and output identity live in manifests, while flat markdown sources stay
@@ -22,15 +22,15 @@ workers do not discover doctrine through a runtime index.
 ## Source Surfaces
 
 - `skills/<name>.md`: flat source files for runtime skills and role-packet components. Their leading frontmatter owns a runtime skill's description and every module's dependency list.
-- `manifests/active-outputs.nota`: active `Skill` outputs; presence means active.
-- `manifests/module-dependencies.nota`: module identifier, source path, and explicit source module kind (`RuntimeSkill` or `RoleComposition`).
-- `manifests/target-module-insertions.nota`: target-specific module overlays keyed by base module and output surface.
-- `manifests/universal-role-modules.nota`: the `general-instructions` and `tenets` modules included in every generated role packet.
-- `manifests/skill-module-compositions.nota`: typed ordered modules appended to a named active skill after its primary module.
-- `manifests/model-catalog.nota`: each model's identifier, provider surface, and accepted effort levels; an empty accepted list means the model accepts no effort level.
-- `manifests/role-permissions.nota`: each permission's identifier, body text, and tool restriction.
-- `manifests/role-depths.nota`: each depth's identifier and its Claude and ChatGPT model with optional effort.
-- `manifests/role-descriptions.nota`: one description per permission-by-depth cell.
+- `manifests/active-outputs.dotos`: active `Skill` outputs; presence means active.
+- `manifests/module-dependencies.dotos`: module identifier, source path, and explicit source module kind (`RuntimeSkill` or `RoleComposition`).
+- `manifests/target-module-insertions.dotos`: target-specific module overlays keyed by base module and output surface.
+- `manifests/universal-role-modules.dotos`: the `general-instructions` and `tenets` modules included in every generated role packet.
+- `manifests/skill-module-compositions.dotos`: typed ordered modules appended to a named active skill after its primary module.
+- `manifests/model-catalog.dotos`: each model's identifier, provider surface, and accepted effort levels; an empty accepted list means the model accepts no effort level.
+- `manifests/role-permissions.dotos`: each permission's identifier, body text, and tool restriction.
+- `manifests/role-depths.dotos`: each depth's identifier and its Claude and ChatGPT model with optional effort.
+- `manifests/role-descriptions.dotos`: one description per permission-by-depth cell.
 - `schema/assembly.schema`: schema-authored generator interface source.
 - `src/schema/assembly.rs`: generated Rust interface from `schema/assembly.schema`.
 
@@ -79,11 +79,11 @@ Role targets, where `<role>` is `<permission>-<depth>`:
 
 Derived inventory:
 
-- `skills/generated-role-outputs.nota`: stale generated role cleanup inventory.
+- `skills/generated-role-outputs.dotos`: stale generated role cleanup inventory.
 
 Visualization:
 
-- `visualize-skills`: a non-writing, manifest-derived NOTA report of role dispatch
+- `visualize-skills`: a non-writing, manifest-derived DOTOS report of role dispatch
   kind, target packet composition, and every virtual generated output's bytes and
   newline count.
 
@@ -97,10 +97,10 @@ role modules. `skills/general-instructions.md` and `skills/tenets.md` provide
 universal cross-agent role doctrine; skill-, repository-, and harness-specific
 instruction stays in its owning source.
 
-Roles are generated, not authored. Every permission in `role-permissions.nota`
-is crossed with every depth in `role-depths.nota`, producing a role named
+Roles are generated, not authored. Every permission in `role-permissions.dotos`
+is crossed with every depth in `role-depths.dotos`, producing a role named
 `<permission>-<depth>` whose description comes from the matching cell in
-`role-descriptions.nota`. A missing, duplicated, or out-of-product cell fails
+`role-descriptions.dotos`. A missing, duplicated, or out-of-product cell fails
 generation. Each role packet opens with its own generated body: a permission
 that carries body text places that text before the shared closing body, and a
 permission with no body text emits the shared body alone. Universal role modules
@@ -148,21 +148,21 @@ Removed active sources have no archive or compatibility model.
 - The generator is a Rust CLI.
 - Every generator entry point — the `skills` binary and the `generate-skills`,
   `check-skills`, and `visualize-skills` flake apps that wrap it — takes
-  exactly one argument: a NOTA payload carrying its fully typed configuration
-  (an inline literal or a `.nota` file path), per
+  exactly one argument: a DOTOS payload carrying its fully typed configuration
+  (an inline literal or a `.dotos` file path), per
   `standard-component-architecture.md`. No entry point accepts a bare
-  workspace-root path or any other flag; a stray argument fails NOTA decoding
+  workspace-root path or any other flag; a stray argument fails DOTOS decoding
   rather than being silently treated as a path.
-- Generator inputs are NOTA where practical, including the active manifest,
+- Generator inputs are DOTOS where practical, including the active manifest,
   module kind index, target module insertion index, and universal role module manifest.
-- Generator outputs are NOTA where applicable, including generated-role inventory files.
+- Generator outputs are DOTOS where applicable, including generated-role inventory files.
 - Interfaces are schema-authored in `schema/assembly.schema`; Rust schema types are generated, not hand-authored in parallel.
 - Normalization changes only structure required for valid output: one frontmatter block, heading levels, relative links, and duplicate-title handling.
 - Prose is preserved through generation.
 - Duplicate headings or sections fail generation.
 - Generated outputs carry no provenance headers.
 - Generated outputs are written into consuming workspaces and committed there.
-- Role packet target directories are path-owned rather than directory-owned; stale role cleanup removes only paths listed in `skills/generated-role-outputs.nota`.
+- Role packet target directories are path-owned rather than directory-owned; stale role cleanup removes only paths listed in `skills/generated-role-outputs.dotos`.
 
 ## Code Map
 

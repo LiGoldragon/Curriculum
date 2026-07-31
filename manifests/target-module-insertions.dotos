@@ -1,0 +1,5 @@
+;; DOTOS target-specific module insertion index.
+;; Each record is: base module id, output surface, inserted module ids.
+[
+  {general-instructions CodexAgent [codex-skill-loading]}
+]

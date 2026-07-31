@@ -1,0 +1,8 @@
+;; DOTOS depth: identifier, Claude model and effort, ChatGpt model and effort.
+;; Haiku 4.5 accepts no effort level, so its effort is None.
+[
+  {trivial {claude-haiku-4-5 None} {gpt-5.4-mini Some.Medium}}
+  {ordinary {claude-sonnet-5 Some.Medium} {gpt-5.6-luna Some.High}}
+  {demanding {(|claude-opus-4-6[1m]|) Some.Medium} {gpt-5.6-terra Some.High}}
+  {critical {(|claude-opus-4-6[1m]|) Some.High} {gpt-5.6-terra Some.Xhigh}}
+]

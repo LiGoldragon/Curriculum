@@ -4,7 +4,7 @@ use std::{
     path::Path,
 };
 
-use nota::NotaSource;
+use dotos::DotosSource;
 use skills::{
     Error,
     schema::assembly::{
@@ -61,7 +61,7 @@ fn generation_writes_derived_skill_surfaces_with_manifest_frontmatter() {
         .collect();
     assert!(generated_paths.contains(&".agents/skills/example/SKILL.md"));
     assert!(generated_paths.contains(&".claude/skills/example/SKILL.md"));
-    assert!(!generated_paths.contains(&"skills/skills.nota"));
+    assert!(!generated_paths.contains(&"skills/skills.dotos"));
 
     let generated = fixture.read_workspace_file(".agents/skills/example/SKILL.md");
     assert_eq!(
@@ -72,7 +72,13 @@ fn generation_writes_derived_skill_surfaces_with_manifest_frontmatter() {
         generated,
         fixture.read_workspace_file(".claude/skills/example/SKILL.md")
     );
-    assert!(!fixture.workspace.path().join("skills/skills.nota").exists());
+    assert!(
+        !fixture
+            .workspace
+            .path()
+            .join("skills/skills.dotos")
+            .exists()
+    );
 }
 
 #[test]
@@ -181,8 +187,9 @@ fn generation_rejects_nested_legacy_module_source_paths() {
     fixture.write_default_manifest();
     fixture.write_source_file("skills/example.md", "# example\n");
     fixture.write_source_file(
-        "manifests/module-dependencies.nota",
-        "[(example modules/example/full.md RuntimeSkill)]\n",
+        "manifests/module-dependencies.dotos",
+        "[{example modules/example/full.md RuntimeSkill}]
+",
     );
 
     let error = fixture
@@ -210,8 +217,9 @@ fn skill_module_compositions_reject_inactive_and_duplicate_skill_entries() {
     inactive.write_default_manifest();
     inactive.write_source_file("skills/example.md", "# Skill — example\n\nExample.\n");
     inactive.write_source_file(
-        "manifests/skill-module-compositions.nota",
-        "[(missing [])]\n",
+        "manifests/skill-module-compositions.dotos",
+        "[{missing []}]
+",
     );
     let error = inactive
         .generate(GenerationMode::Write)
@@ -222,8 +230,9 @@ fn skill_module_compositions_reject_inactive_and_duplicate_skill_entries() {
     duplicate.write_default_manifest();
     duplicate.write_source_file("skills/example.md", "# Skill — example\n\nExample.\n");
     duplicate.write_source_file(
-        "manifests/skill-module-compositions.nota",
-        "[(example []) (example [])]\n",
+        "manifests/skill-module-compositions.dotos",
+        "[{example []} {example []}]
+",
     );
     let error = duplicate
         .generate(GenerationMode::Write)
@@ -460,11 +469,11 @@ fn general_instructions_compose_once_and_keep_authority_gates() {
     assert!(!general.contains("Clarify, gate, dispatch"));
     assert!(!general.contains("Cross-session intercom is prohibited"));
     assert!(
-        include_str!("../manifests/universal-role-modules.nota")
+        include_str!("../manifests/universal-role-modules.dotos")
             .contains("[general-instructions]")
     );
     assert!(
-        !include_str!("../manifests/universal-role-modules.nota").contains("tenets"),
+        !include_str!("../manifests/universal-role-modules.dotos").contains("tenets"),
         "tenets is a loadable skill and must not be auto-injected into roles"
     );
 }
@@ -494,17 +503,19 @@ fn generation_strips_source_maintenance_notes_from_runtime_surfaces() {
 fn target_module_insertions_apply_only_to_matching_generated_surfaces() {
     let fixture = Fixture::new();
     fixture.write_source_file(
-        "manifests/active-outputs.nota",
-        "[(Skill (management management Meta Mechanism [AgentsSkill ClaudeSkill]))]\n",
+        "manifests/active-outputs.dotos",
+        "[Skill.{management management Meta Mechanism [AgentsSkill ClaudeSkill]}]
+",
     );
     fixture.write_role_cross_product_sources();
     fixture.write_universal_role_modules(
         "[management]\n",
-        "[(management skills/management.md RuntimeSkill) (claude-management skills/claude-management.md RuntimeSkill)]\n",
+        "[{management skills/management.md RuntimeSkill} {claude-management skills/claude-management.md RuntimeSkill}]
+",
     );
     fixture.write_source_file(
-        "manifests/target-module-insertions.nota",
-        "[(management ClaudeSkill [claude-management]) (management ClaudeAgent [claude-management])]\n",
+        "manifests/target-module-insertions.dotos",
+        "[{management ClaudeSkill [claude-management]} {management ClaudeAgent [claude-management]}]\n",
     );
     fixture.write_source_file(
         "skills/management.md",
@@ -545,12 +556,14 @@ fn generation_rejects_direct_module_dependency_cycle() {
     let fixture = Fixture::new();
     fixture.write_role_cross_product_sources();
     fixture.write_source_file(
-        "manifests/active-outputs.nota",
-        "[(Skill (example example Craft Topic [AgentsSkill]))]\n",
+        "manifests/active-outputs.dotos",
+        "[Skill.{example example Craft Topic [AgentsSkill]}]
+",
     );
     fixture.write_source_file(
-        "manifests/module-dependencies.nota",
-        "[(example skills/example.md RuntimeSkill)]\n",
+        "manifests/module-dependencies.dotos",
+        "[{example skills/example.md RuntimeSkill}]
+",
     );
     fixture.write_source_file(
         "skills/example.md",
@@ -599,12 +612,13 @@ fn generation_rejects_transitive_module_dependency_cycle() {
     let fixture = Fixture::new();
     fixture.write_role_cross_product_sources();
     fixture.write_source_file(
-        "manifests/active-outputs.nota",
-        "[(Skill (example first Craft Topic [AgentsSkill]))]\n",
+        "manifests/active-outputs.dotos",
+        "[Skill.{example first Craft Topic [AgentsSkill]}]
+",
     );
     fixture.write_source_file(
-        "manifests/module-dependencies.nota",
-        "[(first skills/first.md RuntimeSkill) (second skills/second.md RuntimeSkill) (third skills/third.md RuntimeSkill)]\n",
+        "manifests/module-dependencies.dotos",
+        "[{first skills/first.md RuntimeSkill} {second skills/second.md RuntimeSkill} {third skills/third.md RuntimeSkill}]\n",
     );
     fixture.write_source_file(
         "skills/first.md",
@@ -643,12 +657,13 @@ fn generation_rejects_role_composition_module_as_skill_output() {
     let fixture = Fixture::new();
     fixture.write_role_cross_product_sources();
     fixture.write_source_file(
-        "manifests/active-outputs.nota",
-        "[(Skill (edit-coordination-core edit-coordination-core Workflow Mechanism [AgentsSkill]))]\n",
+        "manifests/active-outputs.dotos",
+        "[Skill.{edit-coordination-core edit-coordination-core Workflow Mechanism [AgentsSkill]}]
+",
     );
     fixture.write_source_file(
-        "manifests/module-dependencies.nota",
-        "[(edit-coordination-core skills/edit-coordination-core.md RoleComposition)]\n",
+        "manifests/module-dependencies.dotos",
+        "[{edit-coordination-core skills/edit-coordination-core.md RoleComposition}]\n",
     );
     fixture.write_source_file("skills/edit-coordination-core.md", "Role-only content.\n");
 
@@ -688,14 +703,14 @@ fn check_mode_reports_stale_output_with_guidance() {
     );
     fixture.write_workspace_file(".agents/skills/example/SKILL.md", "old\n");
     fixture.write_workspace_file(".claude/skills/example/SKILL.md", "old\n");
-    fixture.write_workspace_file("skills/skills.nota", "old\n");
+    fixture.write_workspace_file("skills/skills.dotos", "old\n");
 
     let error = fixture
         .generate(GenerationMode::Check)
         .expect_err("stale output fails check mode");
 
     assert!(matches!(error, Error::StaleOutput { .. }), "{error:?}");
-    assert!(!error.to_string().contains("skills.nota"));
+    assert!(!error.to_string().contains("skills.dotos"));
     assert!(error.to_string().contains("generate-skills"));
     assert!(error.to_string().contains("check-skills"));
 }
@@ -748,13 +763,13 @@ fn retired_skill_index_is_rejected_in_check_mode_and_pruned_in_write_mode() {
     fixture
         .generate_from_repo(GenerationMode::Write)
         .expect("current generated outputs write to fixture workspace");
-    fixture.write_workspace_file("skills/skills.nota", "old retired index\n");
+    fixture.write_workspace_file("skills/skills.dotos", "old retired index\n");
 
     let error = fixture
         .generate_from_repo(GenerationMode::Check)
         .expect_err("retired skill index fails deployment check");
     assert!(
-        matches!(error, Error::StaleGeneratedOutput { ref path } if path.ends_with("skills/skills.nota")),
+        matches!(error, Error::StaleGeneratedOutput { ref path } if path.ends_with("skills/skills.dotos")),
         "{error:?}"
     );
 
@@ -762,7 +777,11 @@ fn retired_skill_index_is_rejected_in_check_mode_and_pruned_in_write_mode() {
         .generate_from_repo(GenerationMode::Write)
         .expect("write mode prunes retired skill index");
     assert!(
-        !fixture.workspace.path().join("skills/skills.nota").exists(),
+        !fixture
+            .workspace
+            .path()
+            .join("skills/skills.dotos")
+            .exists(),
         "retired skill index is removed"
     );
     fixture
@@ -860,7 +879,7 @@ fn role_cross_product_writes_one_packet_per_permission_depth_and_surface() {
             assert!(packet.contains(role), "{path} names its role");
         }
     }
-    let inventory = fixture.read_workspace_file("skills/generated-role-outputs.nota");
+    let inventory = fixture.read_workspace_file("skills/generated-role-outputs.dotos");
     for role in ["read-shallow", "read-deep", "write-shallow", "write-deep"] {
         assert!(inventory.contains(&format!(".claude/agents/{role}.md")));
         assert!(inventory.contains(&format!(".codex/agents/{role}.toml")));
@@ -982,8 +1001,9 @@ fn depth_rows_reject_unknown_models_provider_mismatch_and_effort_inconsistency()
     let unknown = Fixture::new();
     unknown.write_default_manifest();
     unknown.write_source_file(
-        "manifests/role-depths.nota",
-        "[(shallow (claude-flat None) (gpt-test (Some Low))) (deep (claude-missing (Some High)) (gpt-test (Some High)))]\n",
+        "manifests/role-depths.dotos",
+        "[{shallow {claude-flat None} {gpt-test Some.Low}} {deep {claude-missing Some.High} {gpt-test Some.High}}]
+",
     );
     assert!(matches!(
         unknown
@@ -995,8 +1015,9 @@ fn depth_rows_reject_unknown_models_provider_mismatch_and_effort_inconsistency()
     let mismatched = Fixture::new();
     mismatched.write_default_manifest();
     mismatched.write_source_file(
-        "manifests/role-depths.nota",
-        "[(shallow (claude-flat None) (gpt-test (Some Low))) (deep (gpt-test (Some High)) (gpt-test (Some High)))]\n",
+        "manifests/role-depths.dotos",
+        "[{shallow {claude-flat None} {gpt-test Some.Low}} {deep {gpt-test Some.High} {gpt-test Some.High}}]
+",
     );
     assert!(matches!(
         mismatched
@@ -1008,8 +1029,9 @@ fn depth_rows_reject_unknown_models_provider_mismatch_and_effort_inconsistency()
     let unsupported_effort = Fixture::new();
     unsupported_effort.write_default_manifest();
     unsupported_effort.write_source_file(
-        "manifests/model-catalog.nota",
-        "[(claude-flat Claude []) (claude-test Claude [Medium]) (gpt-test ChatGpt [Low Medium High Xhigh])]\n",
+        "manifests/model-catalog.dotos",
+        "[{claude-flat Claude []} {claude-test Claude [Medium]} {gpt-test ChatGpt [Low Medium High Xhigh]}]
+",
     );
     assert!(matches!(
         unsupported_effort
@@ -1021,8 +1043,9 @@ fn depth_rows_reject_unknown_models_provider_mismatch_and_effort_inconsistency()
     let effortless_with_effort = Fixture::new();
     effortless_with_effort.write_default_manifest();
     effortless_with_effort.write_source_file(
-        "manifests/role-depths.nota",
-        "[(shallow (claude-flat (Some Low)) (gpt-test (Some Low))) (deep (claude-test (Some High)) (gpt-test (Some High)))]\n",
+        "manifests/role-depths.dotos",
+        "[{shallow {claude-flat Some.Low} {gpt-test Some.Low}} {deep {claude-test Some.High} {gpt-test Some.High}}]
+",
     );
     assert!(matches!(
         effortless_with_effort
@@ -1034,8 +1057,9 @@ fn depth_rows_reject_unknown_models_provider_mismatch_and_effort_inconsistency()
     let missing_effort = Fixture::new();
     missing_effort.write_default_manifest();
     missing_effort.write_source_file(
-        "manifests/role-depths.nota",
-        "[(shallow (claude-flat None) (gpt-test None)) (deep (claude-test (Some High)) (gpt-test (Some High)))]\n",
+        "manifests/role-depths.dotos",
+        "[{shallow {claude-flat None} {gpt-test None}} {deep {claude-test Some.High} {gpt-test Some.High}}]
+",
     );
     assert!(matches!(
         missing_effort
@@ -1050,8 +1074,9 @@ fn role_descriptions_reject_missing_duplicate_and_stale_cells() {
     let missing = Fixture::new();
     missing.write_default_manifest();
     missing.write_source_file(
-        "manifests/role-descriptions.nota",
-        "[(read shallow [Read shallow.]) (read deep [Read deep.]) (write shallow [Write shallow.])]\n",
+        "manifests/role-descriptions.dotos",
+        "[{read shallow (|Read shallow.|)} {read deep (|Read deep.|)} {write shallow (|Write shallow.|)}]
+",
     );
     assert!(matches!(
         missing
@@ -1063,8 +1088,9 @@ fn role_descriptions_reject_missing_duplicate_and_stale_cells() {
     let duplicated = Fixture::new();
     duplicated.write_default_manifest();
     duplicated.write_source_file(
-        "manifests/role-descriptions.nota",
-        "[(read shallow [Read shallow.]) (read shallow [Read again.]) (read deep [Read deep.]) (write shallow [Write shallow.]) (write deep [Write deep.])]\n",
+        "manifests/role-descriptions.dotos",
+        "[{read shallow (|Read shallow.|)} {read shallow (|Read again.|)} {read deep (|Read deep.|)} {write shallow (|Write shallow.|)} {write deep (|Write deep.|)}]
+",
     );
     let duplicate_error = duplicated
         .generate(GenerationMode::Write)
@@ -1077,8 +1103,9 @@ fn role_descriptions_reject_missing_duplicate_and_stale_cells() {
     let stale = Fixture::new();
     stale.write_default_manifest();
     stale.write_source_file(
-        "manifests/role-descriptions.nota",
-        "[(read shallow [Read shallow.]) (read deep [Read deep.]) (write shallow [Write shallow.]) (write deep [Write deep.]) (write retired [Retired cell.])]\n",
+        "manifests/role-descriptions.dotos",
+        "[{read shallow (|Read shallow.|)} {read deep (|Read deep.|)} {write shallow (|Write shallow.|)} {write deep (|Write deep.|)} {write retired (|Retired cell.|)}]
+",
     );
     assert!(matches!(
         stale
@@ -1093,8 +1120,9 @@ fn role_permissions_and_depths_reject_duplicates_and_empty_axes() {
     let duplicate_permission = Fixture::new();
     duplicate_permission.write_default_manifest();
     duplicate_permission.write_source_file(
-        "manifests/role-permissions.nota",
-        "[(read [Read body.] Restricted) (read [Read body.] Restricted)]\n",
+        "manifests/role-permissions.dotos",
+        "[{read (|Read body.|) Restricted} {read (|Read body.|) Restricted}]
+",
     );
     assert!(matches!(
         duplicate_permission
@@ -1106,8 +1134,9 @@ fn role_permissions_and_depths_reject_duplicates_and_empty_axes() {
     let duplicate_depth = Fixture::new();
     duplicate_depth.write_default_manifest();
     duplicate_depth.write_source_file(
-        "manifests/role-depths.nota",
-        "[(shallow (claude-flat None) (gpt-test (Some Low))) (shallow (claude-test (Some High)) (gpt-test (Some High)))]\n",
+        "manifests/role-depths.dotos",
+        "[{shallow {claude-flat None} {gpt-test Some.Low}} {shallow {claude-test Some.High} {gpt-test Some.High}}]
+",
     );
     assert!(matches!(
         duplicate_depth
@@ -1118,7 +1147,7 @@ fn role_permissions_and_depths_reject_duplicates_and_empty_axes() {
 
     let empty_permissions = Fixture::new();
     empty_permissions.write_default_manifest();
-    empty_permissions.write_source_file("manifests/role-permissions.nota", "[]\n");
+    empty_permissions.write_source_file("manifests/role-permissions.dotos", "[]\n");
     assert!(matches!(
         empty_permissions
             .generate(GenerationMode::Write)
@@ -1128,7 +1157,7 @@ fn role_permissions_and_depths_reject_duplicates_and_empty_axes() {
 
     let empty_depths = Fixture::new();
     empty_depths.write_default_manifest();
-    empty_depths.write_source_file("manifests/role-depths.nota", "[]\n");
+    empty_depths.write_source_file("manifests/role-depths.dotos", "[]\n");
     assert!(matches!(
         empty_depths
             .generate(GenerationMode::Write)
@@ -1141,13 +1170,15 @@ fn role_permissions_and_depths_reject_duplicates_and_empty_axes() {
 fn universal_role_modules_expand_into_every_generated_role_packet() {
     let fixture = Fixture::new();
     fixture.write_source_file(
-        "manifests/active-outputs.nota",
-        "[(Skill (example example Craft Topic [AgentsSkill]))]\n",
+        "manifests/active-outputs.dotos",
+        "[Skill.{example example Craft Topic [AgentsSkill]}]
+",
     );
     fixture.write_role_cross_product_sources();
     fixture.write_universal_role_modules(
         "[shared feature]\n",
-        "[(example skills/example.md RuntimeSkill) (shared skills/shared.md RoleComposition) (feature skills/feature.md RoleComposition)]\n",
+        "[{example skills/example.md RuntimeSkill} {shared skills/shared.md RoleComposition} {feature skills/feature.md RoleComposition}]
+",
     );
     fixture.write_source_file(
         "skills/example.md",
@@ -1224,8 +1255,8 @@ fn write_mode_removes_role_outputs_the_inventory_no_longer_claims() {
     );
     fixture.write_workspace_file(".claude/agents/retired.md", "stale\n");
     fixture.write_workspace_file(
-        "skills/generated-role-outputs.nota",
-        "[.claude/agents/retired.md]\n",
+        "skills/generated-role-outputs.dotos",
+        "[(|.claude/agents/retired.md|)]\n",
     );
 
     fixture
@@ -1251,14 +1282,14 @@ fn write_mode_removes_role_outputs_the_inventory_no_longer_claims() {
 #[test]
 fn repository_manifests_generate_the_eight_permission_by_depth_roles() {
     let permissions: RolePermissions =
-        NotaSource::new(include_str!("../manifests/role-permissions.nota"))
+        DotosSource::new(include_str!("../manifests/role-permissions.dotos"))
             .parse()
             .expect("role permissions parse");
-    let depths: RoleDepths = NotaSource::new(include_str!("../manifests/role-depths.nota"))
+    let depths: RoleDepths = DotosSource::new(include_str!("../manifests/role-depths.dotos"))
         .parse()
         .expect("role depths parse");
     let descriptions: RoleDescriptions =
-        NotaSource::new(include_str!("../manifests/role-descriptions.nota"))
+        DotosSource::new(include_str!("../manifests/role-descriptions.dotos"))
             .parse()
             .expect("role descriptions parse");
     assert_eq!(permissions.payload().len(), 2);
@@ -1311,7 +1342,8 @@ fn target_conditionals_render_per_harness_surface() {
     fixture.write_default_manifest();
     fixture.write_universal_role_modules(
         "[example]\n",
-        "[(example skills/example.md RuntimeSkill)]\n",
+        "[{example skills/example.md RuntimeSkill}]
+",
     );
     fixture.write_source_file(
         "skills/example.md",
@@ -1503,12 +1535,14 @@ impl Fixture {
 
     fn write_default_manifest(&self) {
         self.write_source_file(
-            "manifests/active-outputs.nota",
-            "[(Skill (example example Craft Topic [AgentsSkill ClaudeSkill]))]\n",
+            "manifests/active-outputs.dotos",
+            "[Skill.{example example Craft Topic [AgentsSkill ClaudeSkill]}]
+",
         );
         self.write_source_file(
-            "manifests/module-dependencies.nota",
-            "[(example skills/example.md RuntimeSkill)]\n",
+            "manifests/module-dependencies.dotos",
+            "[{example skills/example.md RuntimeSkill}]
+",
         );
         self.write_role_cross_product_sources();
     }
@@ -1517,26 +1551,30 @@ impl Fixture {
     /// manifests, so even a skill-only fixture needs a valid cross product.
     fn write_role_cross_product_sources(&self) {
         self.write_source_file(
-            "manifests/model-catalog.nota",
-            "[(claude-flat Claude []) (claude-test Claude [Low Medium High Xhigh]) (gpt-test ChatGpt [Low Medium High Xhigh])]\n",
+            "manifests/model-catalog.dotos",
+            "[{claude-flat Claude []} {claude-test Claude [Low Medium High Xhigh]} {gpt-test ChatGpt [Low Medium High Xhigh]}]
+",
         );
         self.write_source_file(
-            "manifests/role-permissions.nota",
-            "[(read [Read body.] Restricted) (write [] Unrestricted)]\n",
+            "manifests/role-permissions.dotos",
+            "[{read (|Read body.|) Restricted} {write (||) Unrestricted}]
+",
         );
         self.write_source_file(
-            "manifests/role-depths.nota",
-            "[(shallow (claude-flat None) (gpt-test (Some Low))) (deep (claude-test (Some High)) (gpt-test (Some High)))]\n",
+            "manifests/role-depths.dotos",
+            "[{shallow {claude-flat None} {gpt-test Some.Low}} {deep {claude-test Some.High} {gpt-test Some.High}}]
+",
         );
         self.write_source_file(
-            "manifests/role-descriptions.nota",
-            "[(read shallow [Read shallow.]) (read deep [Read deep.]) (write shallow [Write shallow.]) (write deep [Write deep.])]\n",
+            "manifests/role-descriptions.dotos",
+            "[{read shallow (|Read shallow.|)} {read deep (|Read deep.|)} {write shallow (|Write shallow.|)} {write deep (|Write deep.|)}]
+",
         );
     }
 
     fn write_universal_role_modules(&self, modules: &str, dependencies: &str) {
-        self.write_source_file("manifests/universal-role-modules.nota", modules);
-        self.write_source_file("manifests/module-dependencies.nota", dependencies);
+        self.write_source_file("manifests/universal-role-modules.dotos", modules);
+        self.write_source_file("manifests/module-dependencies.dotos", dependencies);
     }
 
     fn write_source_file(&self, path: &str, text: &str) {
@@ -1577,7 +1615,7 @@ impl Fixture {
             workspace_root: WorkspaceRoot::new(
                 self.workspace.path().to_string_lossy().into_owned(),
             ),
-            manifest_path: ManifestPath::new("manifests/active-outputs.nota"),
+            manifest_path: ManifestPath::new("manifests/active-outputs.dotos"),
             generation_mode,
         }
         .generate()
@@ -1589,7 +1627,7 @@ impl Fixture {
             workspace_root: WorkspaceRoot::new(
                 self.workspace.path().to_string_lossy().into_owned(),
             ),
-            manifest_path: ManifestPath::new("manifests/active-outputs.nota"),
+            manifest_path: ManifestPath::new("manifests/active-outputs.dotos"),
         }
         .visualize()
     }
@@ -1603,7 +1641,7 @@ impl Fixture {
             workspace_root: WorkspaceRoot::new(
                 self.workspace.path().to_string_lossy().into_owned(),
             ),
-            manifest_path: ManifestPath::new("manifests/active-outputs.nota"),
+            manifest_path: ManifestPath::new("manifests/active-outputs.dotos"),
             generation_mode,
         }
         .generate()

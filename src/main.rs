@@ -1,12 +1,12 @@
 use std::process::ExitCode;
 
-use nota::NotaEncode;
+use dotos::DotosEncode;
 use skills::CommandLine;
 
 fn main() -> ExitCode {
     match CommandLine::from_environment().run() {
         Ok(output) => {
-            println!("{}", output.to_nota());
+            println!("{}", output.to_dotos());
             ExitCode::SUCCESS
         }
         Err(error) => {

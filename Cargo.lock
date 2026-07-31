@@ -101,6 +101,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "dotos"
+version = "0.10.0"
+source = "git+https://github.com/LiGoldragon/dotos.git?rev=1facca44fbcb37633f71fcf6f73bd693fbe56a5e#1facca44fbcb37633f71fcf6f73bd693fbe56a5e"
+dependencies = [
+ "dotos-derive",
+ "rkyv",
+]
+
+[[package]]
+name = "dotos-derive"
+version = "0.5.0"
+source = "git+https://github.com/LiGoldragon/dotos.git?rev=1facca44fbcb37633f71fcf6f73bd693fbe56a5e#1facca44fbcb37633f71fcf6f73bd693fbe56a5e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "downcast-rs"
 version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -659,10 +678,10 @@ checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
 
 [[package]]
 name = "skills"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
+ "dotos",
  "minijinja",
- "nota",
  "pathdiff",
  "pulldown-cmark",
  "rkyv",

@@ -11,7 +11,7 @@ Register a lane before writing, claim the paths you will edit, release when done
       meta-orchestrate "(Retire (Lane laneName))"
 
 Read the reply record, not the exit status. A refusal such as ClaimRejection or
-  PartialApplied exits 0. Only malformed NOTA exits 1.
+  PartialApplied exits 0. Only malformed DOTOS exits 1.
 A bracketed reason needs two or more tokens; a one-word reason goes bare.
 Neither CLI has --help. A valid verb with no payload reports the same error as a
   verb that does not exist, so do not probe for verb names.

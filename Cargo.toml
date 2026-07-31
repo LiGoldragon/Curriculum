@@ -1,6 +1,6 @@
 [package]
 name = "skills"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 rust-version = "1.89"
 license = "MIT OR Apache-2.0"
@@ -15,12 +15,12 @@ name = "skills"
 path = "src/main.rs"
 
 [features]
-default = ["nota-text"]
-nota-text = []
+default = ["dotos-text"]
+dotos-text = []
 
 [dependencies]
 minijinja = "2"
-nota = { package = "nota", git = "https://github.com/LiGoldragon/nota.git", branch = "main" }
+dotos = { package = "dotos", git = "https://github.com/LiGoldragon/dotos.git", rev = "1facca44fbcb37633f71fcf6f73bd693fbe56a5e" }
 pulldown-cmark = "0.13"
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 thiserror = "2"

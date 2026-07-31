@@ -23,7 +23,7 @@
   ByteCount Integer {| Display PartialEq PartialOrd |}
   LineCount Integer {| Display PartialEq PartialOrd |}
   Manifest { OutputPath OutputKind OutputSurface Frontmatter Modules }
-  OutputKind [Markdown Nota Toml]
+  OutputKind [Markdown Dotos Toml]
   OutputSurface [Workspace AgentsSkill ClaudeSkill ClaudeAgent CodexAgent PiAgent]
   Frontmatter (Vector FrontmatterEntry)
   FrontmatterEntry { FrontmatterKey FrontmatterValue }

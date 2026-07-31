@@ -19,14 +19,14 @@ pub enum Error {
     #[error("create directory {path}: {source}")]
     CreateDirectory { path: PathBuf, source: io::Error },
 
-    #[error("decode NOTA from {path}: {source}")]
-    DecodeNota {
+    #[error("decode DOTOS from {path}: {source}")]
+    DecodeDotos {
         path: PathBuf,
-        source: nota::NotaDecodeError,
+        source: dotos::DotosDecodeError,
     },
 
-    #[error("decode NOTA argument: {0}")]
-    DecodeNotaArgument(nota::NotaDecodeError),
+    #[error("decode DOTOS argument: {0}")]
+    DecodeDotosArgument(dotos::DotosDecodeError),
 
     #[error("environment variable {variable} must name a generation root")]
     MissingEnvironmentRoot { variable: String },
