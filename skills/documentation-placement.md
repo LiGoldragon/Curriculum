@@ -6,6 +6,9 @@ dependencies: []
 Put agent operating rules in `AGENTS.md`.
 An AGENTS.md carries only what stops a failure or states a convention an agent cannot derive. Name no file, repo, or fact the agent already has by being there.
 Put temporary workarounds and their proper fix in `NON_IDEAL_AGENTS.md`.
+Create it when needed and absent. Favor it over AGENTS.md when uncertain
+whether an instruction is permanent. When auditing or reviewing, check it
+for stale or inappropriate entries and report them promptly.
 Put system shape, invariants, and accepted direction in `ARCHITECTURE.md`.
 Put user-facing overview and supported use in `README.md`.
 Put non-obvious local rationale in code comments.
