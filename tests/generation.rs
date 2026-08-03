@@ -410,6 +410,7 @@ fn psyche_interraction_owns_authority_and_requires_psyche_vision() {
         "A direct request authorizes its requested change.",
         "Before disruptive work, state the exact changes and breakage, then get approval.",
         "Get approval before every skill edit.",
+        "Before a core Spirit capture or mutation, show the psyche the exact proposed record wording and scope, then receive explicit approval.",
         "When the psyche says “always” or “never”, present a line for the owning skill.",
     ] {
         assert!(
@@ -446,6 +447,34 @@ fn psyche_interraction_owns_authority_and_requires_psyche_vision() {
             .join("skills/psyche-interraction-continuation.md")
             .exists()
     );
+}
+
+#[test]
+fn intent_log_excludes_removed_core_spirit_metadata() {
+    let source = include_str!("../skills/intent-log.md");
+    for required in [
+        "Before capture or mutation, use only psyche-approved record wording and scope.",
+        "Do not synthesize confidence, access-boundary, or named-particular metadata.",
+        "Route content requiring confidentiality to a separate higher-layer Spirit component in its own environment.",
+    ] {
+        assert!(
+            source.contains(required),
+            "missing Spirit record rule: {required}"
+        );
+    }
+
+    let fixture = Fixture::new();
+    fixture
+        .generate_from_repo(GenerationMode::Write)
+        .expect("intent log profile generates");
+    let agents = fixture.read_workspace_file(".agents/skills/intent-log/SKILL.md");
+    let claude = fixture.read_workspace_file(".claude/skills/intent-log/SKILL.md");
+    assert_eq!(agents, claude);
+    for output in [&agents, &claude] {
+        assert!(output.contains("psyche-approved record wording and scope"));
+        assert!(output.contains("confidence, access-boundary, or named-particular metadata"));
+        assert!(output.contains("separate higher-layer Spirit component"));
+    }
 }
 
 #[test]

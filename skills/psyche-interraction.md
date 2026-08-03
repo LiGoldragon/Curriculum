@@ -18,4 +18,5 @@ A question authorizes an answer, not a change.
 A direct request authorizes its requested change.
 Before disruptive work, state the exact changes and breakage, then get approval.
 Get approval before every skill edit.
+Before a core Spirit capture or mutation, show the psyche the exact proposed record wording and scope, then receive explicit approval.
 When the psyche says “always” or “never”, present a line for the owning skill.
