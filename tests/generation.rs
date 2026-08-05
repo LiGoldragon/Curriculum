@@ -450,8 +450,8 @@ fn psyche_interraction_owns_authority_and_requires_psyche_vision() {
 }
 
 #[test]
-fn intent_log_excludes_removed_core_spirit_metadata() {
-    let source = include_str!("../skills/intent-log.md");
+fn spirit_log_excludes_removed_core_spirit_metadata() {
+    let source = include_str!("../skills/spirit-log.md");
     for required in [
         "Before capture or mutation, use only psyche-approved record wording and scope.",
         "Do not synthesize confidence, access-boundary, or named-particular metadata.",
@@ -466,9 +466,9 @@ fn intent_log_excludes_removed_core_spirit_metadata() {
     let fixture = Fixture::new();
     fixture
         .generate_from_repo(GenerationMode::Write)
-        .expect("intent log profile generates");
-    let agents = fixture.read_workspace_file(".agents/skills/intent-log/SKILL.md");
-    let claude = fixture.read_workspace_file(".claude/skills/intent-log/SKILL.md");
+        .expect("spirit log profile generates");
+    let agents = fixture.read_workspace_file(".agents/skills/spirit-log/SKILL.md");
+    let claude = fixture.read_workspace_file(".claude/skills/spirit-log/SKILL.md");
     assert_eq!(agents, claude);
     for output in [&agents, &claude] {
         assert!(output.contains("psyche-approved record wording and scope"));

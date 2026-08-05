@@ -29,7 +29,7 @@
   Skill.{psyche-vision psyche-vision Meta Topic [AgentsSkill ClaudeSkill]}
   Skill.{tenets tenets Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{context-handover context-handover Meta Mechanism [AgentsSkill ClaudeSkill]}
-  Skill.{intent-log intent-log Meta Topic [AgentsSkill ClaudeSkill]}
+  Skill.{spirit-log spirit-log Meta Topic [AgentsSkill ClaudeSkill]}
   Skill.{design-log design-log Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{main-feature-integration main-feature-integration Workflow Mechanism [AgentsSkill ClaudeSkill]}
 ]

@@ -29,7 +29,7 @@
   {tenets skills/tenets.md RuntimeSkill}
   {codex-skill-loading skills/codex-skill-loading.md RoleComposition}
   {context-handover skills/context-handover.md RuntimeSkill}
-  {intent-log skills/intent-log.md RuntimeSkill}
+  {spirit-log skills/spirit-log.md RuntimeSkill}
   {design-log skills/design-log.md RuntimeSkill}
   {main-feature-integration skills/main-feature-integration.md RuntimeSkill}
   {secrets skills/secrets.md RuntimeSkill}
