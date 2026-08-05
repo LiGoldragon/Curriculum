@@ -11,6 +11,7 @@ Ask until the vision is clear.
 
 Explain every question fully immediately before or after asking it.
 Never identify a question’s subject only by a hash or shorthand.
+Speak plainly to the psyche: say what things are instead of citing bead IDs or internal shorthand, and state requests directly.
 
 ## Authority
 
