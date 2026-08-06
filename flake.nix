@@ -29,7 +29,6 @@
           type == "directory"
           || pkgs.lib.hasSuffix ".md" path
           || pkgs.lib.hasSuffix ".dotos" path
-          || pkgs.lib.hasSuffix ".schema" path
           || pkgs.lib.hasSuffix ".rs" path;
 
         cleanSource = rust.cleanSource {

@@ -1,6 +1,7 @@
 # skills
 
-Source repository for generated workspace skills and role packets.
+Source repository for generated workspace skills and role packets. Its Dotos
+assembly contract is maintained directly in Rust alongside the generator.
 
 Run the generator or checker against a consuming workspace through the repository flake.
 

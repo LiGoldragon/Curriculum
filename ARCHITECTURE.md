@@ -31,8 +31,7 @@ workers do not discover doctrine through a runtime index.
 - `manifests/role-permissions.dotos`: each permission's identifier, body text, and tool restriction.
 - `manifests/role-depths.dotos`: each depth's identifier and its Claude and ChatGPT model with optional effort.
 - `manifests/role-descriptions.dotos`: one description per permission-by-depth cell.
-- `schema/assembly.schema`: schema-authored generator interface source.
-- `src/schema/assembly.rs`: generated Rust interface from `schema/assembly.schema`.
+- `src/schema/assembly.rs`: explicit Dotos assembly contract used by the generator.
 
 ## Target Conditionals
 
@@ -156,7 +155,8 @@ Removed active sources have no archive or compatibility model.
 - Generator inputs are DOTOS where practical, including the active manifest,
   module kind index, target module insertion index, and universal role module manifest.
 - Generator outputs are DOTOS where applicable, including generated-role inventory files.
-- Interfaces are schema-authored in `schema/assembly.schema`; Rust schema types are generated, not hand-authored in parallel.
+- The Dotos assembly interface is expressed directly in its Rust binding; there is
+  one current contract, with no parallel schema source or generated artifact.
 - Normalization changes only structure required for valid output: one frontmatter block, heading levels, relative links, and duplicate-title handling.
 - Prose is preserved through generation.
 - Duplicate headings or sections fail generation.
@@ -169,7 +169,7 @@ Removed active sources have no archive or compatibility model.
 - `src/assembly.rs`: manifest loading, validation, module expansion, generated output planning, cleanup inventory, and rendering coordination.
 - `src/markdown.rs`: markdown normalization and relative-link rebasing.
 - `src/template.rs`: render targets, the closed conditional grammar, and blank-line collapse.
-- `src/schema/assembly.rs`: generated Rust schema interface.
+- `src/schema/assembly.rs`: current Dotos assembly interface.
 - `tests/generation.rs`: generation, stale cleanup, manifest, dependency, and validation witnesses.
 
 ## See Also

@@ -8,7 +8,7 @@ use dotos::DotosSource;
 use skills::{
     Error,
     schema::assembly::{
-        GenerationMode, GenerationRequest, ManifestPath, RoleDepths, RoleDescriptions,
+        GenerationMode, GenerationRequest, ManifestPath, Operation, RoleDepths, RoleDescriptions,
         RolePermissions, SourceRoot, VisualizationRequest, WorkspaceRoot,
     },
     trunk_guard::{TrunkDescendantGuard, TrunkDivergence},
@@ -38,6 +38,15 @@ fn flat_frontmatter(packet: &str) -> BTreeMap<String, String> {
             (key.to_owned(), value.to_owned())
         })
         .collect()
+}
+
+#[test]
+fn current_dotos_assembly_contract_decodes_the_generator_request() {
+    let operation: Operation = DotosSource::new(include_str!("../skills-generate.dotos"))
+        .parse()
+        .expect("current generator request decodes through the handwritten contract");
+
+    assert!(matches!(operation, Operation::Generate(_)));
 }
 
 #[test]
