@@ -1,0 +1,6 @@
+;; DOTOS role alias: output name, permission, depth, description, target surfaces.
+[
+  {default write ordinary (General-purpose sub-agent for the Codex orchestrator) [CodexAgent]}
+  {explorer read ordinary (Read-only exploration sub-agent for the Codex orchestrator) [CodexAgent]}
+  {worker write demanding (Implementation sub-agent for the Codex orchestrator) [CodexAgent]}
+]

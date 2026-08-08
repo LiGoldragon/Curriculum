@@ -1,6 +1,6 @@
 ---
-name: psyche-grasp
 description: 'A code site needs marking with how deeply the psyche has seen and understood it.'
+dependencies: []
 ---
 
 Term "psyche-grasp" is provisional — TO BE REVIEWED by the psyche.

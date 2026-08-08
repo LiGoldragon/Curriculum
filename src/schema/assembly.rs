@@ -334,6 +334,13 @@ record!(TargetModuleInsertion {
     output_surface: OutputSurface,
     included_modules: IncludedModules,
 });
+record!(RoleAlias {
+    output_identifier: OutputIdentifier,
+    role_permission_identifier: RolePermissionIdentifier,
+    role_depth_identifier: RoleDepthIdentifier,
+    role_description: RoleDescription,
+    alias_target_surfaces: AliasTargetSurfaces,
+});
 
 vector!(GeneratedFiles(GeneratedFile));
 vector!(RoleVisualizations(RoleVisualization));
@@ -353,6 +360,8 @@ vector!(UniversalRoleModules(ModuleIdentifier));
 vector!(SkillModuleCompositions(SkillModuleComposition));
 vector!(TargetModuleInsertions(TargetModuleInsertion));
 vector!(GeneratedRoleOutputs(OutputPath));
+vector!(RoleAliases(RoleAlias));
+vector!(AliasTargetSurfaces(RoleTargetSurface));
 vector!(TargetSurfaces(TargetSurface));
 
 contract! {

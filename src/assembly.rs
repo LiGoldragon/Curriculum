@@ -18,12 +18,12 @@ use crate::{
         LineCount, Manifest, ManifestPath, ModelCatalog, ModelCatalogEntry, ModelIdentifier,
         ModuleDependencies, ModuleDependency, ModuleIdentifier, ModuleKind, ModulePath, Modules,
         Operation, OutputIdentifier, OutputKind, OutputPath, OutputSurface, ProviderSurface,
-        RoleDepth, RoleDepthIdentifier, RoleDepths, RoleDescription, RoleDescriptionCell,
-        RoleDescriptions, RolePacketComposition, RolePacketCompositions, RolePermission,
-        RolePermissionIdentifier, RolePermissions, RoleTargetSurface, RoleVisualization,
-        RoleVisualizations, SkillModuleComposition, SkillModuleCompositions, TargetModuleInsertion,
-        TargetModuleInsertions, TargetSurface, ToolRestriction, UniversalRoleModules,
-        VisualizationReport, VisualizationRequest,
+        RoleAlias, RoleAliases, RoleDepth, RoleDepthIdentifier, RoleDepths, RoleDescription,
+        RoleDescriptionCell, RoleDescriptions, RolePacketComposition, RolePacketCompositions,
+        RolePermission, RolePermissionIdentifier, RolePermissions, RoleTargetSurface,
+        RoleVisualization, RoleVisualizations, SkillModuleComposition, SkillModuleCompositions,
+        TargetModuleInsertion, TargetModuleInsertions, TargetSurface, ToolRestriction,
+        UniversalRoleModules, VisualizationReport, VisualizationRequest,
     },
     template::RenderTarget,
     trunk_guard::TrunkDescendantGuard,
@@ -246,6 +246,11 @@ impl GenerationSource {
         let role_descriptions_path = manifest_directory.join("role-descriptions.dotos");
         let role_descriptions: RoleDescriptions =
             SourceFile::new(self.source_root.clone(), role_descriptions_path).read()?;
+        let role_aliases_path = manifest_directory.join("role-aliases.dotos");
+        let role_aliases: RoleAliases =
+            SourceFile::new(self.source_root.clone(), role_aliases_path)
+                .read_optional()?
+                .unwrap_or_else(|| RoleAliases::new(Vec::new()));
         GenerationConfiguration::active(
             self.source_root.clone(),
             active_outputs,
@@ -258,6 +263,7 @@ impl GenerationSource {
                 role_permissions,
                 role_depths,
                 role_descriptions,
+                role_aliases,
             },
         )
     }
@@ -585,9 +591,11 @@ struct RoleGenerationSources {
     role_permissions: RolePermissions,
     role_depths: RoleDepths,
     role_descriptions: RoleDescriptions,
+    role_aliases: RoleAliases,
 }
 
-/// Every generated role is one cell of the permission-by-depth cross product.
+/// Every generated role is one cell of the permission-by-depth cross product,
+/// or an alias that maps a named role to an existing cell.
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct GeneratedRole {
     output_identifier: OutputIdentifier,
@@ -596,6 +604,7 @@ struct GeneratedRole {
     tool_restriction: ToolRestriction,
     claude_model: DepthModelProfile,
     chat_gpt_model: DepthModelProfile,
+    target_surfaces: Vec<RoleTargetSurface>,
 }
 
 impl GeneratedRole {
@@ -617,6 +626,24 @@ impl GeneratedRole {
             tool_restriction: permission.tool_restriction,
             claude_model: depth.claude_model.clone(),
             chat_gpt_model: depth.chat_gpt_model.clone(),
+            target_surfaces: ROLE_TARGET_SURFACES.to_vec(),
+        }
+    }
+
+    fn from_alias(
+        alias: &RoleAlias,
+        permission: &ResolvedPermission,
+        depth: &ResolvedDepth,
+    ) -> Self {
+        let packet_body = Self::render_packet_body(permission);
+        Self {
+            output_identifier: alias.output_identifier.clone(),
+            role_description: alias.role_description.clone(),
+            packet_body,
+            tool_restriction: permission.tool_restriction,
+            claude_model: depth.claude_model.clone(),
+            chat_gpt_model: depth.chat_gpt_model.clone(),
+            target_surfaces: alias.alias_target_surfaces.payload().clone(),
         }
     }
 
@@ -639,8 +666,8 @@ impl GeneratedRole {
         universal_role_modules: &UniversalRoleModules,
     ) -> Result<Vec<RolePacket>> {
         let mut packets = Vec::new();
-        for role_target_surface in ROLE_TARGET_SURFACES {
-            let output_surface = OutputSurface::from(&role_target_surface);
+        for role_target_surface in &self.target_surfaces {
+            let output_surface = OutputSurface::from(role_target_surface);
             packets.push(RolePacket {
                 packet_body: self.packet_body.clone(),
                 manifest: Manifest {
@@ -740,7 +767,7 @@ impl GeneratedRole {
     }
 
     fn output_paths(&self) -> Vec<OutputPath> {
-        ROLE_TARGET_SURFACES
+        self.target_surfaces
             .iter()
             .map(|role_target_surface| {
                 let output_surface = OutputSurface::from(role_target_surface);
@@ -795,7 +822,63 @@ impl GeneratedRoleIndex {
                 depth_identifier: depth_identifier.into_payload(),
             });
         }
+        let cross_product_identifiers: BTreeSet<String> = roles
+            .iter()
+            .map(|role| role.output_identifier.as_ref().to_owned())
+            .collect();
+        let aliases = Self::resolve_aliases(
+            sources.role_aliases,
+            &permissions,
+            &depths,
+            &cross_product_identifiers,
+        )?;
+        roles.extend(aliases);
         Ok(Self { roles })
+    }
+
+    fn resolve_aliases(
+        role_aliases: RoleAliases,
+        permissions: &[ResolvedPermission],
+        depths: &[ResolvedDepth],
+        cross_product_identifiers: &BTreeSet<String>,
+    ) -> Result<Vec<GeneratedRole>> {
+        let mut seen = BTreeSet::new();
+        let mut resolved = Vec::new();
+        for alias in role_aliases.payload() {
+            let alias_name = alias.output_identifier.as_ref().to_owned();
+            if !seen.insert(alias_name.clone()) {
+                return Err(Error::DuplicateRoleAlias {
+                    alias_identifier: alias_name,
+                });
+            }
+            if cross_product_identifiers.contains(&alias_name) {
+                return Err(Error::RoleAliasCollidesWithRole {
+                    alias_identifier: alias_name.clone(),
+                    role_identifier: alias_name,
+                });
+            }
+            if alias.alias_target_surfaces.payload().is_empty() {
+                return Err(Error::EmptyRoleAliasTargetSurfaces {
+                    alias_identifier: alias_name,
+                });
+            }
+            let permission = permissions
+                .iter()
+                .find(|p| p.permission_identifier == alias.role_permission_identifier)
+                .ok_or_else(|| Error::RoleAliasPermissionNotFound {
+                    alias_identifier: alias_name.clone(),
+                    permission_identifier: alias.role_permission_identifier.as_ref().to_owned(),
+                })?;
+            let depth = depths
+                .iter()
+                .find(|d| d.depth_identifier == alias.role_depth_identifier)
+                .ok_or_else(|| Error::RoleAliasDepthNotFound {
+                    alias_identifier: alias_name,
+                    depth_identifier: alias.role_depth_identifier.as_ref().to_owned(),
+                })?;
+            resolved.push(GeneratedRole::from_alias(alias, permission, depth));
+        }
+        Ok(resolved)
     }
 
     fn permissions(role_permissions: RolePermissions) -> Result<Vec<ResolvedPermission>> {

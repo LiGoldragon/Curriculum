@@ -2,7 +2,7 @@
 name: read-ordinary
 description: 'You know what you are looking for but not where it is.'
 model: 'openai-codex/gpt-5.6-luna'
-thinking: high
+thinking: xhigh
 projectRoleIdentity: read-ordinary
 projectRoleDispatchKind: leaf
 disallowed_tools: 'edit, write'

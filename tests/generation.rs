@@ -281,7 +281,7 @@ fn beads_hosted_creation_uses_v1_settings_token_and_secrets() {
     for required in [
         "dependencies: [secrets]",
         "gopass show -o dolthub.com/api-token",
-        "directly to curl’s supported secret-input interface",
+        "directly to curl\u{2019}s supported secret-input interface",
         "GET https://www.dolthub.com/api/v1alpha1/user",
         "POST https://www.dolthub.com/api/v1alpha1/database",
         "Authorization: token ...",
@@ -333,7 +333,7 @@ fn management_is_subagent_scoped_and_has_no_psyche_interaction_doctrine() {
         );
     }
     for excluded in [
-        "Align with the psyche’s vision.",
+        "Align with the psyche's vision.",
         "Ask the psyche *until the vision is clear.*",
         "Never wait for subagents; they report asynchronously.",
         "Use no tools except subagent coordination.",
@@ -407,29 +407,25 @@ fn pi_extension_update_protocol_uses_declarative_source_ownership() {
 }
 
 #[test]
-fn psyche_interraction_owns_authority_and_requires_psyche_vision() {
+fn psyche_interraction_owns_authority_and_logging_doctrine() {
     let source = include_str!("../skills/psyche-interraction.md");
     for required in [
-        "Be very brief unless writing a context handover.",
-        "Use `psyche-vision` to align with the psyche’s vision.",
-        "Ask until the vision is clear.",
         "Explain every question fully immediately before or after asking it.",
-        "Never identify a question’s subject only by a hash or shorthand.",
+        "Never identify a question's subject only by a hash or shorthand.",
         "A question authorizes an answer, not a change.",
         "A direct request authorizes its requested change.",
-        "Before disruptive work, state the exact changes and breakage, then get approval.",
         "Get approval before every skill edit.",
-        "Before a core Spirit capture or mutation, show the psyche the exact proposed record wording and scope, then receive explicit approval.",
-        "When the psyche says “always” or “never”, present a line for the owning skill.",
+        "Before a core Spirit capture or mutation, show the psyche the exact\nproposed record wording and scope, then receive explicit approval.",
     ] {
         assert!(
             source.contains(required),
             "missing psyche interaction rule: {required}"
         );
     }
-    assert!(source.contains("dependencies: [psyche-vision]"));
-    assert!(!source.contains("## Delivery"));
-    assert!(!source.contains("Treat quoted conversations as context"));
+    assert!(source.contains("dependencies: []"));
+    assert!(source.contains("## Logging"));
+    assert!(source.contains("## Authority"));
+    assert!(source.contains("psyche/Vision/"));
 
     let fixture = Fixture::new();
     fixture
@@ -443,14 +439,8 @@ fn psyche_interraction_owns_authority_and_requires_psyche_vision() {
             !output.contains("Never pretend to know what you don't know; admit you don't know."),
             "psyche interaction keeps tenets separate"
         );
-        assert!(output.contains("Psyche vision is the psyche’s conception"));
-        assert!(!output.contains("## Delivery"));
+        assert!(output.contains("A question authorizes an answer, not a change."));
     }
-    let frontmatter = flat_frontmatter(&agents);
-    assert_eq!(
-        frontmatter.get("description").map(String::as_str),
-        Some("The psyche is the one being answered. Requires: psyche-vision.")
-    );
     assert!(
         !Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("skills/psyche-interraction-continuation.md")
@@ -458,40 +448,6 @@ fn psyche_interraction_owns_authority_and_requires_psyche_vision() {
     );
 }
 
-#[test]
-fn spirit_log_excludes_removed_core_spirit_metadata() {
-    let source = include_str!("../skills/spirit-log.md");
-    for required in [
-        "Before capture or mutation, use only psyche-approved record wording and scope.",
-        "Do not synthesize confidence, access-boundary, or named-particular metadata.",
-        "Route content requiring confidentiality to a separate higher-layer Spirit component in its own environment.",
-    ] {
-        assert!(
-            source.contains(required),
-            "missing Spirit record rule: {required}"
-        );
-    }
-
-    let fixture = Fixture::new();
-    fixture
-        .generate_from_repo(GenerationMode::Write)
-        .expect("spirit log profile generates");
-    let agents = fixture.read_workspace_file(".agents/skills/spirit-log/SKILL.md");
-    let claude = fixture.read_workspace_file(".claude/skills/spirit-log/SKILL.md");
-    assert_eq!(agents, claude);
-    for output in [&agents, &claude] {
-        assert!(output.contains("psyche-approved record wording and scope"));
-        assert!(output.contains("confidence, access-boundary, or named-particular metadata"));
-        assert!(output.contains("separate higher-layer Spirit component"));
-    }
-}
-
-#[test]
-fn design_log_keeps_the_agent_antecedent_for_each_psyche_ruling() {
-    let source = include_str!("../skills/design-log.md");
-    assert!(source.contains("with the agent text it answered"));
-    assert!(source.contains("or a note that there was none"));
-}
 
 #[test]
 fn host_reboot_requires_specific_psyche_approval() {

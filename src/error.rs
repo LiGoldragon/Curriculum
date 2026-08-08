@@ -105,6 +105,32 @@ pub enum Error {
         depth_identifier: String,
     },
 
+    #[error("role alias `{alias_identifier}` is listed more than once")]
+    DuplicateRoleAlias { alias_identifier: String },
+
+    #[error(
+        "role alias `{alias_identifier}` references unknown permission `{permission_identifier}`"
+    )]
+    RoleAliasPermissionNotFound {
+        alias_identifier: String,
+        permission_identifier: String,
+    },
+
+    #[error("role alias `{alias_identifier}` references unknown depth `{depth_identifier}`")]
+    RoleAliasDepthNotFound {
+        alias_identifier: String,
+        depth_identifier: String,
+    },
+
+    #[error("role alias `{alias_identifier}` collides with cross-product role `{role_identifier}`")]
+    RoleAliasCollidesWithRole {
+        alias_identifier: String,
+        role_identifier: String,
+    },
+
+    #[error("role alias `{alias_identifier}` has no target surfaces")]
+    EmptyRoleAliasTargetSurfaces { alias_identifier: String },
+
     #[error("depth `{depth_identifier}` assigns unsupported model `{model_identifier}`")]
     UnsupportedRoleModel {
         depth_identifier: String,
