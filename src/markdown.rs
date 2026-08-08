@@ -470,6 +470,10 @@ impl SourceFrontmatter {
             })
     }
 
+    pub fn user_only(&self) -> Result<bool> {
+        Ok(self.metadata()?.user_only)
+    }
+
     fn metadata(&self) -> Result<SourceSkillMetadata> {
         let mut lines = self.text.lines();
         if !matches!(lines.next(), Some("---")) {
@@ -479,6 +483,7 @@ impl SourceFrontmatter {
         }
         let mut description = None;
         let mut dependencies = None;
+        let mut user_only = false;
         for line in lines {
             if line == "---" {
                 break;
@@ -489,10 +494,14 @@ impl SourceFrontmatter {
             if let Some(value) = line.strip_prefix("dependencies:") {
                 dependencies = Some(self.parse_dependencies(value.trim())?);
             }
+            if let Some(value) = line.strip_prefix("user-only:") {
+                user_only = value.trim() == "true";
+            }
         }
         Ok(SourceSkillMetadata {
             description,
             dependencies,
+            user_only,
         })
     }
 
@@ -544,6 +553,7 @@ impl SourceFrontmatter {
 struct SourceSkillMetadata {
     description: Option<String>,
     dependencies: Option<Vec<ModuleIdentifier>>,
+    user_only: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

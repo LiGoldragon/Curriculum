@@ -18,3 +18,16 @@ of `claude`, `codex`, `pi`); generation fails on any brace reaching a generated
 file. See ARCHITECTURE.md.
 
 Use `jj` to commit and push completed edits.
+
+## Skill visibility
+
+Skills can be restricted to user invocation only — the model cannot invoke them autonomously.
+
+Mark a skill source with `user-only: true` in its frontmatter to declare this. The generator propagates it to each harness:
+
+Claude Code and Pi: `disable-model-invocation: true` appears in the generated SKILL.md frontmatter.
+Codex: a companion `agents/openai.yaml` file is written alongside the SKILL.md with `policy:\n  allow_implicit_invocation: false`.
+
+The inverse concept exists in Claude Code (`user-invocable: false`, letting the model invoke a skill the user cannot) but the generator does not handle it; set it manually in the generated file if needed.
+
+Claude Code also supports `skillOverrides` in `settings.json` for per-project visibility overrides without editing the skill file.

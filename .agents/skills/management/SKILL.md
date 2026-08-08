@@ -1,6 +1,7 @@
 ---
 name: management
 description: 'A caller''s work will be carried out by other agents.'
+disable-model-invocation: true
 ---
 
 Reserve your context for managing subagents.

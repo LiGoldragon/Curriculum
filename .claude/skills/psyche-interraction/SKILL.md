@@ -1,6 +1,7 @@
 ---
 name: psyche-interraction
-description: ~
+description: '~'
+disable-model-invocation: true
 ---
 
 ## Logging

@@ -356,6 +356,13 @@ impl GenerationJobs {
                 .with_leading_fragment(packet.packet_body),
             ));
         }
+        for output in self.configuration.user_only_companion_outputs(&self.source_root)? {
+            jobs.push(GenerationJob::Rendered(RenderedOutput::new(
+                self.workspace_root.clone(),
+                output.output_path,
+                output.rendered,
+            )?));
+        }
         jobs.push(GenerationJob::Rendered(RenderedOutput::new(
             self.workspace_root.clone(),
             RoleOutputInventory::relative_path(),
@@ -1056,6 +1063,35 @@ impl GenerationConfiguration {
         Ok(manifests)
     }
 
+    fn user_only_companion_outputs(&self, source_root: &Path) -> Result<Vec<CompanionOutput>> {
+        let module_index = self.module_index()?;
+        let mut outputs = Vec::new();
+        for skill in self.active_skills() {
+            let targets_agents_skill = skill
+                .target_surfaces
+                .payload()
+                .iter()
+                .any(|surface| matches!(surface, TargetSurface::AgentsSkill));
+            if !targets_agents_skill {
+                continue;
+            }
+            let dependency = module_index.dependency(&skill.module_identifier)?;
+            let module_path =
+                WorkspacePath::new(source_root.to_path_buf(), dependency.module_path.as_ref())?;
+            let user_only = SourceFrontmatter::read(module_path.full_path())?.user_only()?;
+            if user_only {
+                outputs.push(CompanionOutput {
+                    output_path: OutputPath::new(format!(
+                        ".agents/skills/{}/agents/openai.yaml",
+                        skill.output_identifier.as_ref(),
+                    )),
+                    rendered: "policy:\n  allow_implicit_invocation: false\n".to_owned(),
+                });
+            }
+        }
+        Ok(outputs)
+    }
+
     fn role_packets(&self) -> Result<Vec<RolePacket>> {
         let module_index = self.module_index()?;
         self.generated_roles
@@ -1252,7 +1288,9 @@ impl ActiveSkill {
         let dependency = module_index.dependency(&self.module_identifier)?;
         let module_path =
             WorkspacePath::new(source_root.to_path_buf(), dependency.module_path.as_ref())?;
-        let description = SourceFrontmatter::read(module_path.full_path())?.description()?;
+        let source_frontmatter = SourceFrontmatter::read(module_path.full_path())?;
+        let description = source_frontmatter.description()?;
+        let user_only = source_frontmatter.user_only()?;
         let requirements = dependency.dependency_modules();
         let description = if requirements.is_empty() {
             description
@@ -1264,7 +1302,7 @@ impl ActiveSkill {
                 .join(", ");
             format!("{description} Requires: {requirements}.")
         };
-        Ok(Frontmatter::new(vec![
+        let mut entries = vec![
             FrontmatterEntry {
                 frontmatter_key: FrontmatterKey::new("name"),
                 frontmatter_value: FrontmatterValue::new(self.output_identifier.as_ref()),
@@ -1273,7 +1311,14 @@ impl ActiveSkill {
                 frontmatter_key: FrontmatterKey::new("description"),
                 frontmatter_value: FrontmatterValue::new(description),
             },
-        ]))
+        ];
+        if user_only {
+            entries.push(FrontmatterEntry {
+                frontmatter_key: FrontmatterKey::new("disable-model-invocation"),
+                frontmatter_value: FrontmatterValue::new("true"),
+            });
+        }
+        Ok(Frontmatter::new(entries))
     }
 }
 
@@ -1958,6 +2003,13 @@ impl<'a> TomlString<'a> {
         output.push('"');
         output
     }
+}
+
+/// A companion file emitted alongside a skill's SKILL.md, such as the
+/// `agents/openai.yaml` policy file for user-only skills.
+struct CompanionOutput {
+    output_path: OutputPath,
+    rendered: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

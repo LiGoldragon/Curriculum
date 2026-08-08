@@ -1,6 +1,7 @@
 ---
 description: A caller's work will be carried out by other agents.
 dependencies: []
+user-only: true
 ---
 
 Reserve your context for managing subagents.
