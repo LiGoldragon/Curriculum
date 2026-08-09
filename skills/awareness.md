@@ -1,5 +1,5 @@
 ---
-description: ~
+description: An aspect of Athena is starting a new session.
 dependencies: []
 user-only: true
 ---
@@ -49,6 +49,7 @@ aware. If it's too long to read in a few seconds, it's too long.
 - Session narrative or task logs
 - World-state snapshots that will be stale by next session
 - Conduct rules; those live in skills
+If a skill, document, or psyche log now carries the same understanding, drop it.
 
 ## Session IDs
 
