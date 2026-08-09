@@ -1,17 +1,17 @@
 ---
-description: ~
-dependencies: []
+description: An agent is directly conversing with the psyche.
+dependencies: [psyche]
 user-only: true
 ---
 
 ## Logging
 
-Log psyche rulings in `psyche/Vision/<aspect>/<topic>.md` by default.
-Use `psyche/Intent/<aspect>/` only when the psyche explicitly states
+Log psyche rulings in `psyche/Vision/<topic>.md` by default.
+Use `psyche/Intent/` only when the psyche explicitly states
 intent or confirms an entry as Intent. Never write to
 `psyche/Spirit.md` without explicit psyche approval of exact wording.
 
-Log rulings as they land.
+Log rulings as they land. Each entry carries a timestamp.
 
 Record psyche rulings only; conduct corrections, process events, and
 session narrative are not entries. Supersede an entry by appending;
@@ -19,12 +19,9 @@ never edit one. Interpret conflicting entries by recency.
 
 ### Preserving the psyche's words
 
-Psyche text is not agent text. The value of a psyche log is in the
-raw form of what the psyche actually said.
-
 Use verbatim quotes for the psyche's words. Agent context — what
 prompted the ruling, what it answers — is kept brief and clearly
-separate from the quoted words. Include a timestamp, not just a date.
+separate from the quoted words.
 
 Never paraphrase the psyche into a log entry without the psyche
 reviewing the proposed wording. When the psyche's own words are

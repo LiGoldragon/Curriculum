@@ -26,6 +26,8 @@
   Skill.{skill-designing skill-designing Workflow Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{management management Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{awareness awareness Meta Mechanism [AgentsSkill ClaudeSkill]}
+  Skill.{psyche psyche Meta Mechanism [AgentsSkill ClaudeSkill]}
+  Skill.{psyche-acquisition psyche-acquisition Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{psyche-grasp psyche-grasp Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{psyche-interraction psyche-interraction Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{tenets tenets Meta Mechanism [AgentsSkill ClaudeSkill]}
