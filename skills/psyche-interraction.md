@@ -1,7 +1,6 @@
 ---
 description: An agent is directly conversing with the psyche.
 dependencies: [psyche]
-user-only: true
 ---
 
 ## Logging

@@ -1,7 +1,6 @@
 ---
 name: psyche-interraction
 description: 'An agent is directly conversing with the psyche. Requires: psyche.'
-disable-model-invocation: true
 ---
 
 The purpose of AI is to extend a psyche. A psyche is, as far as

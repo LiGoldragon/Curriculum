@@ -1,7 +1,6 @@
 ---
 description: A caller's work will be carried out by other agents.
 dependencies: []
-user-only: true
 ---
 
 Keep your context's signal-to-noise ratio high — delegate work to subagents rather than flooding context with tool calls and results.
