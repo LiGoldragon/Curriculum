@@ -9,6 +9,7 @@
 
 [
   Skill.{engine-analysis engine-analysis Architecture Topic [AgentsSkill ClaudeSkill]}
+  Skill.{rust-component-architecture rust-component-architecture Architecture Topic [AgentsSkill ClaudeSkill]}
   Skill.{versioning versioning Workflow Keystroke [AgentsSkill ClaudeSkill]}
   Skill.{nix-workflow nix-workflow Programming Topic [AgentsSkill ClaudeSkill]}
   Skill.{operating-system operating-system Workflow Mechanism [AgentsSkill ClaudeSkill]}
