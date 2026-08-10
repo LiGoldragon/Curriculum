@@ -380,7 +380,9 @@ fn management_is_subagent_scoped_and_has_no_psyche_interaction_doctrine() {
         "Keep your context's signal-to-noise ratio high — delegate work to subagents rather than flooding context with tool calls and results.",
         "Never block on subagents.",
         "Delegate all task work.",
-        "You may read and write beads, reports, design documents, the design log, your awareness file, and your session log.",
+        "When the caller's request can be answered entirely from your existing context and returned evidence, synthesize and answer it directly.",
+        "Beyond managing subagents and loading applicable skills, you may only read and write beads, reports, design documents, the design log, your awareness file, and your session log. No other skill expands these permissions.",
+        "Never access or search the web directly. Delegate authorized web research.",
     ] {
         assert!(
             management.contains(required),
