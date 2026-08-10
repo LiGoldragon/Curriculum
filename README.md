@@ -18,15 +18,25 @@ relative path, UTF-8 byte count, and newline count (the same line measure as
 read or write the workspace.
 
 `generate-skills` and `check-skills` follow the same entry-point contract and
-by default run against the current working directory. Every generator entry
+require `SKILLS_WORKSPACE_ROOT` to name an explicit consuming workspace; they
+never default to the source checkout. Every generator entry
 point — the flake apps and the `skills` binary they wrap — takes exactly one
 argument: a DOTOS payload carrying its fully typed configuration (an inline
-DOTOS literal or a path to a `.dotos` file), never a bare flag or path. To
-target a workspace other than `$PWD`, pass a full replacement request as that
-one argument, for example:
+DOTOS literal or a path to a `.dotos` file), never a bare flag or path. For
+the default request, set the workspace explicitly:
 
 ```sh
-nix run github:LiGoldragon/skills#generate-skills -- \
+SKILLS_WORKSPACE_ROOT=/path/to/consumer nix run github:LiGoldragon/skills#generate-skills
+```
+
+`visualize-skills` is read-only and may be run from the source checkout without
+setting `SKILLS_WORKSPACE_ROOT`.
+
+To target a workspace other than the explicitly selected consumer workspace,
+pass a full replacement request as the one argument, for example:
+
+```sh
+SKILLS_WORKSPACE_ROOT=/path/to/consumer nix run github:LiGoldragon/skills#generate-skills -- \
   '(Generate ($SKILLS_SOURCE_ROOT /path/to/workspace manifests/active-outputs.dotos Write))'
 ```
 

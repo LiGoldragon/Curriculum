@@ -294,6 +294,11 @@ pub enum Error {
     )]
     SourceNotDescendantOfTrunk { source_root: PathBuf },
 
+    #[error(
+        "generation workspace {workspace_root} is the skills source checkout; choose a distinct consumer workspace"
+    )]
+    WorkspaceIsSourceCheckout { workspace_root: PathBuf },
+
     #[error("verify source trunk descent in {source_root}: run `jj {command}`: {source}")]
     TrunkGuardCommand {
         command: String,

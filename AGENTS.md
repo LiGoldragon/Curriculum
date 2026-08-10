@@ -1,6 +1,6 @@
 Get explicit psyche approval before changing a skill or role.
 
-Edit flat skill sources, flat role sources, and manifests, not generated runtime files.
+Edit flat skill sources and manifests, not generated role packets or runtime files.
 
 A skill carries no heading naming the skill or containing the word "skill".
 

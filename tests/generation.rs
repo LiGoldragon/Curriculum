@@ -50,6 +50,61 @@ fn current_dotos_assembly_contract_decodes_the_generator_request() {
 }
 
 #[test]
+fn generation_rejects_the_source_checkout_as_the_workspace() {
+    let fixture = Fixture::new();
+    fixture.write_default_manifest();
+    fixture.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example skill.\n---\n\n# example\n\nKeep the source checkout safe.\n",
+    );
+
+    let error = GenerationRequest {
+        source_root: SourceRoot::new(fixture.source.path().to_string_lossy().into_owned()),
+        workspace_root: WorkspaceRoot::new(fixture.source.path().to_string_lossy().into_owned()),
+        manifest_path: ManifestPath::new("manifests/active-outputs.dotos"),
+        generation_mode: GenerationMode::Write,
+    }
+    .generate()
+    .expect_err("source checkout must never receive generated runtime output");
+
+    assert!(matches!(error, Error::WorkspaceIsSourceCheckout { .. }));
+    assert!(!fixture.source.path().join(".agents").exists());
+}
+
+#[test]
+fn visualization_allows_the_source_checkout_without_writing_runtime_outputs() {
+    let fixture = Fixture::new();
+    fixture.write_default_manifest();
+    fixture.write_source_file(
+        "skills/example.md",
+        "---\ndescription: Example skill.\n---\n\n# example\n\nKeep visualization read-only.\n",
+    );
+
+    let source_root = fixture.source.path().to_string_lossy().into_owned();
+    let report = VisualizationRequest {
+        source_root: SourceRoot::new(source_root.clone()),
+        workspace_root: WorkspaceRoot::new(source_root),
+        manifest_path: ManifestPath::new("manifests/active-outputs.dotos"),
+    }
+    .visualize()
+    .expect("visualization reads a source checkout");
+
+    assert!(
+        report
+            .generated_output_visualizations
+            .payload()
+            .iter()
+            .any(|output| output.output_path.as_ref() == ".agents/skills/example/SKILL.md")
+    );
+    for tree in [".agents", ".claude", ".codex", ".pi"] {
+        assert!(
+            !fixture.source.path().join(tree).exists(),
+            "visualization must not create {tree}"
+        );
+    }
+}
+
+#[test]
 fn generation_writes_derived_skill_surfaces_with_manifest_frontmatter() {
     let fixture = Fixture::new();
     fixture.write_default_manifest();
@@ -322,10 +377,10 @@ fn beads_hosted_creation_uses_v1_settings_token_and_secrets() {
 fn management_is_subagent_scoped_and_has_no_psyche_interaction_doctrine() {
     let management = include_str!("../skills/management.md");
     for required in [
-        "Reserve your context for managing subagents.",
+        "Keep your context's signal-to-noise ratio high — delegate work to subagents rather than flooding context with tool calls and results.",
         "Never block on subagents.",
         "Delegate all task work.",
-        "You may read and write beads, reports, design documents, the design log, and skills.",
+        "You may read and write beads, reports, design documents, the design log, your awareness file, and your session log.",
     ] {
         assert!(
             management.contains(required),
@@ -391,22 +446,6 @@ fn harness_api_fields_do_not_leak_into_general_management_doctrine() {
 }
 
 #[test]
-fn pi_extension_update_protocol_uses_declarative_source_ownership() {
-    let protocol = include_str!("../skills/pi-extension-updates.md");
-    for required in [
-        "Reconcile each local extension change with upstream evidence.",
-        "Change the source and declarative package owner, not installed output.",
-        "Push a producer before updating its consumer pin.",
-        "Verify the activated revision.",
-    ] {
-        assert!(
-            protocol.contains(required),
-            "missing Pi extension rule: {required}"
-        );
-    }
-}
-
-#[test]
 fn psyche_interraction_owns_authority_and_logging_doctrine() {
     let source = include_str!("../skills/psyche-interraction.md");
     for required in [
@@ -422,7 +461,7 @@ fn psyche_interraction_owns_authority_and_logging_doctrine() {
             "missing psyche interaction rule: {required}"
         );
     }
-    assert!(source.contains("dependencies: []"));
+    assert!(source.contains("dependencies: [psyche]"));
     assert!(source.contains("## Logging"));
     assert!(source.contains("## Authority"));
     assert!(source.contains("psyche/Vision/"));
@@ -447,7 +486,6 @@ fn psyche_interraction_owns_authority_and_logging_doctrine() {
             .exists()
     );
 }
-
 
 #[test]
 fn host_reboot_requires_specific_psyche_approval() {

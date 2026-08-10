@@ -75,7 +75,6 @@ impl CommandLine {
 
     pub fn run(&self) -> Result<GenerationOutcome> {
         let operation = self.operation()?;
-        operation.guard_source()?;
         operation.execute()
     }
 
@@ -100,13 +99,6 @@ impl CommandLine {
 }
 
 impl Operation {
-    fn guard_source(&self) -> Result<()> {
-        match self {
-            Self::Generate(request) => request.guard_source(),
-            Self::Visualize(request) => request.guard_source(),
-        }
-    }
-
     pub fn execute(self) -> Result<GenerationOutcome> {
         match self {
             Self::Generate(request) => request.generate().map(GenerationOutcome::Generated),
@@ -118,10 +110,13 @@ impl Operation {
 impl GenerationRequest {
     fn guard_source(&self) -> Result<()> {
         let source_root = RootPath::new(self.source_root.as_ref()).to_path_buf()?;
+        let workspace_root = RootPath::new(self.workspace_root.as_ref()).to_path_buf()?;
+        guard_consumer_workspace(&source_root, &workspace_root)?;
         TrunkDescendantGuard::new(source_root).verify()
     }
 
     pub fn generate(&self) -> Result<GenerationReport> {
+        self.guard_source()?;
         let source_root = RootPath::new(self.source_root.as_ref()).to_path_buf()?;
         let workspace_root = RootPath::new(self.workspace_root.as_ref()).to_path_buf()?;
         let configuration =
@@ -147,6 +142,7 @@ impl VisualizationRequest {
     }
 
     pub fn visualize(&self) -> Result<VisualizationReport> {
+        self.guard_source()?;
         let source_root = RootPath::new(self.source_root.as_ref()).to_path_buf()?;
         let workspace_root = RootPath::new(self.workspace_root.as_ref()).to_path_buf()?;
         let configuration =
@@ -164,6 +160,33 @@ impl VisualizationRequest {
             generated_output_visualizations: GeneratedOutputVisualizations::new(generated_outputs),
         })
     }
+}
+
+fn guard_consumer_workspace(source_root: &Path, workspace_root: &Path) -> Result<()> {
+    let same_root = if source_root == workspace_root {
+        true
+    } else if source_root.exists() && workspace_root.exists() {
+        match (
+            fs::canonicalize(source_root),
+            fs::canonicalize(workspace_root),
+        ) {
+            (Ok(source), Ok(workspace)) => source == workspace,
+            _ => false,
+        }
+    } else {
+        false
+    };
+    let source_checkout_markers = [
+        workspace_root.join("Cargo.toml"),
+        workspace_root.join("skills-generate.dotos"),
+        workspace_root.join("manifests/active-outputs.dotos"),
+    ];
+    if same_root || source_checkout_markers.iter().all(|path| path.is_file()) {
+        return Err(Error::WorkspaceIsSourceCheckout {
+            workspace_root: workspace_root.to_path_buf(),
+        });
+    }
+    Ok(())
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -356,7 +379,10 @@ impl GenerationJobs {
                 .with_leading_fragment(packet.packet_body),
             ));
         }
-        for output in self.configuration.user_only_companion_outputs(&self.source_root)? {
+        for output in self
+            .configuration
+            .user_only_companion_outputs(&self.source_root)?
+        {
             jobs.push(GenerationJob::Rendered(RenderedOutput::new(
                 self.workspace_root.clone(),
                 output.output_path,

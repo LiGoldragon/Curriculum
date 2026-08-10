@@ -52,8 +52,26 @@
         skillsPackage = craneLib.buildPackage (commonArguments // { inherit cargoArtifacts; });
 
         generatorApp =
-          name: requestFile:
+          name: requestFile: requiresConsumerWorkspace:
           let
+            workspaceSetup =
+              if requiresConsumerWorkspace then
+                ''
+                  if [ -z "''${SKILLS_WORKSPACE_ROOT:-}" ]; then
+                    echo "SKILLS_WORKSPACE_ROOT must name an explicit consumer workspace" >&2
+                    exit 2
+                  fi
+                  if [ -f "$SKILLS_WORKSPACE_ROOT/Cargo.toml" ] \
+                    && [ -f "$SKILLS_WORKSPACE_ROOT/skills-generate.dotos" ] \
+                    && [ -f "$SKILLS_WORKSPACE_ROOT/manifests/active-outputs.dotos" ]; then
+                    echo "SKILLS_WORKSPACE_ROOT must not be the skills source checkout" >&2
+                    exit 2
+                  fi
+                ''
+              else
+                ''
+                  export SKILLS_WORKSPACE_ROOT="''${SKILLS_WORKSPACE_ROOT:-$PWD}"
+                '';
             script = pkgs.writeShellApplication {
               inherit name;
               runtimeInputs = [ skillsPackage ];
@@ -62,7 +80,10 @@
               # carrying its fully typed configuration") applies to this
               # wrapper too. It never treats its one optional argument as a
               # bare workspace-root path: omitted, the fixed request file
-              # below runs against $PWD; given, the argument is forwarded
+              # below runs against the explicitly supplied consumer workspace
+              # for generation and checking; visualization is read-only and
+              # may inspect the current source checkout;
+              # given, the argument is forwarded
               # verbatim as the `skills` binary's one DOTOS argument (inline
               # literal or a path to a `.dotos` file), so a stray flag like
               # `--write` fails DOTOS decoding loudly instead of silently
@@ -72,8 +93,8 @@
                   echo "usage: ${name} [dotos-payload]" >&2
                   exit 2
                 fi
+                ${workspaceSetup}
                 export SKILLS_SOURCE_ROOT=${cleanSource}
-                export SKILLS_WORKSPACE_ROOT="$PWD"
                 if [ "$#" -eq 1 ]; then
                   exec skills "$1"
                 fi
@@ -84,7 +105,11 @@
           {
             type = "app";
             program = "${script}/bin/${name}";
-            meta.description = "Run ${name} against an explicit workspace root";
+            meta.description =
+              if requiresConsumerWorkspace then
+                "Run ${name} against an explicit consumer workspace"
+              else
+                "Inspect generated outputs without writing a workspace";
           };
       in
       rec {
@@ -99,9 +124,9 @@
             program = "${skillsPackage}/bin/skills";
             meta.description = "Run the skills generator CLI";
           };
-          generate-skills = generatorApp "generate-skills" "skills-generate.dotos";
-          check-skills = generatorApp "check-skills" "skills-check.dotos";
-          visualize-skills = generatorApp "visualize-skills" "skills-visualize.dotos";
+          generate-skills = generatorApp "generate-skills" "skills-generate.dotos" true;
+          check-skills = generatorApp "check-skills" "skills-check.dotos" true;
+          visualize-skills = generatorApp "visualize-skills" "skills-visualize.dotos" false;
           default = skills;
         };
 
@@ -122,8 +147,18 @@
             grep -F '$SKILLS_WORKSPACE_ROOT' ${cleanSource}/skills-check.dotos >/dev/null
             grep -F '$SKILLS_SOURCE_ROOT' ${cleanSource}/skills-generate.dotos >/dev/null
             grep -F '$SKILLS_WORKSPACE_ROOT' ${cleanSource}/skills-generate.dotos >/dev/null
-            if grep -n -E '/(home|git)/' ${cleanSource}/skills-check.dotos ${cleanSource}/skills-generate.dotos; then
-              echo "generation requests must not hard-code source or workspace roots" >&2
+            grep -F '$SKILLS_SOURCE_ROOT' ${cleanSource}/skills-visualize.dotos >/dev/null
+            grep -F '$SKILLS_WORKSPACE_ROOT' ${cleanSource}/skills-visualize.dotos >/dev/null
+            if grep -n -E '/(home|git)/' ${cleanSource}/skills-check.dotos ${cleanSource}/skills-generate.dotos ${cleanSource}/skills-visualize.dotos; then
+              echo "generator requests must not hard-code source or workspace roots" >&2
+              exit 1
+            fi
+            touch "$out"
+          '';
+          visualize-request-is-non-writing = pkgs.runCommand "skills-visualize-request-is-non-writing" { } ''
+            grep -F 'Visualize.' ${cleanSource}/skills-visualize.dotos >/dev/null
+            if grep -E 'Generate\.| Write}' ${cleanSource}/skills-visualize.dotos; then
+              echo "visualization request must not write generated output" >&2
               exit 1
             fi
             touch "$out"
@@ -141,6 +176,7 @@
               ''
                 grep -F 'manifests/active-outputs.dotos' ${cleanSource}/skills-check.dotos >/dev/null
                 grep -F 'manifests/active-outputs.dotos' ${cleanSource}/skills-generate.dotos >/dev/null
+                grep -F 'manifests/active-outputs.dotos' ${cleanSource}/skills-visualize.dotos >/dev/null
                 if find ${cleanSource}/manifests -mindepth 2 -type f -name '*.dotos' | grep .; then
                   echo "generation must be driven by the single active output manifest, not per-output manifests" >&2
                   exit 1
@@ -165,6 +201,62 @@
               echo "active source files must not use nested directories" >&2
               exit 1
             fi
+            touch "$out"
+          '';
+          canonical-source-has-no-runtime-trees-or-retired-skills = pkgs.runCommand "skills-canonical-source-has-no-runtime-trees-or-retired-skills" { } ''
+            for tree in .agents .claude .codex .pi; do
+              test ! -e "${cleanSource}/$tree"
+            done
+            for retired in engine-analysis working pi-extension-updates; do
+              test ! -e "${cleanSource}/skills/$retired.md"
+              if grep -R -n -E "engine-analysis|pi-extension-updates|working\\.md|Skill\\.\\{working|\\{working " "${cleanSource}/manifests" "${cleanSource}/skills"; then
+                echo "retired skill remains in canonical manifests or sources: $retired" >&2
+                exit 1
+              fi
+            done
+            touch "$out"
+          '';
+          source-checkout-workspace-is-rejected = pkgs.runCommand "skills-source-checkout-workspace-is-rejected" { } ''
+            workspace=$TMPDIR/source-checkout
+            mkdir -p "$workspace"
+            cp -R ${cleanSource}/. "$workspace/"
+            export SKILLS_SOURCE_ROOT=${cleanSource}
+            export SKILLS_WORKSPACE_ROOT="$workspace"
+            if ${skillsPackage}/bin/skills ${cleanSource}/skills-generate.dotos >"$TMPDIR/stdout" 2>"$TMPDIR/stderr"; then
+              echo "generation unexpectedly wrote into a source checkout" >&2
+              exit 1
+            fi
+            grep -F "choose a distinct consumer workspace" "$TMPDIR/stderr" >/dev/null
+            test ! -e "$workspace/.agents"
+            test ! -e "$workspace/.claude"
+            test ! -e "$workspace/.codex"
+            test ! -e "$workspace/.pi"
+            touch "$out"
+          '';
+          generator-interface-requires-explicit-consumer = pkgs.runCommand "skills-generator-interface-requires-explicit-consumer" { } ''
+            if ${apps.generate-skills.program} >"$TMPDIR/default-stdout" 2>"$TMPDIR/default-stderr"; then
+              echo "the default generator invocation must not choose a workspace" >&2
+              exit 1
+            fi
+            grep -F "SKILLS_WORKSPACE_ROOT must name an explicit consumer workspace" "$TMPDIR/default-stderr" >/dev/null
+            workspace=$TMPDIR/consumer
+            mkdir -p "$workspace"
+            export SKILLS_WORKSPACE_ROOT="$workspace"
+            ${apps.generate-skills.program} >/dev/null
+            test -f "$workspace/.agents/skills/psyche/SKILL.md"
+            test -f "$workspace/.claude/skills/psyche/SKILL.md"
+            test -f "$workspace/.codex/agents/read-trivial.toml"
+            test -f "$workspace/.pi/agents/write-critical.md"
+            touch "$out"
+          '';
+          visualize-source-checkout-is-read-only = pkgs.runCommand "skills-visualize-source-checkout-is-read-only" { } ''
+            workspace=$TMPDIR/source-checkout
+            mkdir -p "$workspace"
+            cp -R ${cleanSource}/. "$workspace/"
+            (cd "$workspace" && SKILLS_WORKSPACE_ROOT= ${apps.visualize-skills.program} >/dev/null)
+            for tree in .agents .claude .codex .pi; do
+              test ! -e "$workspace/$tree"
+            done
             touch "$out"
           '';
           orphaned-output-cleanup =
