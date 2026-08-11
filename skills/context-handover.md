@@ -4,6 +4,7 @@ dependencies: []
 ---
 
 A handover is printed once, in the response, for the caller to paste.
+Implementation reaches reality only through printed Realizer prompts the psyche pastes; pasting is approval. The Designer dispatches no implementation sub-flows.
 Carry the psyche's vision in his own language, at full resolution, with every non-repetitive load-bearing statement preserved.
 Carry the rulings made this session and what each one answered.
 List the related beads with the repository each belongs to.

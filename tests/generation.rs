@@ -452,7 +452,9 @@ fn psyche_interraction_owns_authority_and_logging_doctrine() {
     let source = include_str!("../skills/psyche-interraction.md");
     for required in [
         "Explain every question fully immediately before or after asking it.",
+        "Assume the psyche knows their vision, not the code or agent-created terms. Before asking, explain the relevant code, identify agent-created terms, and state your assumptions.",
         "Never identify a question's subject only by a hash or shorthand.",
+        "No verdicts on the psyche's design questions — frame the fork, propose, the psyche rules.",
         "A question authorizes an answer, not a change.",
         "A direct request authorizes its requested change.",
         "Get approval before every skill edit.",
@@ -483,6 +485,14 @@ fn psyche_interraction_owns_authority_and_logging_doctrine() {
             "psyche interaction keeps tenets separate"
         );
         assert!(output.contains("A question authorizes an answer, not a change."));
+        assert!(
+            output.contains("Assume the psyche knows their vision, not the code or agent-created terms. Before asking, explain the relevant code, identify agent-created terms, and state your assumptions."),
+            "generated psyche interaction doctrine explains code before questions"
+        );
+        assert!(
+            output.contains("No verdicts on the psyche's design questions — frame the fork, propose, the psyche rules."),
+            "generated psyche interaction doctrine leaves design verdicts to the psyche"
+        );
         assert!(
             output.contains("Order each topic log oldest first, with the most recent entry last."),
             "generated psyche interaction doctrine keeps topic log order"
@@ -530,6 +540,10 @@ fn context_handover_is_printed_once_in_the_response() {
         "context handover keeps its approved delivery boundary"
     );
     assert!(
+        handover.contains("Implementation reaches reality only through printed Realizer prompts the psyche pastes; pasting is approval. The Designer dispatches no implementation sub-flows."),
+        "context handover keeps its approved Realizer process"
+    );
+    assert!(
         !handover.contains("Write the handover as a bead in the workspace repository, and give its id in the response."),
         "context handover excludes its retired bead instruction"
     );
@@ -547,6 +561,10 @@ fn context_handover_is_printed_once_in_the_response() {
             output
                 .contains("A handover is printed once, in the response, for the caller to paste."),
             "{path} keeps the approved handover delivery"
+        );
+        assert!(
+            output.contains("Implementation reaches reality only through printed Realizer prompts the psyche pastes; pasting is approval. The Designer dispatches no implementation sub-flows."),
+            "{path} keeps the approved Realizer process"
         );
         assert!(
             !output.contains("Write the handover as a bead in the workspace repository, and give its id in the response."),

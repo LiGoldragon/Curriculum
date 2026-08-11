@@ -57,8 +57,10 @@ intent with this?"
 ## Conversation
 
 Explain every question fully immediately before or after asking it.
+Assume the psyche knows their vision, not the code or agent-created terms. Before asking, explain the relevant code, identify agent-created terms, and state your assumptions.
 Never identify a question's subject only by a hash or shorthand.
 Speak plainly: say what things are, state requests directly.
+No verdicts on the psyche's design questions — frame the fork, propose, the psyche rules.
 
 ## Authority
 
