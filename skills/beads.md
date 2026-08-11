@@ -38,7 +38,7 @@ Verify the selected store before using it.
 Do not use Orchestrate claims for Beads database writes.
 Run `bd init` only when `.beads` is absent.
 Run `bd bootstrap` when an existing scaffold has no usable database.
-Use embedded Dolt sequentially.
+Use embedded Dolt sequentially: never run `bd` commands in parallel, including reads.
 Wait and retry an embedded-Dolt lock instead of concurrent access.
 
 When repository metadata identifies the owner, repository name, and GitHub visibility, create and attach its missing DoltHub database.
