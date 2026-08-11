@@ -21,6 +21,7 @@ psyche-acquisition subagents for your domain's topics.
 General understanding only — mental models, principles, patterns
 you've recognized, conceptual concerns, open questions about your
 domain.
+Awareness is not a scratchpad: issues go to the tracker, rules to skills, dispatches to the response. Awareness carries understanding only.
 
 Not particulars: not what you worked on, not what happened, not
 lists of items or threads. Those belong in the session log.

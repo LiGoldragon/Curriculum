@@ -11,6 +11,12 @@ intent or confirms an entry as Intent. Never write to
 `psyche/Spirit.md` without explicit psyche approval of exact wording.
 
 Log rulings as they land. Each entry carries a timestamp.
+Order each topic log oldest first, with the most recent entry last.
+When the psyche states a ruling, log it before acting on it.
+A ruling not logged in the moment is a ruling at risk of drift.
+Do not batch — each ruling is one write.
+
+When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating session.
 
 Record psyche rulings only; conduct corrections, process events, and
 session narrative are not entries. Supersede an entry by appending;

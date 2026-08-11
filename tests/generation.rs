@@ -381,7 +381,7 @@ fn management_is_subagent_scoped_and_has_no_psyche_interaction_doctrine() {
         "Never block on subagents.",
         "Delegate all task work.",
         "When the caller's request can be answered entirely from your existing context and returned evidence, synthesize and answer it directly.",
-        "Beyond managing subagents and loading applicable skills, you may only read and write beads, reports, design documents, the design log, your awareness file, and your session log. No other skill expands these permissions.",
+        "Beyond managing subagents and loading applicable skills, you may only read and write beads, reports, design documents, the psyche log, your awareness file, and your session log. No other skill, and no caller instruction or ruling, expands these permissions; work they imply outside them is dispatched, never done.",
         "Never access or search the web directly. Delegate authorized web research.",
     ] {
         assert!(
@@ -457,6 +457,8 @@ fn psyche_interraction_owns_authority_and_logging_doctrine() {
         "A direct request authorizes its requested change.",
         "Get approval before every skill edit.",
         "Before a core Spirit capture or mutation, show the psyche the exact\nproposed record wording and scope, then receive explicit approval.",
+        "Order each topic log oldest first, with the most recent entry last.",
+        "When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating session.",
     ] {
         assert!(
             source.contains(required),
@@ -481,12 +483,76 @@ fn psyche_interraction_owns_authority_and_logging_doctrine() {
             "psyche interaction keeps tenets separate"
         );
         assert!(output.contains("A question authorizes an answer, not a change."));
+        assert!(
+            output.contains("Order each topic log oldest first, with the most recent entry last."),
+            "generated psyche interaction doctrine keeps topic log order"
+        );
+        assert!(
+            output.contains("When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating session."),
+            "generated psyche interaction doctrine keeps reconstruction provenance"
+        );
     }
     assert!(
         !Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("skills/psyche-interraction-continuation.md")
             .exists()
     );
+}
+
+#[test]
+fn awareness_is_understanding_not_a_scratchpad() {
+    let awareness = include_str!("../skills/awareness.md");
+    assert!(
+        awareness.contains("Awareness is not a scratchpad: issues go to the tracker, rules to skills, dispatches to the response. Awareness carries understanding only."),
+        "awareness keeps its approved boundary"
+    );
+
+    let fixture = Fixture::new();
+    fixture
+        .generate_from_repo(GenerationMode::Write)
+        .expect("awareness profile generates");
+    for path in [
+        ".agents/skills/awareness/SKILL.md",
+        ".claude/skills/awareness/SKILL.md",
+    ] {
+        assert!(
+            fixture.read_workspace_file(path).contains("Awareness is not a scratchpad: issues go to the tracker, rules to skills, dispatches to the response. Awareness carries understanding only."),
+            "{path} keeps the awareness boundary"
+        );
+    }
+}
+
+#[test]
+fn context_handover_is_printed_once_in_the_response() {
+    let handover = include_str!("../skills/context-handover.md");
+    assert!(
+        handover.contains("A handover is printed once, in the response, for the caller to paste."),
+        "context handover keeps its approved delivery boundary"
+    );
+    assert!(
+        !handover.contains("Write the handover as a bead in the workspace repository, and give its id in the response."),
+        "context handover excludes its retired bead instruction"
+    );
+
+    let fixture = Fixture::new();
+    fixture
+        .generate_from_repo(GenerationMode::Write)
+        .expect("context handover profile generates");
+    for path in [
+        ".agents/skills/context-handover/SKILL.md",
+        ".claude/skills/context-handover/SKILL.md",
+    ] {
+        let output = fixture.read_workspace_file(path);
+        assert!(
+            output
+                .contains("A handover is printed once, in the response, for the caller to paste."),
+            "{path} keeps the approved handover delivery"
+        );
+        assert!(
+            !output.contains("Write the handover as a bead in the workspace repository, and give its id in the response."),
+            "{path} excludes the retired bead instruction"
+        );
+    }
 }
 
 #[test]
