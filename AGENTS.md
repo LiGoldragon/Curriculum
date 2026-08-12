@@ -31,3 +31,10 @@ Codex: a companion `agents/openai.yaml` file is written alongside the SKILL.md w
 The inverse concept exists in Claude Code (`user-invocable: false`, letting the model invoke a skill the user cannot) but the generator does not handle it; set it manually in the generated file if needed.
 
 Claude Code also supports `skillOverrides` in `settings.json` for per-project visibility overrides without editing the skill file.
+
+## Protos estate status
+
+Protos estate scope: out of scope
+Stack: not applicable
+Role: Protos-adjacent agent tooling; current checkout legacy-wired.
+This is scope metadata, not a stack.
