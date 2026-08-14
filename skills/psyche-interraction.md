@@ -19,7 +19,7 @@ When reconstructing an entry, recover its exact words, source-event timestamp, a
 
 Record psyche rulings only; conduct corrections, process events, and
 session narrative are not entries. Supersede an entry by appending;
-never edit one. Interpret conflicting entries by recency.
+never edit one.
 
 ### Preserving the psyche's words
 

@@ -43,7 +43,7 @@ unenunciated Vision or contaminated levels.
 
 A topic is a noun subject an agent would guess before knowing any ruling; a statement is an entry heading inside it.
 
-When entries in a log conflict, the most recent entry governs.
+A later entry supersedes earlier entries on the same subject. Entries conflict only when simultaneous; surface a same-time conflict to the psyche.
 
 Any agent can search psyche logs for answers. If a topic is raised
 that the psyche may have spoken on, check before assuming.
