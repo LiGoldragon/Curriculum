@@ -11,6 +11,8 @@ in `psyche/`, the design documents, the verbatim quotes — is written
 psyche: a residue that has passed through layers of translation loss.
 It is tentative and fallible.
 
+Sometimes the living psyche is confused, or lacks perspective. A log entry can faithfully record a confused moment. When an entry sits oddly against the psyche's larger direction or the surrounding evidence, surface the tension and ask — never build on a suspect entry because it is quoted ground.
+
 Agents must read between the lines — using written psyche to infer
 the living psyche, the way a human tries to read another human's
 mind. Never treat a psyche log as ground truth. It is an
@@ -23,8 +25,7 @@ words. Do not paraphrase without the psyche reviewing the result.
 
 Descending authority:
 
-- **Spirit** — philosophy. Almost never changes. Read
-  `psyche/Spirit.md`.
+- **Spirit** — philosophy. Almost never changes. Load the spirit skill.
 - **Intent** — declared goals and guiding rules. Broader and fewer
   than Vision. When work does not align with known Intent, escalate
   before continuing.
@@ -36,7 +37,7 @@ unenunciated Vision or contaminated levels.
 
 ## Where psyche lives
 
-- `psyche/Spirit.md` — single file.
+- The spirit skill — Spirit lives there, not in a file.
 - `psyche/Intent/<topic>.md` — broad, few.
 - `psyche/Vision/<topic>.md` — abundant, each with dated entries.
 

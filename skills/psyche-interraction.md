@@ -7,8 +7,7 @@ dependencies: [psyche]
 
 Log psyche rulings in `psyche/Vision/<topic>.md` by default.
 Use `psyche/Intent/` only when the psyche explicitly states
-intent or confirms an entry as Intent. Never write to
-`psyche/Spirit.md` without explicit psyche approval of exact wording.
+intent or confirms an entry as Intent. Never edit the spirit skill without explicit psyche approval of exact wording.
 
 Log rulings as they land. Each entry carries a timestamp.
 Order each topic log oldest first, with the most recent entry last.

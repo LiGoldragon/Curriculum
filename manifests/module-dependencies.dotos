@@ -15,7 +15,7 @@
   {operating-system skills/operating-system.md RuntimeSkill}
   {disk-hygiene skills/disk-hygiene.md RuntimeSkill}
   {documentation-placement skills/documentation-placement.md RuntimeSkill}
-  {version-control skills/version-control.md RuntimeSkill}
+  {file-editing skills/file-editing.md RuntimeSkill}
   {testing skills/testing.md RuntimeSkill}
   {feature-development skills/feature-development.md RuntimeSkill}
   {beads skills/beads.md RuntimeSkill}
@@ -27,7 +27,6 @@
   {psyche-acquisition skills/psyche-acquisition.md RuntimeSkill}
   {psyche-grasp skills/psyche-grasp.md RuntimeSkill}
   {psyche-interraction skills/psyche-interraction.md RuntimeSkill}
-  {tenets skills/tenets.md RuntimeSkill}
   {codex-skill-loading skills/codex-skill-loading.md RoleComposition}
   {context-handover skills/context-handover.md RuntimeSkill}
   {main-feature-integration skills/main-feature-integration.md RuntimeSkill}

@@ -85,19 +85,42 @@ specification.
 
 ## Traits first
 
-Design begins with traits. Every concept deserves at least one trait,
-and probably more; the trait pass comes before any body is written,
-and defaults are given wherever a default is expressible.
+Every method call lives in a trait. An inherent method is a trait
+not yet extracted — a concept hiding in a name. The trait pass
+comes before any body is written: traits are the specification
+expressed in code.
+
+Defaults are given wherever a default is expressible. Rich
+requirement chains (sub-traits) are what make defaults possible —
+designing them is the work.
+
+Greenfield code is trait-first natively: a new need gets a new
+trait, or extends an existing one when that fits better. Porting
+existing code uses extraction — lifting the latent trait out of
+the method name.
+
+When behavior's domain is clear, reuse the existing trait or extend
+it. When neither an existing trait nor a clear new placement can be
+found, stop and escalate — do not proceed.
+
+Exceptions are permitted — too trivial, proper trait cannot be
+determined, not worth the trouble — but each exception is noted at
+the site where it is taken.
+
+Traits live on data-bearing types. A zero-sized type with behavior
+is a namespace pretending to be a thing — the verbs belong to a
+real noun.
 
 Identity is trait-borne: an encoded form fingerprints itself — by
-default, the hash of its rkyv archive — and every reference names its
-target by that encoded name, never by spelling. The true name of a
-thing is what it is, not what it is called; textual names are surface
-for humans and never enter a body.
+default, the hash of its rkyv archive — and every reference names
+its target by that encoded name, never by spelling.
 
-Traits live on data-bearing types. A zero-sized type with behavior is
-a namespace pretending to be a thing — the verbs belong to a real
-noun.
+## No free functions
+
+`fn main()` is the only production free function. When no owning
+type exists, the model is incomplete — name the missing type
+instead of writing a floating verb. Never create a zero-sized type
+only to namespace free functions; find the missing abstraction.
 
 ## How components fit together
 
