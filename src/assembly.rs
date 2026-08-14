@@ -1495,7 +1495,15 @@ impl<'a> ModuleExpansion<'a> {
         dependency.require_accepted(self.module_use)?;
         self.visiting.push(module_identifier.clone());
         for dependency_identifier in dependency.dependency_modules() {
-            self.append(dependency_identifier)?;
+            // For skills, a dependency is reference-only: the generated
+            // description says "Requires: X" and the body carries none of
+            // X's content. Walk the dependency graph for cycle detection
+            // and existence validation, but do not include paths.
+            if self.module_use == ModuleUse::SkillContent {
+                self.validate_dependency(dependency_identifier)?;
+            } else {
+                self.append(dependency_identifier)?;
+            }
         }
         self.visiting.pop();
         self.resolved.insert(module_identifier.clone());
@@ -1506,6 +1514,35 @@ impl<'a> ModuleExpansion<'a> {
         {
             self.append(&target_module_identifier)?;
         }
+        Ok(())
+    }
+
+    /// Walk the dependency graph for cycle detection and existence
+    /// validation without including any paths in the output.
+    fn validate_dependency(&mut self, module_identifier: &ModuleIdentifier) -> Result<()> {
+        if self.resolved.contains(module_identifier) {
+            return Ok(());
+        }
+        if let Some(position) = self
+            .visiting
+            .iter()
+            .position(|visiting_identifier| visiting_identifier == module_identifier)
+        {
+            let mut module_identifiers: Vec<String> = self.visiting[position..]
+                .iter()
+                .map(|identifier| identifier.as_ref().to_owned())
+                .collect();
+            module_identifiers.push(module_identifier.as_ref().to_owned());
+            return Err(Error::ModuleDependencyCycle { module_identifiers });
+        }
+        let dependency = self.module_index.dependency(module_identifier)?;
+        dependency.require_accepted(self.module_use)?;
+        self.visiting.push(module_identifier.clone());
+        for dependency_identifier in dependency.dependency_modules() {
+            self.validate_dependency(dependency_identifier)?;
+        }
+        self.visiting.pop();
+        self.resolved.insert(module_identifier.clone());
         Ok(())
     }
 

@@ -10,6 +10,7 @@ Register a lane before writing, claim the paths you will edit, release when done
       orchestrate      "(Release laneName)"
       meta-orchestrate "(Retire (Lane laneName))"
 
+Session and lane identifiers are CamelCase alphanumeric — no whitespace or path separators.
 Read the reply record, not the exit status. A refusal such as ClaimRejection or
   PartialApplied exits 0. Only malformed DOTOS exits 1.
 A bracketed reason needs two or more tokens; a one-word reason goes bare.
