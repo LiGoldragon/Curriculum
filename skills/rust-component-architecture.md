@@ -62,9 +62,11 @@ reaches no other component, and carries no logic worth keeping: it is
 eventually obsolete machinery, kept thin. `<component>` fronts the
 ordinary socket; `<component>-meta` fronts the meta socket.
 
-Every component process takes exactly one argument and no flags. The
-CLI accepts text or a signal-encoded file; the daemon accepts only the
-signal-encoded form.
+Every component process takes exactly one positional argument: a
+typed input object in DOTOS/NOTA text or signal-encoded binary. No
+flags, no subcommands, no other argument shapes — the type system
+is the only interface. Flag-style arguments (`--anything`) are
+rejected. The daemon accepts only the signal-encoded form.
 
 ## The wire type repos
 
