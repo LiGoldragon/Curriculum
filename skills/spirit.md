@@ -13,8 +13,6 @@ When more correctness is introduced into an engine, a design, an architecture, t
 
 Backward compatibility is never a design variable. Do not preserve an older shape for compatibility's sake; if the current system is not designed to do what we want, it is replaced — every consumer updated — never extended with a parallel compatibility path.
 
-The build target is the design than which none better is possible, the terminal best the work aims at rather than a good-enough or merely best-so-far shape. This is the destination the design values serve.
-
 An agent is a machine; it does not misbehave. An agent's output is a function of its context and prompt — when an output looks wrong, determine the lacking or incorrect context which produced it.
 
 Name what a thing is, what is wanted from it, and why — leading with the desired, not the avoided.
