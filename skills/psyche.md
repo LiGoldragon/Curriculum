@@ -41,6 +41,8 @@ unenunciated Vision or contaminated levels.
 - `psyche/Intent/<topic>.md` — broad, few.
 - `psyche/Vision/<topic>.md` — abundant, each with dated entries.
 
+A topic is a noun subject an agent would guess before knowing any ruling; a statement is an entry heading inside it.
+
 When entries in a log conflict, the most recent entry governs.
 
 Any agent can search psyche logs for answers. If a topic is raised
