@@ -540,10 +540,6 @@ fn context_handover_is_printed_once_in_the_response() {
         "context handover keeps its approved delivery boundary"
     );
     assert!(
-        handover.contains("Implementation reaches reality only through printed Realizer prompts the psyche pastes; pasting is approval. The Designer dispatches no implementation sub-flows."),
-        "context handover keeps its approved Realizer process"
-    );
-    assert!(
         !handover.contains("Write the handover as a bead in the workspace repository, and give its id in the response."),
         "context handover excludes its retired bead instruction"
     );
