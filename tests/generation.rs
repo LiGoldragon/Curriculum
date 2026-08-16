@@ -510,24 +510,24 @@ fn psyche_interraction_owns_authority_and_logging_doctrine() {
 }
 
 #[test]
-fn awareness_is_understanding_not_a_scratchpad() {
-    let awareness = include_str!("../skills/awareness.md");
+fn session_log_generates() {
+    let session_log = include_str!("../skills/session-log.md");
     assert!(
-        awareness.contains("Awareness is not a scratchpad: issues go to the tracker, rules to skills, dispatches to the response. Awareness carries understanding only."),
-        "awareness keeps its approved boundary"
+        session_log.contains("One file per session"),
+        "session-log carries its defining instruction"
     );
 
     let fixture = Fixture::new();
     fixture
         .generate_from_repo(GenerationMode::Write)
-        .expect("awareness profile generates");
+        .expect("session-log profile generates");
     for path in [
-        ".agents/skills/awareness/SKILL.md",
-        ".claude/skills/awareness/SKILL.md",
+        ".agents/skills/session-log/SKILL.md",
+        ".claude/skills/session-log/SKILL.md",
     ] {
         assert!(
-            fixture.read_workspace_file(path).contains("Awareness is not a scratchpad: issues go to the tracker, rules to skills, dispatches to the response. Awareness carries understanding only."),
-            "{path} keeps the awareness boundary"
+            fixture.read_workspace_file(path).contains("One file per session"),
+            "{path} carries the session-log instruction"
         );
     }
 }

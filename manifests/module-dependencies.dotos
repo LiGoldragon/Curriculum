@@ -22,7 +22,8 @@
   {repository-lifecycle skills/repository-lifecycle.md RuntimeSkill}
   {skill-designing skills/skill-designing.md RuntimeSkill}
   {management skills/management.md RuntimeSkill}
-  {awareness skills/awareness.md RuntimeSkill}
+  {session-log skills/session-log.md RuntimeSkill}
+  {design skills/design.md RuntimeSkill}
   {psyche skills/psyche.md RuntimeSkill}
   {psyche-acquisition skills/psyche-acquisition.md RuntimeSkill}
   {psyche-grasp skills/psyche-grasp.md RuntimeSkill}
