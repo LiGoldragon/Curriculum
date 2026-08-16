@@ -12,10 +12,12 @@ event or turning point in the session, and when asked.
 
 Frontmatter, for later tooling:
 
-    ---
-    short-id: <first 8 hex of the session UUID>
-    description: <one short line>
-    ---
+```
+---
+short-id: <first 8 hex of the session UUID>
+description: <one short line>
+---
+```
 
 The body carries a very good summary of everything touched in
 the session: subjects, rulings landed, artifacts produced,
