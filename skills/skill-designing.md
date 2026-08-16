@@ -36,3 +36,13 @@ Skills name capabilities. Workspaces name the implementations that provide them.
 Write each rule as a plain sentence. Do not shape a line for memorability.
 Write a rule only when it prevents a failure that has happened, or states a choice an agent cannot derive.
 Name the incident or the choice. If you can name neither, do not write the rule.
+
+## Skill types
+
+`user-only: true` — the skill enters only through the user's
+typed prompt; the flow cannot load it. It deploys as
+`disable-model-invocation: true` in Claude Code and as
+$-name-only injection in Codex.
+
+A role skill carries an aspect's identity and names its
+dependencies. Mark role skills user-only.
