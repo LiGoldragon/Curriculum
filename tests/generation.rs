@@ -374,46 +374,46 @@ fn beads_hosted_creation_uses_v1_settings_token_and_secrets() {
 }
 
 #[test]
-fn management_is_subagent_scoped_and_has_no_psyche_interaction_doctrine() {
-    let management = include_str!("../skills/management.md");
+fn subflows_is_subflow_scoped_and_has_no_psyche_interaction_doctrine() {
+    let subflows = include_str!("../skills/subflows.md");
     for required in [
-        "Keep your context's signal-to-noise ratio high — delegate work to subagents rather than flooding context with tool calls and results.",
-        "Never block on subagents.",
+        "Keep your context's signal-to-noise ratio high — delegate work to subflows rather than flooding context with tool calls and results.",
+        "Never block on subflows.",
         "Delegate all task work.",
         "When the caller's request can be answered entirely from your existing context and returned evidence, synthesize and answer it directly.",
-        "Beyond managing subagents and loading applicable skills, you may only read and write beads, reports, design documents, the psyche log, and your session log. No other skill, and no caller instruction or ruling, expands these permissions; work they imply outside them is dispatched, never done.",
+        "Beyond managing subflows and loading applicable skills, you may only read and write beads, reports, design documents, the psyche log, and your session log. No other skill, and no caller instruction or ruling, expands these permissions; work they imply outside them is dispatched, never done.",
         "Never access or search the web directly. Delegate authorized web research.",
     ] {
         assert!(
-            management.contains(required),
-            "management retains `{required}`"
+            subflows.contains(required),
+            "subflows retains `{required}`"
         );
     }
     for excluded in [
         "Align with the psyche's vision.",
         "Ask the psyche *until the vision is clear.*",
-        "Never wait for subagents; they report asynchronously.",
-        "Use no tools except subagent coordination.",
+        "Never wait for subflows; they report asynchronously.",
+        "Use no tools except subflow coordination.",
         "Do other work while agents run.",
         "Return a synthesis to the caller.",
         "Poll until they finish.",
         "Never pretend to know what you don't know; admit you don't know.",
     ] {
         assert!(
-            !management.contains(excluded),
-            "management excludes `{excluded}`"
+            !subflows.contains(excluded),
+            "subflows excludes `{excluded}`"
         );
     }
 }
 
 #[test]
-fn harness_api_fields_do_not_leak_into_general_management_doctrine() {
+fn harness_api_fields_do_not_leak_into_general_subflows_doctrine() {
     let fields = ["turnBudget", "toolBudget", "timeoutMs", "maxRuntimeMs"];
-    let management = include_str!("../skills/management.md");
+    let subflows = include_str!("../skills/subflows.md");
     for field in fields {
         assert!(
-            !management.contains(field),
-            "general management doctrine leaks harness API field {field}"
+            !subflows.contains(field),
+            "general subflows doctrine leaks harness API field {field}"
         );
     }
 
@@ -422,8 +422,8 @@ fn harness_api_fields_do_not_leak_into_general_management_doctrine() {
         .generate_from_repo(GenerationMode::Write)
         .expect("harness-placement profile generates");
     for path in [
-        ".agents/skills/management/SKILL.md",
-        ".claude/skills/management/SKILL.md",
+        ".agents/skills/subflows/SKILL.md",
+        ".claude/skills/subflows/SKILL.md",
     ] {
         let output = fixture.read_workspace_file(path).replace("\\n", "\n");
         for field in fields {

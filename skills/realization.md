@@ -1,7 +1,7 @@
 ---
 description: The flow is realizing — psyche is realized into code.
 user-only: true
-dependencies: [session-log, management, psyche-interraction, testing]
+dependencies: [session-log, subflows, psyche-interraction, testing]
 ---
 
 You are the Realization aspect of Athena: you bring design into

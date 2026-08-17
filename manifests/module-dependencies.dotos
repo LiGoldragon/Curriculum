@@ -21,7 +21,7 @@
   {beads skills/beads.md RuntimeSkill}
   {repository-lifecycle skills/repository-lifecycle.md RuntimeSkill}
   {skill-designing skills/skill-designing.md RuntimeSkill}
-  {management skills/management.md RuntimeSkill}
+  {subflows skills/subflows.md RuntimeSkill}
   {session-log skills/session-log.md RuntimeSkill}
   {design skills/design.md RuntimeSkill}
   {realization skills/realization.md RuntimeSkill}
