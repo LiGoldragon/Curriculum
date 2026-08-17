@@ -1,4 +1,4 @@
-# skills
+# Curriculum
 
 Source repository for generated workspace skills and role packets. Its Dotos
 assembly contract is maintained directly in Rust alongside the generator.
@@ -8,7 +8,7 @@ Run the generator or checker against a consuming workspace through the repositor
 Inspect the assembled repository without writing workspace output:
 
 ```sh
-nix run github:LiGoldragon/skills#visualize-skills
+nix run github:LiGoldragon/Curriculum#visualize-skills
 ```
 
 The deterministic DOTOS report lists each generated role, shows each target
@@ -26,7 +26,7 @@ DOTOS literal or a path to a `.dotos` file), never a bare flag or path. For
 the default request, set the workspace explicitly:
 
 ```sh
-SKILLS_WORKSPACE_ROOT=/path/to/consumer nix run github:LiGoldragon/skills#generate-skills
+SKILLS_WORKSPACE_ROOT=/path/to/consumer nix run github:LiGoldragon/Curriculum#generate-skills
 ```
 
 `visualize-skills` is read-only and may be run from the source checkout without
@@ -36,7 +36,7 @@ To target a workspace other than the explicitly selected consumer workspace,
 pass a full replacement request as the one argument, for example:
 
 ```sh
-SKILLS_WORKSPACE_ROOT=/path/to/consumer nix run github:LiGoldragon/skills#generate-skills -- \
+SKILLS_WORKSPACE_ROOT=/path/to/consumer nix run github:LiGoldragon/Curriculum#generate-skills -- \
   '(Generate ($SKILLS_SOURCE_ROOT /path/to/workspace manifests/active-outputs.dotos Write))'
 ```
 

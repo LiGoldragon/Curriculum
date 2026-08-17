@@ -1,4 +1,4 @@
-# skills — architecture
+# Curriculum — architecture
 
 *Generator source for workspace skill and role surfaces.*
 

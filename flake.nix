@@ -1,8 +1,8 @@
 {
-  description = "skills — generated skill surface assembler";
+  description = "Curriculum — generated skill surface assembler";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/2d1e72b652ee13fd1297641ce735e06416d22827"; # lunation 2026-08-12
     flake-utils.url = "github:numtide/flake-utils";
     rust-build = {
       url = "github:LiGoldragon/rust-build";
