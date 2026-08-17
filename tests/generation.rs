@@ -381,7 +381,7 @@ fn management_is_subagent_scoped_and_has_no_psyche_interaction_doctrine() {
         "Never block on subagents.",
         "Delegate all task work.",
         "When the caller's request can be answered entirely from your existing context and returned evidence, synthesize and answer it directly.",
-        "Beyond managing subagents and loading applicable skills, you may only read and write beads, reports, design documents, the psyche log, your awareness file, and your session log. No other skill, and no caller instruction or ruling, expands these permissions; work they imply outside them is dispatched, never done.",
+        "Beyond managing subagents and loading applicable skills, you may only read and write beads, reports, design documents, the psyche log, and your session log. No other skill, and no caller instruction or ruling, expands these permissions; work they imply outside them is dispatched, never done.",
         "Never access or search the web directly. Delegate authorized web research.",
     ] {
         assert!(
