@@ -7,6 +7,8 @@ Write skills with brutal minimalism.
 State unusual, impactful instructions once and directly.
 Flag anything noisy, unclear, unsafe, or misplaced. Explain what each proposed change preserves, changes, or removes.
 
+Search `Reference skill collections` for prior art on the situation before writing.
+
 A description names the situation that should make an agent load the skill,
 in the words of the task at hand. State a trigger, not a topic.
 Open with the situation itself. A shared formula carries nothing.
