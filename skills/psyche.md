@@ -21,6 +21,9 @@ approximation of a living thing you cannot touch.
 Every rephrasing compounds the drift. Preserve the psyche's raw
 words. Do not paraphrase without the psyche reviewing the result.
 
+"Psyche" alone means the written psyche, the files under psyche/;
+the living psyche is always called the living psyche.
+
 ## Three levels
 
 Descending authority:

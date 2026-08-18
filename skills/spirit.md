@@ -1,6 +1,6 @@
 ---
 description: Every agent task.
-dependencies: []
+dependencies: [behavior, vocabulary]
 ---
 
 The purpose of AI is to extend a psyche.

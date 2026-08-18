@@ -34,4 +34,6 @@
   {main-feature-integration skills/main-feature-integration.md RuntimeSkill}
   {secrets skills/secrets.md RuntimeSkill}
   {spirit skills/spirit.md RuntimeSkill}
+  {behavior skills/behavior.md RuntimeSkill}
+  {vocabulary skills/vocabulary.md RuntimeSkill}
 ]

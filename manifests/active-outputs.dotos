@@ -33,4 +33,6 @@
   Skill.{context-handover context-handover Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{main-feature-integration main-feature-integration Workflow Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{spirit spirit Meta Mechanism [AgentsSkill ClaudeSkill]}
+  Skill.{behavior behavior Meta Mechanism [AgentsSkill ClaudeSkill]}
+  Skill.{vocabulary vocabulary Meta Mechanism [AgentsSkill ClaudeSkill]}
 ]
