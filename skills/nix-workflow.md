@@ -1,16 +1,17 @@
 ---
-description: Nix package, module, flake-output, evaluation, build, or activation work occurs outside an operating-system change or flake-input revision change.
+description: The change lands in Nix.
 dependencies: []
 ---
 
 Model services declaratively with typed options.
-Maintain each Nix-owned component through the declarative source that owns it.
-Use `flake.nix` as a readable entry point.
+Pin portable inputs in the lock file.
+Build and deploy reproducible source.
+Keep `flake.nix` readable as an index.
 Keep substantial check and build implementations and long shell programs out of `flake.nix`.
-Pin portable inputs in `flake.lock`.
-Keep local input overrides transient.
 Ask Nix or source, not the store filesystem.
-Customize a package at the package-set boundary and test it through the exact final consumer package set.
+Any part of an environment already owned by Nix, CriomOS, or CriomOS-home is fixed, updated, and maintained through that owning declarative source.
+Keep local overrides transient.
 Run Nix builds only through configured remote builders; never build locally.
 Run Nix evaluations and builds independently.
+Treat managed output as evidence, not a patch target.
 Keep evaluation and activation evidence separate.

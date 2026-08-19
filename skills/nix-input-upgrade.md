@@ -1,12 +1,27 @@
 ---
-description: A Nix flake input revision must change or be removed.
+description: Nix flake inputs are being upgraded across a layered repo structure.
 dependencies: [nix-workflow]
 ---
 
-Map each dependency to its final provider before updating.
-Push a producer before its consumer lock changes.
-Verify a required fix by the commit that contains it.
-For a named input update, update each naming-contract pin to preserve its owning contract, or remove it only when that contract is explicitly retired, and witness either outcome with its contract test.
-For every local patch, remove it as upstream only when the selected final provider revision contains its change; otherwise state and verify the minimal migration-only or still-required patch action.
-Remove an input only after confirming that it has no consumers and no naming-contract pins. Then prune only unreachable nodes from the lock graph.
-Evaluate every consumer.
+Map the dependency chain before touching anything. Update bottom-up: eval-cache boundary repos (like CriomOS-pkgs) must be committed and pushed before their consumers update their locks.
+
+A version number does not prove a specific fix is included. Verify the fix against upstream commit history, not the release tag. GTK 4.22.4 (nixos-unstable, Aug 2026) did not contain MR !10130 despite being the latest stable; the fix appeared only in 4.23.3. Use fetchpatch when the fix is merged upstream but not yet released.
+
+A nixpkgs fork with no local commits can be fast-forwarded via the GitHub API without cloning. Check local commits before pulling the full repo.
+
+The same package may be sourced from multiple inputs at different versions. Identify which input actually provides each package in the final closure before deciding which input to update. niri-flake pinned v25.08 while nixpkgs already carried v26.04.
+
+Some repos enforce specific input revisions in CI (main-contract-pins checks). Identify which inputs are pinned-by-contract before updating them.
+
+When auditing local patches across a version jump, classify each patch:
+- Historical: already merged upstream before the old pin — no action.
+- Reconciliation: applied once to align a fork — no action.
+- Live: not yet upstream, or CriomOS-specific — must rebase and verify applicability.
+
+Patch interface changes silently across minor versions. A patch that applied cleanly at v0.80 may require rebase at v0.84 because the surrounding function signature changed (Pi v0.83 grew a new argument).
+
+npm-fetching packages require a failed build attempt to obtain the correct hash. Supply a placeholder, let the build fail, copy the hash from the error.
+
+Packages are removed from nixpkgs without notice. Each missing package needs an individual replacement decision; there is no bulk fallback.
+
+Breaking API changes in transitive dependencies (e.g. home-manager renaming `programs.vscode` to `programs.vscodium`) surface only at eval time in consumer repos. Eval each consumer after updating its inputs.
