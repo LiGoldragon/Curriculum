@@ -460,7 +460,7 @@ fn psyche_interraction_owns_authority_and_logging_doctrine() {
         "Get approval before every skill edit.",
         "Before a core Spirit capture or mutation, show the psyche the exact\nproposed record wording and scope, then receive explicit approval.",
         "Order each topic log oldest first, with the most recent entry last.",
-        "When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating session.",
+        "When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating transcript.",
     ] {
         assert!(
             source.contains(required),
@@ -498,7 +498,7 @@ fn psyche_interraction_owns_authority_and_logging_doctrine() {
             "generated psyche interaction doctrine keeps topic log order"
         );
         assert!(
-            output.contains("When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating session."),
+            output.contains("When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating transcript."),
             "generated psyche interaction doctrine keeps reconstruction provenance"
         );
     }
