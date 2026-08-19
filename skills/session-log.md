@@ -3,28 +3,21 @@ description: An aspect of Athena is starting a new session.
 dependencies: []
 ---
 
-One file per session in `sessions/<aspect>/`, named with the session start
-time as `<date>T<time>.md`. Never rename it.
+One file per session in `sessions/<aspect>/`, named by the session's short
+id — the first 8 hex of the session UUID. Create it at the first prompt.
+Never rename it.
 
-Create the file at the first prompt.
+No frontmatter. The file opens with a very terse summary section, re-edited
+as the session goes, so a short read gives the subjects. Findings and
+progress accumulate below it. The file changes only when asked, at final
+handoff, or when its handoff state materially changes — when the objective,
+governing direction, deliverables, blocker, or open forks change enough that
+a continuing agent would otherwise act incorrectly. Refinements on the same
+subject are not events.
 
-Frontmatter, for later tooling:
+A new session appends its line — aspect, short id, the summary's first
+line — to `sessions/index.md`. The tail of the index gives the latest
+sessions.
 
-```
----
-short-id: <first 8 hex of the session UUID>
-description: <one short line>
-last-edited: <ISO 8601 timestamp>
----
-```
-
-Update `last-edited` when the body changes. Accumulate findings and progress
-for the same subject in the body. Update the file when asked, at final handoff,
-or when its handoff state materially changes. The handoff state materially
-changes only when the objective, governing direction, deliverables, blocker,
-or open forks change enough that a continuing agent would otherwise act
-incorrectly. The short id is the pointer into the full transcript.
-
-Amend another session's file only by appending an addendum
-marked with your own short id and date; never alter its
-existing text.
+Amend another session's file only by appending an addendum marked with your
+own short id; never alter its existing text.
