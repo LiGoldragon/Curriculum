@@ -94,9 +94,7 @@ Defaults are given wherever a default is expressible. Rich
 requirement chains (sub-traits) are what make defaults possible —
 designing them is the work.
 
-The traits and types of a Nexus are designed as one ontology — the most unified map of traits and types — before any body is written; a new need first finds its place in that map. One type implementing many single-function traits is one trait not yet seen. Porting
-existing code uses extraction — lifting the latent trait out of
-the method name.
+The traits and types of a Nexus are designed as one ontology — the most unified map of traits and types — before any body is written; a new need first finds its place in that map. One type implementing many single-function traits is one trait not yet seen.
 
 When behavior's domain is clear, reuse the existing trait or extend
 it. When neither an existing trait nor a clear new placement can be

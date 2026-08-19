@@ -5,6 +5,8 @@ dependencies: []
 
 Flow: one running model session and its context. A flow is liable for its subflows.
 
+Transcript: the file the harness writes holding a whole session from beginning to end.
+
 Witness: an observation of the thing itself — a test run, a probe,
 the code read. What someone says about the thing is a claim.
 

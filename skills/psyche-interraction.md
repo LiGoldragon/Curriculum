@@ -15,7 +15,7 @@ When the psyche states a ruling, log it before acting on it.
 A ruling not logged in the moment is a ruling at risk of drift.
 Do not batch — each ruling is one write.
 
-When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating session.
+When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating transcript.
 
 Record psyche rulings only; conduct corrections, process events, and
 session narrative are not entries. Supersede an entry by appending;

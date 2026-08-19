@@ -4,6 +4,7 @@ dependencies: [psyche]
 ---
 
 Search psyche logs for the topics specified by the caller.
+The psyche's typed words live in transcripts before any log; search them too.
 
 Acquisition is not only a beginning-of-session action. Whenever a
 new topic is raised or touched upon, reacquire for that topic.

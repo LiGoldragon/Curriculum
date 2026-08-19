@@ -11,6 +11,7 @@
   {edit-coordination skills/edit-coordination.md RuntimeSkill}
   {nexus skills/nexus.md RuntimeSkill}
   {nexus-rationale skills/nexus-rationale.md RuntimeSkill}
+  {transcript-search skills/transcript-search.md RuntimeSkill}
   {versioning skills/versioning.md RuntimeSkill}
   {nix-workflow skills/nix-workflow.md RuntimeSkill}
   {operating-system skills/operating-system.md RuntimeSkill}

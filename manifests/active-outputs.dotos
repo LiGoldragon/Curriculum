@@ -10,6 +10,7 @@
 [
   Skill.{nexus nexus Architecture Topic [AgentsSkill ClaudeSkill]}
   Skill.{nexus-rationale nexus-rationale Architecture Topic [AgentsSkill ClaudeSkill]}
+  Skill.{transcript-search transcript-search Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{versioning versioning Workflow Keystroke [AgentsSkill ClaudeSkill]}
   Skill.{nix-workflow nix-workflow Programming Topic [AgentsSkill ClaudeSkill]}
   Skill.{operating-system operating-system Workflow Mechanism [AgentsSkill ClaudeSkill]}

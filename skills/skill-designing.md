@@ -26,6 +26,7 @@ A line true of any competent agent.
 A line naming the desired end state without teaching the move, the test, or the case.
 A line pairing a goal with a mechanism. The reader cannot tell which one binds.
 A line that explains or justifies a rule instead of directing an action.
+A line that restates a rule another skill holds.
 
 ## Keep these
 
