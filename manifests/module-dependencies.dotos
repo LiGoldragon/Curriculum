@@ -32,6 +32,7 @@
   {psyche-interraction skills/psyche-interraction.md RuntimeSkill}
   {codex-skill-loading skills/codex-skill-loading.md RoleComposition}
   {context-handover skills/context-handover.md RuntimeSkill}
+  {context-strata skills/context-strata.md RuntimeSkill}
   {main-feature-integration skills/main-feature-integration.md RuntimeSkill}
   {secrets skills/secrets.md RuntimeSkill}
   {spirit skills/spirit.md RuntimeSkill}
