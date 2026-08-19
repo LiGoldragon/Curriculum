@@ -12,6 +12,7 @@
   Skill.{nexus-rationale nexus-rationale Architecture Topic [AgentsSkill ClaudeSkill]}
   Skill.{versioning versioning Workflow Keystroke [AgentsSkill ClaudeSkill]}
   Skill.{nix-workflow nix-workflow Programming Topic [AgentsSkill ClaudeSkill]}
+  Skill.{nix-input-upgrade nix-input-upgrade Programming Topic [AgentsSkill ClaudeSkill]}
   Skill.{operating-system operating-system Workflow Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{edit-coordination edit-coordination Workflow Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{disk-hygiene disk-hygiene Workflow Mechanism [AgentsSkill ClaudeSkill]}

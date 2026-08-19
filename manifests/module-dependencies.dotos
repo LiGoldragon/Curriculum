@@ -13,6 +13,7 @@
   {nexus-rationale skills/nexus-rationale.md RuntimeSkill}
   {versioning skills/versioning.md RuntimeSkill}
   {nix-workflow skills/nix-workflow.md RuntimeSkill}
+  {nix-input-upgrade skills/nix-input-upgrade.md RuntimeSkill}
   {operating-system skills/operating-system.md RuntimeSkill}
   {disk-hygiene skills/disk-hygiene.md RuntimeSkill}
   {documentation-placement skills/documentation-placement.md RuntimeSkill}
