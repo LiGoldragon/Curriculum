@@ -2,10 +2,10 @@
 [
   {read trivial (|The answer is in one known place. You are fetching it, not finding it.|)}
   {read ordinary (|You know what you are looking for but not where it is.|)}
-  {read demanding (|The answer is written nowhere. Assemble it from how the parts behave.|)}
-  {read critical (|A missed detail changes the conclusion.|)}
+  {read demanding (|The answer is written nowhere. Assemble it from reading the parts.|)}
+  {read critical (|Reading cannot settle it. A probe must be designed and run.|)}
   {write trivial (|The change is fully specified. No decisions remain.|)}
   {write ordinary (|The approach is known. Applying it is the work.|)}
   {write demanding (|The approach has to be chosen.|)}
-  {write critical (|New design, or a mistake that would surface too late to be cheap.|)}
+  {write critical (|Several parts must change together, and a choice in one constrains the others.|)}
 ]
