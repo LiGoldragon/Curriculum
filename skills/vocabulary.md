@@ -3,7 +3,7 @@ description: One of our own terms is used, or a term is being defined.
 dependencies: []
 ---
 
-Flow: one running model session and its context.
+Flow: one running model session and its context. A flow is liable for its subflows.
 
 Witness: an observation of the thing itself — a test run, a probe,
 the code read. What someone says about the thing is a claim.

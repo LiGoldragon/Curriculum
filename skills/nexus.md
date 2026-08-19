@@ -3,7 +3,7 @@ description: A daemon with privileged and ordinary sockets, CLI clients, and bin
 dependencies: []
 ---
 
-A Nexus is a daemon with at least two sockets, a default CLI client per socket, and the signal contracts it is compiled with. The decision-making engine inside it is Nexus Core. A Nexus is a vertex in the graph of nexuses; its signal contracts with peers are the edges.
+A Nexus is a daemon with at least two sockets, a default CLI client per socket, and the signal contracts it is compiled with. The decision-making engine inside it is Nexus Core. A Nexus is a vertex in the graph of nexuses. An edge joins two vertices and carries one contract: every connected pair has an ordinary edge; only some pairs have a meta edge.
 
 ## The Nexus
 
@@ -33,7 +33,7 @@ with a populated store resumes from its store. The same Configure type
 is accepted live over the meta socket. With no configuration, the
 daemon waits in an unconfigured semi-started state — it never guesses.
 
-A Nexus speaks only the signal contracts it is compiled with: its own — one per socket — and, for each peer it talks to, that peer's ordinary contract; a peer's meta contract only where meta access is granted, case by case.
+A Nexus speaks only the signal contracts it is compiled with: those of its own sockets and of every edge it has.
 
 ## Signal — the wire format
 
