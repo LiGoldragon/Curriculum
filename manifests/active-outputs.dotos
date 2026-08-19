@@ -8,7 +8,8 @@
 ;; Dependency data lives in module-dependencies.dotos; universal role modules live in universal-role-modules.dotos.
 
 [
-  Skill.{rust-component-architecture rust-component-architecture Architecture Topic [AgentsSkill ClaudeSkill]}
+  Skill.{nexus nexus Architecture Topic [AgentsSkill ClaudeSkill]}
+  Skill.{nexus-rationale nexus-rationale Architecture Topic [AgentsSkill ClaudeSkill]}
   Skill.{versioning versioning Workflow Keystroke [AgentsSkill ClaudeSkill]}
   Skill.{nix-workflow nix-workflow Programming Topic [AgentsSkill ClaudeSkill]}
   Skill.{operating-system operating-system Workflow Mechanism [AgentsSkill ClaudeSkill]}

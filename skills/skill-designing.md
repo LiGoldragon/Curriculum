@@ -50,3 +50,5 @@ $-name-only injection in Codex.
 
 A role skill carries an aspect's identity and names its
 dependencies. Mark role skills user-only.
+
+A skill's reasoning and concepts live in a parallel <skill>-rationale skill, loaded by psyche-facing flows only.

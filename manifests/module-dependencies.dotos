@@ -9,7 +9,8 @@
 [
   {general-instructions skills/general-instructions.md RoleComposition}
   {edit-coordination skills/edit-coordination.md RuntimeSkill}
-  {rust-component-architecture skills/rust-component-architecture.md RuntimeSkill}
+  {nexus skills/nexus.md RuntimeSkill}
+  {nexus-rationale skills/nexus-rationale.md RuntimeSkill}
   {versioning skills/versioning.md RuntimeSkill}
   {nix-workflow skills/nix-workflow.md RuntimeSkill}
   {operating-system skills/operating-system.md RuntimeSkill}

@@ -1,21 +1,19 @@
 ---
-description: How we design our components.
+description: A daemon with privileged and ordinary sockets, CLI clients, and binary signal contracts is being designed, built, or changed.
 dependencies: []
 ---
 
-Every component is a daemon speaking Signal.
+A Nexus is a daemon with at least two sockets, a default CLI client per socket, and the signal contracts it is compiled with. The decision-making engine inside it is Nexus Core. A Nexus is a vertex in the graph of nexuses; its signal contracts with peers are the edges.
 
-## The component
+## The Nexus
 
-`<component>` is the repo holding the daemon and its logic; its daemon binary is `<component>-daemon`.
+`<nexus>` is the repo holding the daemon and its logic; its daemon binary is `<nexus>-daemon`.
 
-`signal-<component>` is the wire type repo: the typed vocabulary of the component's public wire surface.
+`signal-<nexus>` is the wire type repo: the typed vocabulary of the Nexus's public wire surface.
 
-`meta-signal-<component>` is the owner's wire type repo: policy and configuration vocabulary. It is never optional — configuration flows through it.
+`meta-signal-<nexus>` is the owner's wire type repo: policy and configuration vocabulary. It is never optional — configuration flows through it.
 
-`core-<component>` is an optional library for when the logic must also be consumed as a library. It is a dependency of the daemon, never the other way around.
-
-The CLI binary is `<component>`; the meta CLI is `<component>-meta`.
+The CLI binary is `<nexus>`; the meta CLI is `<nexus>-meta`.
 
 ## The daemon
 
@@ -35,7 +33,7 @@ with a populated store resumes from its store. The same Configure type
 is accepted live over the meta socket. With no configuration, the
 daemon waits in an unconfigured semi-started state — it never guesses.
 
-A daemon may be a Signal client of any number of peer daemons.
+A Nexus speaks only the signal contracts it is compiled with: its own — one per socket — and, for each peer it talks to, that peer's ordinary contract; a peer's meta contract only where meta access is granted, case by case.
 
 ## Signal — the wire format
 
@@ -44,8 +42,8 @@ typed, portable, validated on receive. Frames are length-prefixed on
 the socket. Nothing else rides the wire: no JSON, no text, no second
 protocol.
 
-Every daemon opens two sockets: the ordinary socket, for any
-authenticated peer, and the meta socket, for its owner. Every surface
+Every Nexus opens at least two sockets: the ordinary socket, for any
+authenticated peer, and the meta socket, privileged — the Nexus's root: configuration and privileged operations pass only through it. A Nexus needing more levels of access opens more sockets. Every surface
 answers with typed replies, including a typed refusal — errors are
 vocabulary, not strings.
 
@@ -58,11 +56,11 @@ The CLI's role is to transform text into Signal. It is the boundary
 where the textual form ends and the binary world begins.
 
 A CLI speaks to exactly one daemon — its own. It opens no database,
-reaches no other component, and carries no logic worth keeping: it is
-eventually obsolete machinery, kept thin. `<component>` fronts the
-ordinary socket; `<component>-meta` fronts the meta socket.
+reaches no other Nexus, and carries no logic worth keeping: it is
+bootstrap machinery, kept thin; when production no longer uses it, it remains for debugging and testing. `<nexus>` fronts the
+ordinary socket; `<nexus>-meta` fronts the meta socket. Every client, on any socket, speaks pure signal; textualizing is the client's work, never the Nexus's.
 
-Every component process takes exactly one positional argument: a
+Every Nexus process takes exactly one positional argument: a
 typed input object in DOTOS/NOTA text or signal-encoded binary. No
 flags, no subcommands, no other argument shapes — the type system
 is the only interface. Flag-style arguments (`--anything`) are
@@ -96,8 +94,7 @@ Defaults are given wherever a default is expressible. Rich
 requirement chains (sub-traits) are what make defaults possible —
 designing them is the work.
 
-Greenfield code is trait-first natively: a new need gets a new
-trait, or extends an existing one when that fits better. Porting
+The traits and types of a Nexus are designed as one ontology — the most unified map of traits and types — before any body is written; a new need first finds its place in that map. One type implementing many single-function traits is one trait not yet seen. Porting
 existing code uses extraction — lifting the latent trait out of
 the method name.
 
@@ -124,7 +121,7 @@ type exists, the model is incomplete — name the missing type
 instead of writing a floating verb. Never create a zero-sized type
 only to namespace free functions; find the missing abstraction.
 
-## How components fit together
+## How nexuses fit together
 
 Peers depend on each other's wire type repos, never on each other's
 daemons. The contract is the whole relationship.
@@ -134,9 +131,9 @@ push subscriptions — a typed snapshot on open, typed deltas after —
 and commanded through the owner's mutation vocabulary. Polling is
 forbidden; a correct system goes quiet when nothing changes.
 
-When one intent spans several components, the issuer commits on the
+When one intent spans several nexuses, the issuer commits on the
 first success and records divergence on failure — no distributed
 rollback, no all-or-nothing stall.
 
-One capability, one component. A component is sized to be held whole
+One capability, one Nexus. A Nexus is sized to be held whole
 in one mind — human or model; when it outgrows that, it splits.
