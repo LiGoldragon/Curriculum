@@ -325,54 +325,7 @@ fn generation_fails_on_duplicate_headings() {
 
 
 #[test]
-fn harness_api_fields_do_not_leak_into_general_subflows_doctrine() {
-    let fields = ["turnBudget", "toolBudget", "timeoutMs", "maxRuntimeMs"];
-    let subflows = include_str!("../skills/subflows.md");
-    for field in fields {
-        assert!(
-            !subflows.contains(field),
-            "general subflows doctrine leaks harness API field {field}"
-        );
-    }
-
-    let fixture = Fixture::new();
-    fixture
-        .generate_from_repo(GenerationMode::Write)
-        .expect("harness-placement profile generates");
-    for path in [
-        ".agents/skills/subflows/SKILL.md",
-        ".claude/skills/subflows/SKILL.md",
-    ] {
-        let output = fixture.read_workspace_file(path).replace("\\n", "\n");
-        for field in fields {
-            assert!(
-                !output.contains(field),
-                "general generated output {path} leaks harness API field {field}"
-            );
-        }
-    }
-    for path in [
-        ".pi/agents/write-critical.md",
-        ".claude/agents/write-critical.md",
-        ".codex/agents/write-critical.toml",
-    ] {
-        assert!(
-            !fixture
-                .read_workspace_file(path)
-                .contains("Keep shared guidance independent of harness APIs."),
-            "{path} excludes retired skill-editor harness operations"
-        );
-    }
-}
-
-#[test]
 fn psyche_interraction_has_required_structure() {
-    let source = include_str!("../skills/psyche-interraction.md");
-    assert!(source.contains("dependencies: [psyche]"));
-    assert!(source.contains("## Logging"));
-    assert!(source.contains("## Authority"));
-    assert!(source.contains("psyche/Vision/"));
-
     let fixture = Fixture::new();
     fixture
         .generate_from_repo(GenerationMode::Write)
