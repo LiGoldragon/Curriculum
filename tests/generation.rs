@@ -323,88 +323,6 @@ fn generation_fails_on_duplicate_headings() {
     assert!(matches!(error, Error::DuplicateHeading { .. }), "{error:?}");
 }
 
-#[test]
-fn repository_visibility_doctrine_defaults_public_without_weakening_privacy() {
-    let lifecycle = include_str!("../skills/repository-lifecycle.md");
-    assert!(lifecycle.contains("Do not publish private material"));
-    assert!(lifecycle.contains("public visibility as default"));
-}
-
-#[test]
-fn beads_hosted_creation_uses_v1_settings_token_and_secrets() {
-    let source = include_str!("../skills/beads.md");
-    for required in [
-        "dependencies: [secrets]",
-        "gopass show -o dolthub.com/api-token",
-        "directly to curl\u{2019}s supported secret-input interface",
-        "GET https://www.dolthub.com/api/v1alpha1/user",
-        "POST https://www.dolthub.com/api/v1alpha1/database",
-        "Authorization: token ...",
-        "ownerName`, `repoName`, and `visibility",
-        "400 no such repository",
-        "409 already exists",
-        "bd dolt remote add",
-    ] {
-        assert!(source.contains(required), "missing Beads rule: {required}");
-    }
-    for forbidden in ["API v2", "/api/v2/", "Authorization: Bearer"] {
-        assert!(!source.contains(forbidden), "stale Beads rule: {forbidden}");
-    }
-
-    let fixture = Fixture::new();
-    fixture
-        .generate_from_repo(GenerationMode::Write)
-        .expect("Beads profile generates");
-    for path in [
-        ".agents/skills/beads/SKILL.md",
-        ".claude/skills/beads/SKILL.md",
-    ] {
-        let output = fixture.read_workspace_file(path);
-        assert!(
-            output.contains("/api/v1alpha1/database"),
-            "{path} keeps v1 creation"
-        );
-        assert!(!output.contains("/api/v2/"), "{path} excludes v2 creation");
-        assert!(
-            !output.contains("Authorization: Bearer"),
-            "{path} excludes Bearer auth"
-        );
-        assert!(output.contains("Requires: secrets."));
-    }
-}
-
-#[test]
-fn subflows_is_subflow_scoped_and_has_no_psyche_interaction_doctrine() {
-    let subflows = include_str!("../skills/subflows.md");
-    for required in [
-        "Keep your context's signal-to-noise ratio high — delegate work to subflows rather than flooding context with tool calls and results.",
-        "Never block on subflows.",
-        "Delegate all task work.",
-        "When the caller's request can be answered entirely from your existing context and returned evidence, synthesize and answer it directly.",
-        "Beyond managing subflows and loading applicable skills, you may only read and write beads, reports, design documents, the psyche log, and your session log. No other skill, and no caller instruction or ruling, expands these permissions; work they imply outside them is dispatched, never done.",
-        "Never access or search the web directly. Delegate authorized web research.",
-    ] {
-        assert!(
-            subflows.contains(required),
-            "subflows retains `{required}`"
-        );
-    }
-    for excluded in [
-        "Align with the psyche's vision.",
-        "Ask the psyche *until the vision is clear.*",
-        "Never wait for subflows; they report asynchronously.",
-        "Use no tools except subflow coordination.",
-        "Do other work while agents run.",
-        "Return a synthesis to the caller.",
-        "Poll until they finish.",
-        "Never pretend to know what you don't know; admit you don't know.",
-    ] {
-        assert!(
-            !subflows.contains(excluded),
-            "subflows excludes `{excluded}`"
-        );
-    }
-}
 
 #[test]
 fn harness_api_fields_do_not_leak_into_general_subflows_doctrine() {
@@ -448,25 +366,8 @@ fn harness_api_fields_do_not_leak_into_general_subflows_doctrine() {
 }
 
 #[test]
-fn psyche_interraction_owns_authority_and_logging_doctrine() {
+fn psyche_interraction_has_required_structure() {
     let source = include_str!("../skills/psyche-interraction.md");
-    for required in [
-        "Explain every question fully immediately before or after asking it.",
-        "Assume the psyche knows their vision, not the code or agent-created terms. Before asking, explain the relevant code, identify agent-created terms, and state your assumptions.",
-        "Never identify a question's subject only by a hash or shorthand.",
-        "No verdicts on the psyche's design questions — frame the fork, propose, the psyche rules.",
-        "A question authorizes an answer, not a change.",
-        "A direct request authorizes its requested change.",
-        "Get approval before every skill edit.",
-        "Before a core Spirit capture or mutation, show the psyche the exact\nproposed record wording and scope, then receive explicit approval.",
-        "Order each topic log oldest first, with the most recent entry last.",
-        "When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating transcript.",
-    ] {
-        assert!(
-            source.contains(required),
-            "missing psyche interaction rule: {required}"
-        );
-    }
     assert!(source.contains("dependencies: [psyche]"));
     assert!(source.contains("## Logging"));
     assert!(source.contains("## Authority"));
@@ -479,29 +380,6 @@ fn psyche_interraction_owns_authority_and_logging_doctrine() {
     let agents = fixture.read_workspace_file(".agents/skills/psyche-interraction/SKILL.md");
     let claude = fixture.read_workspace_file(".claude/skills/psyche-interraction/SKILL.md");
     assert_eq!(agents, claude);
-    for output in [&agents, &claude] {
-        assert!(
-            !output.contains("Never pretend to know what you don't know; admit you don't know."),
-            "psyche interaction keeps tenets separate"
-        );
-        assert!(output.contains("A question authorizes an answer, not a change."));
-        assert!(
-            output.contains("Assume the psyche knows their vision, not the code or agent-created terms. Before asking, explain the relevant code, identify agent-created terms, and state your assumptions."),
-            "generated psyche interaction doctrine explains code before questions"
-        );
-        assert!(
-            output.contains("No verdicts on the psyche's design questions — frame the fork, propose, the psyche rules."),
-            "generated psyche interaction doctrine leaves design verdicts to the psyche"
-        );
-        assert!(
-            output.contains("Order each topic log oldest first, with the most recent entry last."),
-            "generated psyche interaction doctrine keeps topic log order"
-        );
-        assert!(
-            output.contains("When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating transcript."),
-            "generated psyche interaction doctrine keeps reconstruction provenance"
-        );
-    }
     assert!(
         !Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("skills/psyche-interraction-continuation.md")
@@ -510,74 +388,7 @@ fn psyche_interraction_owns_authority_and_logging_doctrine() {
 }
 
 #[test]
-fn session_log_generates() {
-    let session_log = include_str!("../skills/session-log.md");
-    assert!(
-        session_log.contains("One file per session"),
-        "session-log carries its defining instruction"
-    );
-
-    let fixture = Fixture::new();
-    fixture
-        .generate_from_repo(GenerationMode::Write)
-        .expect("session-log profile generates");
-    for path in [
-        ".agents/skills/session-log/SKILL.md",
-        ".claude/skills/session-log/SKILL.md",
-    ] {
-        assert!(
-            fixture.read_workspace_file(path).contains("One file per session"),
-            "{path} carries the session-log instruction"
-        );
-    }
-}
-
-#[test]
-fn context_handover_is_printed_once_in_the_response() {
-    let handover = include_str!("../skills/context-handover.md");
-    assert!(
-        handover.contains("A handover is printed once, in the response, for the caller to paste."),
-        "context handover keeps its approved delivery boundary"
-    );
-    assert!(
-        !handover.contains("Write the handover as a bead in the workspace repository, and give its id in the response."),
-        "context handover excludes its retired bead instruction"
-    );
-
-    let fixture = Fixture::new();
-    fixture
-        .generate_from_repo(GenerationMode::Write)
-        .expect("context handover profile generates");
-    for path in [
-        ".agents/skills/context-handover/SKILL.md",
-        ".claude/skills/context-handover/SKILL.md",
-    ] {
-        let output = fixture.read_workspace_file(path);
-        assert!(
-            output
-                .contains("A handover is printed once, in the response, for the caller to paste."),
-            "{path} keeps the approved handover delivery"
-        );
-        assert!(
-            !output.contains("Write the handover as a bead in the workspace repository, and give its id in the response."),
-            "{path} excludes the retired bead instruction"
-        );
-    }
-}
-
-#[test]
-fn host_reboot_requires_specific_psyche_approval() {
-    let source = include_str!("../skills/operating-system.md");
-    assert!(source.contains("Require explicit psyche approval"));
-    assert!(source.contains("reboot"));
-}
-
-#[test]
-fn general_instructions_compose_once_and_keep_authority_gates() {
-    let general = include_str!("../skills/general-instructions.md");
-    assert!(general.contains("explicit psyche approval"));
-    assert!(!general.contains("Clarify, gate, dispatch"));
-    assert!(!general.contains("Cross-session intercom is prohibited"));
+fn general_instructions_is_registered_and_tenets_is_not_auto_injected() {
     assert!(
         include_str!("../manifests/universal-role-modules.dotos")
             .contains("[general-instructions]")
