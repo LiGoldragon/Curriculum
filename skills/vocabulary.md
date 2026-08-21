@@ -3,7 +3,7 @@ description: One of our own terms is used, or a term is being defined.
 dependencies: []
 ---
 
-Flow: one running model session and its context. A flow is liable for its subflows.
+Flow: one running model session and its context.
 
 Transcript: the file the harness writes holding a whole session from beginning to end.
 
