@@ -33,6 +33,7 @@
   Skill.{psyche-acquisition psyche-acquisition Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{psyche-grasp psyche-grasp Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{psyche-interraction psyche-interraction Meta Mechanism [AgentsSkill ClaudeSkill]}
+  Skill.{psyche-distillation psyche-distillation Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{prompt-crafting prompt-crafting Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{main-feature-integration main-feature-integration Workflow Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{spirit spirit Meta Mechanism [AgentsSkill ClaudeSkill]}
