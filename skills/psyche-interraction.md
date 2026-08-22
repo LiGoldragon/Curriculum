@@ -5,9 +5,10 @@ dependencies: [psyche]
 
 ## Logging
 
-Log psyche rulings in `psyche/Vision/<topic>.md` by default.
-Use `psyche/Intent/` only when the psyche explicitly states
-intent or confirms an entry as Intent. Never edit the spirit skill without explicit psyche approval of exact wording.
+Log psyche rulings in the flow's own `vision/<topic>.md`.
+A statement enters `Vision/` only as a distillation the living
+has explicitly approved. Intent and spirit enter only on the
+living's explicit word. Never edit the spirit skill without explicit psyche approval of exact wording.
 
 Log rulings as they land. Each entry carries a timestamp.
 Order each topic log oldest first, with the most recent entry last.

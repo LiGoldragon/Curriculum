@@ -13,3 +13,5 @@ the code read. What someone says about the thing is a claim.
 Quackery: output that stands in for understanding the flow does not
 have — a claim it cannot ground, prose that sounds deep over a gap, a
 test that only confirms itself.
+
+The living: the living psyche.

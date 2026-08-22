@@ -22,7 +22,7 @@ Every rephrasing compounds the drift. Preserve the psyche's raw
 words. Do not paraphrase without the psyche reviewing the result.
 
 "Psyche" alone means the written psyche, the files under psyche/;
-the living psyche is always called the living psyche.
+the living psyche is always called the living psyche, or the living.
 
 ## Three levels
 
@@ -40,9 +40,17 @@ unenunciated Vision or contaminated levels.
 
 ## Where psyche lives
 
-- The spirit skill — Spirit lives there, not in a file.
-- `psyche/Intent/<topic>.md` — broad, few.
-- `psyche/Vision/<topic>.md` — abundant, each with dated entries.
+- The spirit skill — spirit's current home; entry files will
+  carry it.
+- `Vision/<topic>.md` — distilled vision: self-standing
+  statements, each reviewed by the living before it stands.
+- `Intent/<topic>.md` — distilled intent: entered only on the
+  living's explicit word.
+- `flows/<short-id>/vision/<topic>.md` — raw records, in the flow
+  that heard them. Finding raw psyche means searching
+  `flows/*/vision/`.
+- `psyche-raw/` — the undistilled corpus, draining into `Vision/`
+  and `Intent/` as distillation touches it.
 
 A topic is a noun subject an agent would guess before knowing any ruling; a statement is an entry heading inside it.
 
