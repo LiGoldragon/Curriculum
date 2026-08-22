@@ -100,6 +100,8 @@ When behavior's domain is clear, reuse the existing trait or extend
 it. When neither an existing trait nor a clear new placement can be
 found, stop and escalate — do not proceed.
 
+A port starts from the map of what is being created; old code is at most inspiration for that map.
+
 Exceptions are permitted — too trivial, proper trait cannot be
 determined, not worth the trouble — but each exception is noted at
 the site where it is taken.
