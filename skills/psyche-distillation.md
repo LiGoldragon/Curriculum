@@ -14,7 +14,9 @@ draw from many topics. When readings overlap or contradict, the
 more recent and the more certain statement is favored.
 
 A proposal re-articulates; it never quotes. The archived
-originals keep every original word.
+originals keep every original word. A proposed change to a raw
+record — correction included — is proposed as a distillation of
+its subject, never as an append to the raw file.
 
 A distilled statement lands in `Vision/<topic>.md` on the
 living's explicit approval, and never before. Intent enters
