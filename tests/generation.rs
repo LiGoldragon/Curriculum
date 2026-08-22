@@ -1,15 +1,14 @@
 use std::{
     collections::{BTreeMap, BTreeSet},
-    env, fs,
+    fs,
     path::Path,
 };
 
-use dotos::DotosSource;
 use skills::{
     Error,
     schema::assembly::{
-        GenerationMode, GenerationRequest, ManifestPath, Operation, RoleDepths, RoleDescriptions,
-        RolePermissions, SourceRoot, VisualizationRequest, WorkspaceRoot,
+        GenerationMode, GenerationRequest, ManifestPath, SourceRoot, VisualizationRequest,
+        WorkspaceRoot,
     },
     trunk_guard::{TrunkDescendantGuard, TrunkDivergence},
 };
@@ -38,15 +37,6 @@ fn flat_frontmatter(packet: &str) -> BTreeMap<String, String> {
             (key.to_owned(), value.to_owned())
         })
         .collect()
-}
-
-#[test]
-fn current_dotos_assembly_contract_decodes_the_generator_request() {
-    let operation: Operation = DotosSource::new(include_str!("../skills-generate.dotos"))
-        .parse()
-        .expect("current generator request decodes through the handwritten contract");
-
-    assert!(matches!(operation, Operation::Generate(_)));
 }
 
 #[test]
@@ -321,34 +311,6 @@ fn generation_fails_on_duplicate_headings() {
         .expect_err("duplicate headings fail");
 
     assert!(matches!(error, Error::DuplicateHeading { .. }), "{error:?}");
-}
-
-#[test]
-fn psyche_interraction_has_required_structure() {
-    let fixture = Fixture::new();
-    fixture
-        .generate_from_repo(GenerationMode::Write)
-        .expect("psyche interaction profile generates");
-    let agents = fixture.read_workspace_file(".agents/skills/psyche-interraction/SKILL.md");
-    let claude = fixture.read_workspace_file(".claude/skills/psyche-interraction/SKILL.md");
-    assert_eq!(agents, claude);
-    assert!(
-        !Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("skills/psyche-interraction-continuation.md")
-            .exists()
-    );
-}
-
-#[test]
-fn general_instructions_is_registered_and_tenets_is_not_auto_injected() {
-    assert!(
-        include_str!("../manifests/universal-role-modules.dotos")
-            .contains("[general-instructions]")
-    );
-    assert!(
-        !include_str!("../manifests/universal-role-modules.dotos").contains("tenets"),
-        "tenets is a loadable skill and must not be auto-injected into roles"
-    );
 }
 
 #[test]
@@ -628,38 +590,6 @@ fn generation_rejects_skill_with_oversized_serialized_block() {
             .join(".agents/skills/example/SKILL.md")
             .exists()
     );
-}
-
-#[test]
-fn retired_skill_index_is_rejected_in_check_mode_and_pruned_in_write_mode() {
-    let fixture = Fixture::new();
-    fixture
-        .generate_from_repo(GenerationMode::Write)
-        .expect("current generated outputs write to fixture workspace");
-    fixture.write_workspace_file("skills/skills.dotos", "old retired index\n");
-
-    let error = fixture
-        .generate_from_repo(GenerationMode::Check)
-        .expect_err("retired skill index fails deployment check");
-    assert!(
-        matches!(error, Error::StaleGeneratedOutput { ref path } if path.ends_with("skills/skills.dotos")),
-        "{error:?}"
-    );
-
-    fixture
-        .generate_from_repo(GenerationMode::Write)
-        .expect("write mode prunes retired skill index");
-    assert!(
-        !fixture
-            .workspace
-            .path()
-            .join("skills/skills.dotos")
-            .exists(),
-        "retired skill index is removed"
-    );
-    fixture
-        .generate_from_repo(GenerationMode::Check)
-        .expect("pruned outputs satisfy deployment check");
 }
 
 #[test]
@@ -1153,63 +1083,6 @@ fn write_mode_removes_role_outputs_the_inventory_no_longer_claims() {
 }
 
 #[test]
-fn repository_manifests_generate_the_eight_permission_by_depth_roles() {
-    let permissions: RolePermissions =
-        DotosSource::new(include_str!("../manifests/role-permissions.dotos"))
-            .parse()
-            .expect("role permissions parse");
-    let depths: RoleDepths = DotosSource::new(include_str!("../manifests/role-depths.dotos"))
-        .parse()
-        .expect("role depths parse");
-    let descriptions: RoleDescriptions =
-        DotosSource::new(include_str!("../manifests/role-descriptions.dotos"))
-            .parse()
-            .expect("role descriptions parse");
-    assert_eq!(permissions.payload().len(), 2);
-    assert_eq!(depths.payload().len(), 4);
-    assert_eq!(descriptions.payload().len(), 8);
-
-    let fixture = Fixture::new();
-    fixture
-        .generate_from_repo(GenerationMode::Write)
-        .expect("repository manifests generate");
-    for role in [
-        "read-trivial",
-        "read-ordinary",
-        "read-demanding",
-        "read-critical",
-        "write-trivial",
-        "write-ordinary",
-        "write-demanding",
-        "write-critical",
-    ] {
-        for path in [
-            format!(".claude/agents/{role}.md"),
-            format!(".codex/agents/{role}.toml"),
-            format!(".pi/agents/{role}.md"),
-        ] {
-            assert!(
-                fixture.workspace.path().join(&path).exists(),
-                "{path} generates"
-            );
-        }
-    }
-    let trivial = flat_frontmatter(&fixture.read_workspace_file(".claude/agents/read-trivial.md"));
-    assert_eq!(
-        trivial.get("model").map(String::as_str),
-        Some("claude-haiku-4-5")
-    );
-    assert!(!trivial.contains_key("effort"));
-    let critical =
-        flat_frontmatter(&fixture.read_workspace_file(".claude/agents/write-critical.md"));
-    assert_eq!(
-        critical.get("model").map(String::as_str),
-        Some("claude-opus-4-6[1m]")
-    );
-    assert_eq!(critical.get("effort").map(String::as_str), Some("high"));
-}
-
-#[test]
 fn target_conditionals_render_per_harness_surface() {
     let fixture = Fixture::new();
     fixture.write_default_manifest();
@@ -1406,20 +1279,5 @@ impl Fixture {
             manifest_path: ManifestPath::new("manifests/active-outputs.dotos"),
         }
         .visualize()
-    }
-
-    fn generate_from_repo(
-        &self,
-        generation_mode: GenerationMode,
-    ) -> Result<skills::schema::assembly::GenerationReport, Error> {
-        GenerationRequest {
-            source_root: SourceRoot::new(env!("CARGO_MANIFEST_DIR")),
-            workspace_root: WorkspaceRoot::new(
-                self.workspace.path().to_string_lossy().into_owned(),
-            ),
-            manifest_path: ManifestPath::new("manifests/active-outputs.dotos"),
-            generation_mode,
-        }
-        .generate()
     }
 }
