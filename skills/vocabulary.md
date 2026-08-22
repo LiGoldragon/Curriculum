@@ -15,3 +15,5 @@ have — a claim it cannot ground, prose that sounds deep over a gap, a
 test that only confirms itself.
 
 The living: the living psyche.
+
+Past: the flows a flow has remembered, and theirs in turn.
