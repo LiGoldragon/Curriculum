@@ -24,7 +24,7 @@
   {repository-lifecycle skills/repository-lifecycle.md RuntimeSkill}
   {skill-designing skills/skill-designing.md RuntimeSkill}
   {subflows skills/subflows.md RuntimeSkill}
-  {session-log skills/session-log.md RuntimeSkill}
+  {flows skills/flows.md RuntimeSkill}
   {design skills/design.md RuntimeSkill}
   {realization skills/realization.md RuntimeSkill}
   {psyche skills/psyche.md RuntimeSkill}
@@ -32,7 +32,7 @@
   {psyche-grasp skills/psyche-grasp.md RuntimeSkill}
   {psyche-interraction skills/psyche-interraction.md RuntimeSkill}
   {codex-skill-loading skills/codex-skill-loading.md RoleComposition}
-  {context-handover skills/context-handover.md RuntimeSkill}
+  {prompt-crafting skills/prompt-crafting.md RuntimeSkill}
   {main-feature-integration skills/main-feature-integration.md RuntimeSkill}
   {secrets skills/secrets.md RuntimeSkill}
   {spirit skills/spirit.md RuntimeSkill}

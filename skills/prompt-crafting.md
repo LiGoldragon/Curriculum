@@ -1,5 +1,5 @@
 ---
-description: The session ends with work unfinished and another must continue it.
+description: A prompt must be crafted for another flow, to be pasted manually.
 dependencies: []
 ---
 
