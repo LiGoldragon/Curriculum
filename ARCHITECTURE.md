@@ -43,22 +43,10 @@ Codex-only line.
 {% endif %}
 ```
 
-The grammar is closed. Only `{% if <target> %}`, `{% else %}`, and
-`{% endif %}` are accepted, each alone on its own line apart from indentation,
-where `<target>` is `claude`, `codex`, or `pi`. Expressions, filters, loops,
-`{{ }}`, includes, and `{% raw %}` are rejected before rendering, and an unknown
-target name fails generation naming the file, the line, and the known targets.
 Rendering runs with `UndefinedBehavior::Strict`.
 
 Target is one value per output surface rather than a set of flags, so exactly one
-target is true in every render by construction. A fragment containing no brace is
-read verbatim, so a source without a conditional cannot change through templating.
-
-Because a stray space defeats a marker scan — `{ % if codex % }` is not a tag and
-would ship to an agent as doctrine — generation fails if any brace survives into
-a generated file. Consequently no source may contain a brace outside the
-conditional grammar, including inside fenced code blocks. This document and
-`AGENTS.md` are not generated outputs and carry the syntax instead.
+target is true in every render by construction.
 
 ## Output Targets
 

@@ -323,7 +323,6 @@ fn generation_fails_on_duplicate_headings() {
     assert!(matches!(error, Error::DuplicateHeading { .. }), "{error:?}");
 }
 
-
 #[test]
 fn psyche_interraction_has_required_structure() {
     let fixture = Fixture::new();
@@ -1295,103 +1294,6 @@ fn a_false_target_block_leaves_no_blank_line_behind() {
         fixture.read_workspace_file(".agents/skills/example/SKILL.md"),
         "---\nname: example\ndescription: 'Example skill.'\n---\n\nFirst line.\nSecond line.\n\nCodex line.\n"
     );
-}
-
-#[test]
-fn a_misspelled_target_fails_generation_and_names_the_known_targets() {
-    for source in [
-        "Shared line.\n\n{% if kodex %}\nCodex line.\n{% endif %}\n",
-        "Shared line.\n\n{% if not kodex %}\nCodex line.\n{% endif %}\n",
-    ] {
-        let fixture = Fixture::new();
-        fixture.write_default_manifest();
-        fixture.write_source_file(
-            "skills/example.md",
-            &format!("---\ndescription: Example skill.\n---\n\n{source}"),
-        );
-
-        let error = fixture
-            .generate(GenerationMode::Write)
-            .expect_err("a misspelled target fails generation");
-        let message = error.to_string();
-        assert!(
-            message.contains("skills/example.md"),
-            "error names the source file: {message}"
-        );
-        assert!(
-            message.contains("claude, codex, pi"),
-            "error names the known targets: {message}"
-        );
-    }
-}
-
-#[test]
-fn the_conditional_grammar_stays_closed() {
-    for source in [
-        "Shared line.\n\n{% for target in targets %}\nLooped.\n{% endfor %}\n",
-        "Shared line.\n\n{{ codex }}\n",
-        "Shared line.\n\n{% include \"other.md\" %}\n",
-        "Shared line.\n\n{% raw %}\n{% if codex %}\n{% endraw %}\n",
-        "Shared line.\n\nA brace { in prose.\n",
-        "Shared line.\n\n{ % if codex % }\nNear miss.\n{ % endif % }\n",
-        "Shared line.\n\n{% if codex %} inline text {% endif %}\n",
-    ] {
-        let fixture = Fixture::new();
-        fixture.write_default_manifest();
-        fixture.write_source_file(
-            "skills/example.md",
-            &format!("---\ndescription: Example skill.\n---\n\n{source}"),
-        );
-
-        let error = fixture
-            .generate(GenerationMode::Write)
-            .expect_err("an out-of-grammar construct fails generation");
-        assert!(
-            error.to_string().contains("skills/example.md"),
-            "error names the source file for source `{source}`: {error}"
-        );
-    }
-}
-
-#[test]
-fn no_generated_repository_output_contains_a_brace() {
-    let fixture = Fixture::new();
-    fixture
-        .generate_from_repo(GenerationMode::Write)
-        .expect("repository generation succeeds");
-
-    let mut checked = 0usize;
-    for directory in [".agents", ".claude", ".codex", ".pi"] {
-        for entry in walkdir(&fixture.workspace.path().join(directory)) {
-            let generated = fs::read_to_string(&entry).expect("read generated output");
-            assert!(
-                !generated.contains(['{', '}']),
-                "generated output {} contains a brace",
-                entry.display()
-            );
-            checked += 1;
-        }
-    }
-    assert!(
-        checked >= 68,
-        "checked every generated output, found {checked}"
-    );
-}
-
-fn walkdir(root: &Path) -> Vec<std::path::PathBuf> {
-    let mut found = Vec::new();
-    let Ok(entries) = fs::read_dir(root) else {
-        return found;
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.is_dir() {
-            found.extend(walkdir(&path));
-        } else {
-            found.push(path);
-        }
-    }
-    found
 }
 
 struct Fixture {

@@ -240,40 +240,11 @@ pub enum Error {
     )]
     GeneratedAgentExecutionLimit { path: PathBuf, field_name: String },
 
-    #[error(
-        "{source_path} line {line} is not an accepted target conditional; a brace may appear only in `{{% if <target> %}}`, `{{% else %}}`, or `{{% endif %}}` on a line of its own, with <target> one of {known_targets}: `{line_text}`"
-    )]
-    TemplateSyntax {
-        source_path: String,
-        line: usize,
-        line_text: String,
-        known_targets: String,
-    },
-
-    #[error(
-        "unknown target `{target_name}` at {source_path} line {line}; known targets: {known_targets}"
-    )]
-    UnknownTemplateTarget {
-        source_path: String,
-        line: usize,
-        target_name: String,
-        known_targets: String,
-    },
-
     #[error("render target conditionals in {source_path}{}: {detail}", line.map(|line| format!(" line {line}")).unwrap_or_default())]
     TemplateRender {
         source_path: String,
         line: Option<usize>,
         detail: String,
-    },
-
-    #[error(
-        "generated output {path} line {line} contains a brace, so template syntax or prose braces would ship as doctrine: `{line_text}`"
-    )]
-    TemplateLeak {
-        path: PathBuf,
-        line: usize,
-        line_text: String,
     },
 
     #[error("relative path {path} escapes the workspace root {root}")]

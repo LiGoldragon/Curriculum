@@ -288,8 +288,8 @@
             grep -F '{read (|Do not edit files, commit, or push. Fetching, cloning, and tool queries are fine.|) Restricted}' "$permissions" >/dev/null
             grep -F '{write (||) Unrestricted}' "$permissions" >/dev/null
             grep -F '{claude-haiku-4-5 Claude []}' "$catalog" >/dev/null
-            grep -F '{gpt-5.4-mini ChatGpt [Low Medium High Xhigh]}' "$catalog" >/dev/null
-            grep -F '{trivial {claude-haiku-4-5 None} {gpt-5.4-mini Some.Medium}}' "$depths" >/dev/null
+            grep -F '{gpt-5.6-luna ChatGpt [Low Medium High Xhigh]}' "$catalog" >/dev/null
+            grep -F '{trivial {claude-haiku-4-5 None} {gpt-5.6-luna Some.Low}}' "$depths" >/dev/null
             critical_row=$(grep -F '{critical {(|claude-opus-4-6[1m]|) Some.High}' "$depths")
             test -n "$critical_row"
             critical_model=$(printf '%s' "$critical_row" | sed -E 's/.*\{([A-Za-z0-9.-]+) Some\.[A-Za-z]+\}\}$/\1/')

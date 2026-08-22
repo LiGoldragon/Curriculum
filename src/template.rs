@@ -1,9 +1,7 @@
 //! Per-target conditionals inside skill and role source fragments.
 //!
 //! A source fragment is a template only in the narrow sense that it may gate
-//! lines on the harness the output is rendered for. The accepted grammar is
-//! closed to `{% if <target> %}`, `{% else %}`, and `{% endif %}` so that
-//! validation is total and a stray brace can never reach a generated file.
+//! lines on the harness the output is rendered for.
 
 use minijinja::{Environment, UndefinedBehavior, context};
 
@@ -20,14 +18,7 @@ pub enum RenderTarget {
     Pi,
 }
 
-impl RenderTarget {
-    /// The target names a conditional may test, in report order.
-    pub const NAMES: [&'static str; 3] = ["claude", "codex", "pi"];
-
-    fn known_names() -> String {
-        Self::NAMES.join(", ")
-    }
-}
+impl RenderTarget {}
 
 /// One source fragment together with the path that names it in diagnostics.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -43,13 +34,7 @@ impl<'a> TargetTemplate<'a> {
 
     /// Render this fragment for one target.
     ///
-    /// Brace-free text is returned verbatim, which makes the engine a
-    /// byte-identical no-op for every fragment that carries no conditional.
     pub fn render(&self, target: RenderTarget) -> Result<String> {
-        if !self.text.contains(['{', '}']) {
-            return Ok(self.text.to_owned());
-        }
-        self.validate_grammar()?;
         let mut environment = Environment::new();
         environment.set_undefined_behavior(UndefinedBehavior::Strict);
         environment.set_trim_blocks(true);
@@ -71,78 +56,6 @@ impl<'a> TargetTemplate<'a> {
                 detail: source.to_string(),
             })?;
         Ok(BlankLineRuns::new(rendered).collapsed())
-    }
-
-    /// Reject every brace that is not part of the closed conditional grammar.
-    ///
-    /// This runs before rendering so that a misspelled target, an open-grammar
-    /// construct, and a brace in prose each fail with the source line rather
-    /// than as a render error or, worse, as shipped doctrine.
-    fn validate_grammar(&self) -> Result<()> {
-        for (index, line) in self.text.lines().enumerate() {
-            let line_number = index + 1;
-            if !line.contains(['{', '}']) {
-                continue;
-            }
-            let tag = ConditionalTag::recognize(line).ok_or_else(|| Error::TemplateSyntax {
-                source_path: self.source_path.to_owned(),
-                line: line_number,
-                line_text: line.to_owned(),
-                known_targets: RenderTarget::known_names(),
-            })?;
-            if let Some(target_name) = tag.target_name()
-                && !RenderTarget::NAMES.contains(&target_name)
-            {
-                return Err(Error::UnknownTemplateTarget {
-                    source_path: self.source_path.to_owned(),
-                    line: line_number,
-                    target_name: target_name.to_owned(),
-                    known_targets: RenderTarget::known_names(),
-                });
-            }
-        }
-        Ok(())
-    }
-}
-
-/// A whole source line that is exactly one conditional tag.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum ConditionalTag<'a> {
-    If(&'a str),
-    Else,
-    EndIf,
-}
-
-impl<'a> ConditionalTag<'a> {
-    /// Recognize a line the grammar accepts, or nothing.
-    ///
-    /// This is a closed-set recognizer over three fixed literal shapes, not a
-    /// parser for the template format; minijinja parses and renders the source.
-    /// The tag must be the entire line apart from indentation, which is what
-    /// lets a false block leave no residue behind.
-    fn recognize(line: &'a str) -> Option<Self> {
-        let body = line.trim().strip_prefix("{%")?.strip_suffix("%}")?.trim();
-        match body {
-            "else" => Some(Self::Else),
-            "endif" => Some(Self::EndIf),
-            _ => body
-                .strip_prefix("if ")
-                .map(str::trim)
-                .filter(|target_name| {
-                    !target_name.is_empty()
-                        && target_name
-                            .chars()
-                            .all(|character| character.is_ascii_lowercase())
-                })
-                .map(Self::If),
-        }
-    }
-
-    fn target_name(&self) -> Option<&'a str> {
-        match self {
-            Self::If(target_name) => Some(target_name),
-            Self::Else | Self::EndIf => None,
-        }
     }
 }
 

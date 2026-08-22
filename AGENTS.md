@@ -12,11 +12,6 @@ Put contributor and agent rules here; user guidance in README.md; durable design
 
 Generate and verify every affected runtime surface.
 
-Never put a brace in a flat source except in a target conditional
-(`{% if codex %}` / `{% else %}` / `{% endif %}`, alone on its line, target one
-of `claude`, `codex`, `pi`); generation fails on any brace reaching a generated
-file. See ARCHITECTURE.md.
-
 Use `jj` to commit and push completed edits.
 
 ## Skill visibility

@@ -1697,39 +1697,6 @@ impl OutputSurface {
     }
 }
 
-/// A fully rendered output that must reach the workspace with no brace in it.
-///
-/// The check is brace-level rather than a scan for the six Jinja markers,
-/// because the dangerous case is the near miss: `{ % if codex % }` is not a tag,
-/// so it renders as literal text and would ship a conditional to an agent as
-/// doctrine while containing no `{%`. No source or generated file carries a
-/// brace today, so the cost of the stricter rule is nothing and the guarantee
-/// is total.
-#[derive(Clone, Debug, Eq, PartialEq)]
-struct BraceFreeOutput<'a> {
-    path: PathBuf,
-    text: &'a str,
-}
-
-impl<'a> BraceFreeOutput<'a> {
-    fn new(path: PathBuf, text: &'a str) -> Self {
-        Self { path, text }
-    }
-
-    fn validate(&self) -> Result<()> {
-        for (index, line) in self.text.lines().enumerate() {
-            if line.contains(['{', '}']) {
-                return Err(Error::TemplateLeak {
-                    path: self.path.clone(),
-                    line: index + 1,
-                    line_text: line.to_owned(),
-                });
-            }
-        }
-        Ok(())
-    }
-}
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct SkillName {
     value: String,
@@ -1906,7 +1873,6 @@ impl ManifestAssembler {
                 unreachable!("derived DOTOS outputs render without module manifests")
             }
         };
-        BraceFreeOutput::new(output_path.full_path(), &rendered).validate()?;
         Ok(rendered)
     }
 
