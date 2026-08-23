@@ -17,3 +17,5 @@ test that only confirms itself.
 The living: the living psyche.
 
 Past: the flows a flow has remembered, and theirs in turn.
+
+Base prompt: the harness-built portion of the top stratum — the instructions the harness itself composes ahead of everything authored here. Vendor parlance: system prompt.
