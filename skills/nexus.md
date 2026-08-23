@@ -60,13 +60,15 @@ reaches no other Nexus, and carries no logic worth keeping: it is
 bootstrap machinery, kept thin; when production no longer uses it, it remains for debugging and testing. `<nexus>` fronts the
 ordinary socket; `<nexus>-meta` fronts the meta socket. Every client, on any socket, speaks pure signal; textualizing is the client's work, never the Nexus's.
 
-Every Nexus process takes exactly one positional argument: a
-typed input object in DOTOS/NOTA text or signal-encoded binary. No
-flags, no subcommands, no other argument shapes — the type system
-is the only interface. Flag-style arguments (`--anything`) are
-rejected. The daemon accepts only the signal-encoded form.
+Every Nexus CLI process takes exactly one positional argument: a typed
+input object in datom textual data format. No flags, no subcommands,
+no other argument shapes — the type system is the only
+interface. Flag-style arguments (`--anything`) are rejected. The
+daemon accepts only the signal-encoded form.
 
 ## The wire type repos
+
+Write every wire interface in Ethos.
 
 A wire type repo declares vocabulary and nothing else: no runtime, no
 actors, no async machinery. It owns the frame envelope and its
