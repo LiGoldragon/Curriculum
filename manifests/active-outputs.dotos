@@ -13,6 +13,7 @@
   Skill.{transcript-search transcript-search Meta Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{versioning versioning Workflow Keystroke [AgentsSkill ClaudeSkill]}
   Skill.{nix-workflow nix-workflow Programming Topic [AgentsSkill ClaudeSkill]}
+  Skill.{agent-harness-packaging agent-harness-packaging Programming Topic [AgentsSkill ClaudeSkill]}
   Skill.{lojix lojix Workflow Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{operating-system operating-system Workflow Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{edit-coordination edit-coordination Workflow Mechanism [AgentsSkill ClaudeSkill]}

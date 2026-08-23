@@ -14,6 +14,7 @@
   {transcript-search skills/transcript-search.md RuntimeSkill}
   {versioning skills/versioning.md RuntimeSkill}
   {nix-workflow skills/nix-workflow.md RuntimeSkill}
+  {agent-harness-packaging skills/agent-harness-packaging.md RuntimeSkill}
   {lojix skills/lojix.md RuntimeSkill}
   {operating-system skills/operating-system.md RuntimeSkill}
   {disk-hygiene skills/disk-hygiene.md RuntimeSkill}
