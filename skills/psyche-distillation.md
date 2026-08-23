@@ -11,7 +11,9 @@ A distillation agglomerates records across flows that touch the
 same topic. Records are considered individually, never by file.
 One record may serve many distillations; one distillation may
 draw from many topics. When readings overlap or contradict, the
-more recent and the more certain statement is favored.
+more recent and the more certain statement is favored. A distillation
+is composed only in the main flow. A subflow only gathers records that
+could qualify as candidates for distilling together.
 
 A proposal re-articulates; it never quotes. The archived
 originals keep every original word. A proposed change to a raw
