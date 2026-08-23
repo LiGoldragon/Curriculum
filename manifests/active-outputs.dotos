@@ -19,6 +19,7 @@
   Skill.{edit-coordination edit-coordination Workflow Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{disk-hygiene disk-hygiene Workflow Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{documentation-placement documentation-placement Workflow Mechanism [AgentsSkill ClaudeSkill]}
+  Skill.{breaking-upgrades breaking-upgrades Workflow Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{file-editing file-editing Workflow Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{testing testing Workflow Mechanism [AgentsSkill ClaudeSkill]}
   Skill.{feature-development feature-development Workflow Mechanism [AgentsSkill ClaudeSkill]}

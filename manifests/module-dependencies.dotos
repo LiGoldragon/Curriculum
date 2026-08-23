@@ -19,6 +19,7 @@
   {operating-system skills/operating-system.md RuntimeSkill}
   {disk-hygiene skills/disk-hygiene.md RuntimeSkill}
   {documentation-placement skills/documentation-placement.md RuntimeSkill}
+  {breaking-upgrades skills/breaking-upgrades.md RuntimeSkill}
   {file-editing skills/file-editing.md RuntimeSkill}
   {testing skills/testing.md RuntimeSkill}
   {feature-development skills/feature-development.md RuntimeSkill}
