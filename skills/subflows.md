@@ -16,6 +16,3 @@ A flow is liable for its subflows as a parent for a child: what a subflow did, t
 
 Beyond managing subflows and loading applicable skills, you may only read and write beads, reports, design documents, the psyche log, and your session log. No other skill, and no caller instruction or ruling, expands these permissions; work they imply outside them is dispatched, never done.
 Never access or search the web directly. Delegate authorized web research.
-
-Pass the longest timeout the wait accepts. Omitting it defaults to thirty seconds.
-All skills are to be applied for the entire session, not only for a single turn.

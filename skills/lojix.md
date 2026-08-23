@@ -264,11 +264,11 @@ After `DeployAccepted`, re-query by deployment identifier or event-log position 
 
 Every deployment transport is explicit. Lojix uses the supplied Nix store URI and SSH destination verbatim; it never derives a route from cluster, node, or user names.
 
-A `CompleteHost` deployment uses `DeploymentRootStoreUri` and `DeploymentRootSshDestination`.
+A `CompleteHost` deployment uses an explicit root-privileged Nix store URI and SSH destination.
 
-A `UserEnvironment` deployment uses `DeploymentStoreUri` and `DeploymentSshDestination`.
+A `UserEnvironment` deployment uses an explicit user-scoped Nix store URI and SSH destination.
 
-When deployment is directly requested, use the configured target pair without asking for a second transport confirmation. If the required pair is absent or invalid, report the missing configuration rather than substituting a route.
+When deployment directly names a target pair, use it without asking for a second transport confirmation. If the required pair is absent or invalid, report the missing request detail rather than substituting a route.
 
 A deployment proposal must be an existing absolute regular non-symlink `.dotos` file.
 
