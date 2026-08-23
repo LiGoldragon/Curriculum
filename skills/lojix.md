@@ -291,14 +291,13 @@ Its single request is the curly positional product `ConfigurationWriteRequest` w
 5. state directory
 6. store path
 7. daemon host
-8. effect timeout
-9. test-default choice
-10. output path
+8. test-default choice
+9. output path
 
 Exact tested form:
 
 ```text
-ConfigurationWriteRequest.{/run/fixture-lojix/ordinary.sock 432 /run/fixture-lojix/owner.sock 384 /var/lib/fixture-lojix /var/lib/fixture-lojix/configured-lojix-store.db fixture-daemon 60 NoTestDefaults /tmp/startup.rkyv}
+ConfigurationWriteRequest.{/run/fixture-lojix/ordinary.sock 432 /run/fixture-lojix/owner.sock 384 /var/lib/fixture-lojix /var/lib/fixture-lojix/configured-lojix-store.db fixture-daemon NoTestDefaults /tmp/startup.rkyv}
 ```
 
 Production uses bare `NoTestDefaults`.
