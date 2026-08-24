@@ -35,6 +35,7 @@
   {psyche-grasp skills/psyche-grasp.md RuntimeSkill}
   {psyche-interraction skills/psyche-interraction.md RuntimeSkill}
   {psyche-distillation skills/psyche-distillation.md RuntimeSkill}
+  {context-strata skills/context-strata.md RuntimeSkill}
   {codex-skill-loading skills/codex-skill-loading.md RoleComposition}
   {prompt-crafting skills/prompt-crafting.md RuntimeSkill}
   {main-feature-integration skills/main-feature-integration.md RuntimeSkill}
