@@ -15,7 +15,9 @@ more recent and the more certain statement is favored. A distillation
 is composed only in the main flow. A subflow only gathers records that
 could qualify as candidates for distilling together.
 
-A proposal re-articulates; it never quotes. The archived
+A proposal re-articulates; it never quotes. A distilled
+statement stands on its own words, referring to no beads,
+files, or flows. The archived
 originals keep every original word. A proposed change to a raw
 record — correction included — is proposed as a distillation of
 its subject, never as an append to the raw file.
