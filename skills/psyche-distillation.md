@@ -23,7 +23,9 @@ record — correction included — is proposed as a distillation of
 its subject, never as an append to the raw file.
 
 A distilled statement lands in `Vision/<topic>.md` on the
-living's explicit approval, and never before. Intent enters
+living's explicit approval, and never before. A ruling a
+distillation lands in Vision is not also logged as raw vision;
+the landing is the record. Intent enters
 `Intent/` only on the living's explicit word. The raw records a
 distillation replaces move into an `archive-` prefixed file
 beside their source file.
