@@ -17,9 +17,10 @@ first 8 hex of the session UUID.
 
 Create `log.md` at the first prompt and append the flow's line to
 `flows/index.md` as `<aspect>, <short-id>, <description>`; the tail is
-the latest. The log opens with a very terse summary, re-edited as the
-session goes, and changes further when asked, at handoff, or when the
-handoff state materially changes.
+the latest. log.md makes the flow's main points easily accessible: what the flow is
+about, what it settled, what stands open. Rewrite it in place as the
+points change; one short read gives the whole state. The transcript holds
+the conversation and its times.
 
 A psyche record goes in `vision/<topic>.md`, the psyche's words
 verbatim. A witness goes in `witnesses/<subject>.md` with its method:
@@ -28,8 +29,7 @@ in `reports/<subject>.md` and ends with `## Sources` written as the
 report is made: documents and URLs for carried claims, witness records
 for own inference, flows by short id.
 
-Files are named by camelCase subject; the log holds the dates; an
-artifact's body holds only its subject. A subflow's artifacts go in its
+Files are named by camelCase subject; an artifact's body holds only its subject. A subflow's artifacts go in its
 flow's directory.
 
 Earlier work is continued by remembering the flows concerned: their
