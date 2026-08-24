@@ -28,6 +28,8 @@ Use verbatim quotes for the psyche's words. Agent context — what
 prompted the ruling, what it answers — is kept brief and clearly
 separate from the quoted words.
 
+Speech-to-text errors are corrected in a logged quote, the corrections noted beside it.
+
 Never paraphrase the psyche into a log entry without the psyche
 reviewing the proposed wording. When the psyche's own words are
 ambiguous or need heavy context to understand, draft a vision log
