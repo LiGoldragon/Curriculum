@@ -264,6 +264,8 @@ After `DeployAccepted`, re-query by deployment identifier or event-log position 
 
 Every deployment transport is explicit. Lojix uses the supplied Nix store URI and SSH destination verbatim; it never derives a route from cluster, node, or user names.
 
+The logical node selects what is built; the activation destination selects which machine is changed. Before a state-changing deployment, verify that they identify the same node. If they do not, stop.
+
 A `CompleteHost` deployment uses an explicit root-privileged Nix store URI and SSH destination.
 
 A `UserEnvironment` deployment uses an explicit user-scoped Nix store URI and SSH destination.
