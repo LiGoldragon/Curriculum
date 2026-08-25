@@ -5,6 +5,8 @@ dependencies: [nix-workflow]
 
 Map the dependency chain before touching anything. Update bottom-up: eval-cache boundary repos (like CriomOS-pkgs) must be committed and pushed before their consumers update their locks.
 
+Before advancing an external package input, verify its final provider, immutable upstream payload and hash, embedded runtimes, contract-pinned consumers, built launchers, and resident versions.
+
 A version number does not prove a specific fix is included. Verify the fix against upstream commit history, not the release tag. GTK 4.22.4 (nixos-unstable, Aug 2026) did not contain MR !10130 despite being the latest stable; the fix appeared only in 4.23.3. Use fetchpatch when the fix is merged upstream but not yet released.
 
 A nixpkgs fork with no local commits can be fast-forwarded via the GitHub API without cloning. Check local commits before pulling the full repo.
