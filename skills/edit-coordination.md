@@ -1,18 +1,10 @@
 ---
 description: Another agent may be writing the same paths.
-dependencies: []
+dependencies: [orchestrate]
 ---
 
-Reserve the complete write set before editing.
+Reserve the complete write set with `PathLock` before editing.
 
-    orchestrate 'PathLock.{<name> [<absolute-path> ...] (<description>)}'
+Edit only after receiving `PathLockRegistered`. On `PathLockRegistrationRejected` or a client failure, report the failure and do not edit.
 
-Only edit after receiving `PathLockRegistered`. On
-`PathLockRegistrationRejected` or a transport failure, report the
-failure and do not edit.
-
-Release a registered PathLock after editing.
-
-    orchestrate 'PathLockRelease.{<name>}'
-
-Read the typed `PathLockReleased` or `PathLockReleaseRejected` reply.
+Release the reservation with `PathLockRelease` when editing ends. Read the typed release reply.
