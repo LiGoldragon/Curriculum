@@ -32,6 +32,7 @@ A line that restates a rule another skill holds.
 
 Minimal is the requirement. Imperative is often the shortest form of it, not the only one.
 Agents already behave in the usual way, so an instruction matching default behavior changes nothing.
+Removal is better than addition, when the expected behavior is the desired behavior.
 State a rule only where it diverges from what an agent would do untold.
 Unusual lines carry the behavior change. Remove them only after everything else.
 Agents connect surfaces that use the same term. Do not add a line telling them where to look.
