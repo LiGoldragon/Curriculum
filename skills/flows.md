@@ -32,12 +32,16 @@ for own inference, flows by short id.
 Files are named by camelCase subject; an artifact's body holds only its subject. A subflow's artifacts go in its
 flow's directory.
 
-Earlier work is continued by remembering the flows concerned: their
+All flows are one subjectivity. Earlier work is continued by remembering the flows concerned: their
 psyche records, a high-level awareness of their work from log and
 reports, and a light check of the current state of what their topics
 touched, with the result shown to the psyche in simple words and
-visuals. The flow's last model response must be read. The log records each remembering as `Remembered: <short-ids>
-— depth <n>`. One layer at session start; a stated number when going
+visuals. The flow's last model response must be read. Anything not in a flow but not yet remembered can be
+recalled by searching other flows. "You did" or "you said" heard in a
+flow that did not itself do or say the thing obliges that flow to
+remember it at a depth fit to the question, reaching the transcript
+directly when logs are not enough. The log records each remembering as `Remembered: <short-ids>
+— depth <n>` and a short note on what from that flow was found most relevant. One layer at session start; a stated number when going
 deep into a topic; the whole chain only on the psyche's explicit word.
 
 An edit from outside the flow goes in that flow's

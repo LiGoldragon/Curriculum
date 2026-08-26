@@ -1,5 +1,5 @@
 ---
-description: A transcript must be searched — for the psyche's typed words, for what a flow said or did, or for one record by line.
+description: A transcript must be searched — for the psyche's typed words, for what a flow said or did, for what another flow said or did that this flow did not itself witness, or for one record by line.
 dependencies: []
 ---
 
