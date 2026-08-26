@@ -27,11 +27,10 @@ reached only through the sema-engine library, in a `.sema` file. There
 is no central storage Nexus. Policy state and working state live in
 that one store; policy changes only through meta-socket mutation.
 
-A Nexus starts from a single argument: a signal-encoded Configure
-message. A new Nexus applies it as first configuration; a Nexus
-with a populated store resumes from its store. The same Configure type
-is accepted live over the meta socket. With no configuration, the
-Nexus waits in an unconfigured semi-started state — it never guesses.
+A Nexus starts with no arguments. Its executable owns default
+configuration. It opens its default Sema location: a new store persists
+those defaults and a populated store resumes them. The same Configure
+type accepts changed values over the meta socket.
 
 A Nexus speaks only the signal contracts it is compiled with: those of its own sockets and of every edge it has.
 
@@ -132,7 +131,8 @@ Nexuses. The contract is the whole relationship.
 
 Observation flows up, authority flows down: state is observed through
 push subscriptions — a typed snapshot on open, typed deltas after —
-and commanded through the owner's mutation vocabulary. Polling is
+and commanded through the owner's mutation vocabulary. `Observe.Locks`
+is a one-shot typed Lock snapshot, not a subscription. Polling is
 forbidden; a correct system goes quiet when nothing changes.
 
 When one intent spans several nexuses, the issuer commits on the

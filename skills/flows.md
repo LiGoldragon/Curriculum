@@ -32,6 +32,8 @@ for own inference, flows by short id.
 Files are named by camelCase subject; an artifact's body holds only its subject. A subflow's artifacts go in its
 flow's directory.
 
+A subflow is a flow. A flow releases every Lock before it becomes idle, except a Lock explicitly delegated to an active subflow.
+
 All flows are one subjectivity. Earlier work is continued by remembering the flows concerned: their
 psyche records, a high-level awareness of their work from log and
 reports, and a light check of the current state of what their topics
