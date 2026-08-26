@@ -36,7 +36,7 @@ Earlier work is continued by remembering the flows concerned: their
 psyche records, a high-level awareness of their work from log and
 reports, and a light check of the current state of what their topics
 touched, with the result shown to the psyche in simple words and
-visuals. The log records each remembering as `Remembered: <short-ids>
+visuals. The flow's last model response must be read. The log records each remembering as `Remembered: <short-ids>
 — depth <n>`. One layer at session start; a stated number when going
 deep into a topic; the whole chain only on the psyche's explicit word.
 
