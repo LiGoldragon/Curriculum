@@ -1,13 +1,13 @@
 ---
-description: A daemon with privileged and ordinary sockets, CLI clients, and binary signal contracts is being designed, built, or changed.
+description: A long-running Nexus with privileged and ordinary sockets, CLI clients, and binary signal contracts is being designed, built, or changed.
 dependencies: []
 ---
 
-A Nexus is a daemon with at least two sockets, a default CLI client per socket, and the signal contracts it is compiled with. The decision-making engine inside it is Nexus Kernel. A Nexus is a vertex in the graph of nexuses. An edge joins two vertices and carries one contract: every connected pair has an ordinary edge; only some pairs have a meta edge.
+A Nexus is the long-running whole with at least two sockets, a default CLI client per socket, and the signal contracts it is compiled with. Its long-running executable is <nexus>-nexus; call it a Nexus, never a daemon. The decision-making engine inside it is Nexus Kernel. A Nexus is a vertex in the graph of nexuses. An edge joins two vertices and carries one contract: every connected pair has an ordinary edge; only some pairs have a meta edge.
 
 ## The Nexus
 
-`<nexus>` is the repo holding the daemon and its logic; its daemon binary is `<nexus>-daemon`.
+`<nexus>` is the repo holding the Nexus and its logic; its long-running executable is `<nexus>-nexus`.
 
 `signal-<nexus>` is the wire type repo: the typed vocabulary of the Nexus's public wire surface.
 
@@ -15,23 +15,23 @@ A Nexus is a daemon with at least two sockets, a default CLI client per socket, 
 
 The CLI binary is `<nexus>`; the meta CLI is `<nexus>-meta`.
 
-## The daemon
+## The running Nexus
 
-Everything is in the daemon. It loads its domain and holds the whole
+Everything is in the running Nexus. It loads its domain and holds the whole
 thing — every object as its own specifically typed object, a specific
 type for every kind. It thinks in typed values, never in text: no
 text arrives on its wire and none leaves it.
 
-Each daemon owns its own sema database — its typed durable store,
+Each Nexus owns its own sema database — its typed durable store,
 reached only through the sema-engine library, in a `.sema` file. There
-is no central storage daemon. Policy state and working state live in
+is no central storage Nexus. Policy state and working state live in
 that one store; policy changes only through meta-socket mutation.
 
-A daemon starts from a single argument: a signal-encoded Configure
-message. A virgin daemon applies it as first configuration; a daemon
+A Nexus starts from a single argument: a signal-encoded Configure
+message. A new Nexus applies it as first configuration; a Nexus
 with a populated store resumes from its store. The same Configure type
 is accepted live over the meta socket. With no configuration, the
-daemon waits in an unconfigured semi-started state — it never guesses.
+Nexus waits in an unconfigured semi-started state — it never guesses.
 
 A Nexus speaks only the signal contracts it is compiled with: those of its own sockets and of every edge it has.
 
@@ -55,7 +55,7 @@ crate's semver is the wire's semver, and consumers pin it.
 The CLI's role is to transform text into Signal. It is the boundary
 where the textual form ends and the binary world begins.
 
-A CLI speaks to exactly one daemon — its own. It opens no database,
+A CLI speaks to exactly one Nexus — its own. It opens no database,
 reaches no other Nexus, and carries no logic worth keeping: it is
 bootstrap machinery, kept thin; when production no longer uses it, it remains for debugging and testing. `<nexus>` fronts the
 ordinary socket; `<nexus>-meta` fronts the meta socket. Every client, on any socket, speaks pure signal; textualizing is the client's work, never the Nexus's.
@@ -64,7 +64,9 @@ Every Nexus CLI process takes exactly one positional argument: a typed
 input object in datom textual data format. No flags, no subcommands,
 no other argument shapes — the type system is the only
 interface. Flag-style arguments (`--anything`) are rejected. The
-daemon accepts only the signal-encoded form.
+Nexus accepts only the signal-encoded form.
+
+Datom passes inline at a CLI boundary, never as a Datom file.
 
 ## The wire type repos
 
@@ -126,7 +128,7 @@ only to namespace free functions; find the missing abstraction.
 ## How nexuses fit together
 
 Peers depend on each other's wire type repos, never on each other's
-daemons. The contract is the whole relationship.
+Nexuses. The contract is the whole relationship.
 
 Observation flows up, authority flows down: state is observed through
 push subscriptions — a typed snapshot on open, typed deltas after —
