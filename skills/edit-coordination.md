@@ -3,22 +3,16 @@ description: Another agent may be writing the same paths.
 dependencies: []
 ---
 
-Register a lane before writing, claim the paths you will edit, release when done.
+Reserve the complete write set before editing.
 
-      meta-orchestrate "(Register ((SessionName laneName ([SessionName Discipline] Structural) [why this lane exists]) Fresh))"
-      orchestrate      "(Claim (laneName [(Path /absolute/path)] [why you are editing]))"
-      orchestrate      "(Release laneName)"
-      meta-orchestrate "(Retire (Lane laneName))"
+    orchestrate 'PathLock.{<name> [<absolute-path> ...] (<description>)}'
 
-Session and lane identifiers are CamelCase alphanumeric — no whitespace or path separators.
-Read the reply record, not the exit status. A refusal such as ClaimRejection or
-  PartialApplied exits 0. Only malformed DOTOS exits 1.
-A bracketed reason needs two or more tokens; a one-word reason goes bare.
-Neither CLI has --help. A valid verb with no payload reports the same error as a
-  verb that does not exist, so do not probe for verb names.
-A claim is advisory bookkeeping. Nothing is locked. If a claim is refused or the
-  machinery misbehaves, say so and continue working.
-Register the assigned lane before a write.
-Claim each write path under that lane.
-Use Recovery only when the active lane matches the handover.
-Release owned claims and unregister at closeout.
+Only edit after receiving `PathLockRegistered`. On
+`PathLockRegistrationRejected` or a transport failure, report the
+failure and do not edit.
+
+Release a registered PathLock after editing.
+
+    orchestrate 'PathLockRelease.{<name>}'
+
+Read the typed `PathLockReleased` or `PathLockReleaseRejected` reply.
