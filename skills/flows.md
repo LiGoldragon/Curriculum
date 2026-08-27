@@ -22,15 +22,15 @@ about, what it settled, what stands open. Rewrite it in place as the
 points change; one short read gives the whole state. The transcript holds
 the conversation and its times.
 
-A psyche record goes in `vision/<topic>.md`, the psyche's words
-verbatim. A witness goes in `witnesses/<subject>.md` with its method:
+A psyche record goes in `vision/<topic>.md`, per the recording
+protocol in the psyche-interraction skill. A witness goes in `witnesses/<subject>.md` with its method:
 `Method: probe <command>` or `Method: code read <path>`. A report goes
 in `reports/<subject>.md` and ends with `## Sources` written as the
 report is made: documents and URLs for carried claims, witness records
 for own inference, flows by short id.
 
 Files are named by camelCase subject; an artifact's body holds only its subject. A subflow's artifacts go in its
-flow's directory.
+flow's directory, under the subdirectories listed above and no others. Prefer the final response over a file; a file is warranted only when another tool or flow must consume it.
 
 A subflow is a flow. A flow releases every Lock before it becomes idle, except a Lock explicitly delegated to an active subflow.
 

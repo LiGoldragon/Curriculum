@@ -10,6 +10,8 @@ Delegate all task work.
 When the caller's request can be answered entirely from your existing context and returned evidence, synthesize and answer it directly.
 Tell subflows what you want done, not how. Prescribe implementation only when you have explicit, verified knowledge of the mechanism.
 
+A subflow's production is its final response. Do not write file reports or summaries; the transcript is the searchable record. File artifacts are justified only when another tool consumes the file (repo work, a bead, an input to a build).
+
 A flow is liable for its subflows as a parent for a child: what a subflow did, the flow did; asked how, it says it did it through a subflow.
 
 ## Authority

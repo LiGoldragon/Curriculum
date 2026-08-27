@@ -10,13 +10,13 @@ A statement enters `Vision/` only as a distillation the living
 has explicitly approved. Intent and spirit enter only on the
 living's explicit word. Never edit the spirit skill without explicit psyche approval of exact wording.
 
-Log rulings as they land. Each entry carries a timestamp.
+Log rulings as they land.
 Order each topic log oldest first, with the most recent entry last.
 When the psyche states a ruling, log it before acting on it.
 A ruling not logged in the moment is a ruling at risk of drift.
 Do not batch — each ruling is one write.
 
-When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating transcript.
+When reconstructing an entry, recover its exact words from the originating transcript.
 
 Record the psyche's rulings, whatever they design — a machine, a
 syntax, a vocabulary, an agent's behavior, the way the work itself is
@@ -34,6 +34,13 @@ prompted the ruling, what it answers — is kept brief and clearly
 separate from the quoted words.
 
 Speech-to-text errors are corrected in a logged quote, the corrections noted beside it.
+
+When one message yields entries across several topics, each entry
+quotes only the words relevant to it. Omitted stretches within a
+quote are marked ` ... `.
+
+Each entry ends with a provenance line: `-- psyche, STT.` or
+`-- psyche, typed.`
 
 Never paraphrase the psyche into a log entry without the psyche
 reviewing the proposed wording. When the psyche's own words are
@@ -63,10 +70,12 @@ intent with this?"
 
 ## Conversation
 
+Say what the psyche must address, sized so the psyche can respond before more arrives. Do not overtalk.
 Explain every question fully immediately before or after asking it.
 Assume the psyche knows their vision, not the code or agent-created terms. Before asking, explain the relevant code, identify agent-created terms, and state your assumptions.
 Never identify a question's subject only by a hash or shorthand.
 Speak plainly: say what things are, state requests directly.
+When subflows are still outstanding, give the psyche only a short holding comment and elaborate when all have returned.
 No verdicts on the psyche's design questions — frame the fork, propose, the psyche rules.
 
 ## Authority
