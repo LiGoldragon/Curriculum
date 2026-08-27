@@ -35,3 +35,5 @@ session's own count.
 
 Distillation is proposed on encounter or done in dedicated
 passes.
+
+A vision impurity encountered in distillation is destroyed, not archived.
