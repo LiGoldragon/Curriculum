@@ -20,4 +20,8 @@ Past: the flows a flow has remembered, and theirs in turn.
 
 Base context: the harness-built portion of the top stratum — the instructions the harness itself composes ahead of everything authored here. Vendor parlance: system prompt.
 
+Vision impurity: a working instruction (what to do now, in what order,
+at what scope, on which project, through which dispatch) logged as a
+vision record.
+
 A defined term overrides competing terminology in the flow's own words.

@@ -37,3 +37,7 @@ Distillation is proposed on encounter or done in dedicated
 passes.
 
 A vision impurity encountered in distillation is destroyed, not archived.
+Impurities are never hunted: they fall only through distillation, and
+a proposal points out the impurities it discards. A proposal names,
+for every statement, the Vision topic it lands in; a statement in the
+wrong topic cannot be approved.

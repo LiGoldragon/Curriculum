@@ -18,9 +18,14 @@ Do not batch — each ruling is one write.
 
 When reconstructing an entry, recover its exact words, source-event timestamp, and provenance from the originating transcript.
 
-Record psyche rulings only; conduct corrections, process events, and
-session narrative are not entries. Supersede an entry by appending;
-never edit one.
+Record the psyche's rulings, whatever they design — a machine, a
+syntax, a vocabulary, an agent's behavior, the way the work itself is
+done. Not vision, and not an entry: a working instruction (what to do
+now, in what order, at what scope, on which project, through which
+dispatch — it goes to log.md); a process event (a subflow finished, a
+commit landed, a file was read); session narrative; an acknowledgement
+that rules on nothing. A working instruction logged as vision is a
+vision impurity. Supersede an entry by appending; never edit one.
 
 ### Preserving the psyche's words
 
