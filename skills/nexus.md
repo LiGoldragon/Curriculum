@@ -129,11 +129,7 @@ only to namespace free functions; find the missing abstraction.
 Peers depend on each other's wire type repos, never on each other's
 Nexuses. The contract is the whole relationship.
 
-Observation flows up, authority flows down: state is observed through
-push subscriptions — a typed snapshot on open, typed deltas after —
-and commanded through the owner's mutation vocabulary. `Observe.Locks`
-is a one-shot typed Lock snapshot, not a subscription. Polling is
+State is observed by subscription: the subscriber receives the state on open, then each change as it happens. Polling is
 forbidden; a correct system goes quiet when nothing changes.
 
-One capability, one Nexus. A Nexus is sized to be held whole
-in one mind — human or model; when it outgrows that, it splits.
+A Nexus deals with a domain. When its features grow too many, splitting one or more nexuses out of it is considered.
