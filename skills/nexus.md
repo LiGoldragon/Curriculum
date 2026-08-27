@@ -135,9 +135,5 @@ and commanded through the owner's mutation vocabulary. `Observe.Locks`
 is a one-shot typed Lock snapshot, not a subscription. Polling is
 forbidden; a correct system goes quiet when nothing changes.
 
-When one intent spans several nexuses, the issuer commits on the
-first success and records divergence on failure — no distributed
-rollback, no all-or-nothing stall.
-
 One capability, one Nexus. A Nexus is sized to be held whole
 in one mind — human or model; when it outgrows that, it splits.

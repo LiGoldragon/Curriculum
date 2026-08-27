@@ -22,6 +22,8 @@ originals keep every original word. A proposed change to a raw
 record — correction included — is proposed as a distillation of
 its subject, never as an append to the raw file.
 
+A distilled statement carries what the psyche said and nothing beyond it; a small ruling makes a small statement, never a theory grown around the words.
+
 A distilled statement lands in `Vision/<topic>.md` on the
 living's explicit approval, and never before. A ruling a
 distillation lands in Vision is not also logged as raw vision;
