@@ -11,7 +11,7 @@ grain is coarse because no compiler today replaces one part of an
 executable; a unified, selectively upgradable execution model comes
 later.
 
-The whole is called a Nexus and its engine Nexus Kernel the way a man
+The whole is called a Nexus and its engine Nexus Core the way a man
 is spoken of by his heart without excluding his body.
 
 The meta socket is privileged the way a system needs a root user: to
