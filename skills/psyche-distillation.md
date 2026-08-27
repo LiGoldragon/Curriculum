@@ -35,8 +35,8 @@ beside their source file.
 A record's id is its originating session's short id and that
 session's own count.
 
-Distillation is proposed on encounter or done in dedicated
-passes.
+Distillation is proposed on encounter, dispatched proactively by
+the flow working a subject, or done in dedicated passes.
 
 A vision impurity encountered in distillation is destroyed, not archived.
 Impurities are never hunted: they fall only through distillation, and
