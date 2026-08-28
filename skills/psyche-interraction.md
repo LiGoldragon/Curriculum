@@ -33,7 +33,7 @@ Use verbatim quotes for the psyche's words. Agent context — what
 prompted the ruling, what it answers — is kept brief and clearly
 separate from the quoted words.
 
-Speech-to-text errors are corrected in a logged quote, the corrections noted beside it.
+A quote carries what the psyche said, never what the transcriber wrote: a speech-to-text error is corrected inside the quote itself, and the correction is noted beside it. A quote left with the transcriber's error is a misquote.
 
 When one message yields entries across several topics, each entry
 quotes only the words relevant to it. Omitted stretches within a
