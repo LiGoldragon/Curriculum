@@ -5,22 +5,22 @@ dependencies: [psyche]
 
 ## Logging
 
-Log psyche rulings in the flow's own `vision/<topic>.md`.
+Log psyche in the flow's own `vision/<topic>.md`: what the psyche envisions, in the psyche's words. Never a ruling or an instruction.
 A statement enters `Vision/` only as a distillation the living
 has explicitly approved. Intent and spirit enter only on the
 living's explicit word. Never edit the spirit skill without explicit psyche approval of exact wording.
 
 The word "brainstorm" or "notion" from the psyche marks what follows as Notion: log it verbatim in `notion/<topic>.md`, the bottom layer; it rules nothing until the psyche raises it.
 
-Log rulings as they land.
+Log psyche as it is spoken.
 Order each topic log oldest first, with the most recent entry last.
-When the psyche states a ruling, log it before acting on it.
-A ruling not logged in the moment is a ruling at risk of drift.
-Do not batch — each ruling is one write.
+When the psyche speaks vision, log it before acting on it.
+Psyche not logged in the moment is psyche at risk of drift.
+Do not batch — each statement is one write.
 
 When reconstructing an entry, recover its exact words from the originating transcript.
 
-Record the psyche's rulings, whatever they design — a machine, a
+Record the psyche's vision, whatever it designs — a machine, a
 syntax, a vocabulary, an agent's behavior, the way the work itself is
 done. Not vision, and not an entry: a working instruction (what to do
 now, in what order, at what scope, on which project, through which
@@ -29,10 +29,12 @@ commit landed, a file was read); session narrative; an acknowledgement
 that rules on nothing. A working instruction logged as vision is a
 vision impurity. Supersede an entry by appending; never edit one.
 
+A ruling — the psyche deciding what the flow does — is an instruction, not psyche.
+
 ### Preserving the psyche's words
 
 Use verbatim quotes for the psyche's words. Agent context — what
-prompted the ruling, what it answers — is kept brief and clearly
+prompted the statement, what it answers — is kept brief and clearly
 separate from the quoted words.
 
 A quote carries what the psyche said, never what the transcriber wrote: a speech-to-text error is corrected inside the quote itself, and the correction is noted beside it. A quote left with the transcriber's error is a misquote.
