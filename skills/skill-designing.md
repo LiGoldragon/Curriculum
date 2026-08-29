@@ -38,7 +38,6 @@ Unusual lines carry the behavior change. Remove them only after everything else.
 Agents connect surfaces that use the same term. Do not add a line telling them where to look.
 Skills name capabilities. Workspaces name the implementations that provide them.
 Write each rule as a plain sentence. Do not shape a line for memorability.
-A rule names a thing and what must be done with it, with no actor: "A claim must be relayed as a claim."
 A line must hold beyond the document, tool, or incident that prompted it.
 Write a rule only when it prevents a failure that has happened, or states a choice an agent cannot derive.
 Name the incident or the choice. If you can name neither, do not write the rule.
