@@ -12,6 +12,7 @@ first 8 hex of the session UUID.
         log.md
         annotations.md
         vision/<topic>.md
+        notion/<topic>.md
         witnesses/<subject>.md
         reports/<subject>.md
 
@@ -23,7 +24,7 @@ points change; one short read gives the whole state. The transcript holds
 the conversation and its times.
 
 A psyche record goes in `vision/<topic>.md`, per the recording
-protocol in the psyche-interraction skill. A witness goes in `witnesses/<subject>.md` with its method:
+protocol in the psyche-interraction skill. A notion goes in `notion/<topic>.md`, per the recording protocol in the psyche-interraction skill. A witness goes in `witnesses/<subject>.md` with its method:
 `Method: probe <command>` or `Method: code read <path>`. A report goes
 in `reports/<subject>.md` and ends with `## Sources` written as the
 report is made: documents and URLs for carried claims, witness records

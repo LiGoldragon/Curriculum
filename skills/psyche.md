@@ -24,7 +24,7 @@ words. Do not paraphrase without the psyche reviewing the result.
 "Psyche" alone means the written psyche, the files under psyche/;
 the living psyche is always called the living psyche, or the living.
 
-## Three levels
+## Four levels
 
 Descending authority:
 
@@ -34,9 +34,12 @@ Descending authority:
   before continuing.
 - **Vision** — concrete, topic-scoped, abundant, moves constantly.
   The default level. Everything starts here unless obviously broader.
+- **Notion** — a brainstorm: an idea the living is turning over, binding nothing. The bottom level. Logged verbatim; never built on as if ruled.
 
-Less Spirit than Intent, less Intent than Vision. Inversion signals
+Less Spirit than Intent, less Intent than Vision, less Vision than Notion. Inversion signals
 unenunciated Vision or contaminated levels.
+
+A notion may be drawn upon for suggestions. A flow told explicitly to implement without asking for clarifications may rely on a notion only when its need matches the notion exactly.
 
 ## Where psyche lives
 
@@ -49,6 +52,7 @@ unenunciated Vision or contaminated levels.
 - `flows/<short-id>/vision/<topic>.md` — raw records, in the flow
   that heard them. Finding raw psyche means searching
   `flows/*/vision/`.
+- `flows/<short-id>/notion/<topic>.md` — raw notions, in the flow that heard them.
 - `psyche-raw/` — the undistilled corpus, draining into `Vision/`
   and `Intent/` as distillation touches it.
 
