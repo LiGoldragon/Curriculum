@@ -10,7 +10,7 @@ A statement enters `Vision/` only as a distillation the living
 has explicitly approved. Intent and spirit enter only on the
 living's explicit word. Never edit the spirit skill without explicit psyche approval of exact wording.
 
-The word "brainstorm" from the psyche marks what follows as Notion: log it verbatim in `notion/<topic>.md`, the bottom layer; it rules nothing until the psyche raises it.
+The word "brainstorm" or "notion" from the psyche marks what follows as Notion: log it verbatim in `notion/<topic>.md`, the bottom layer; it rules nothing until the psyche raises it.
 
 Log rulings as they land.
 Order each topic log oldest first, with the most recent entry last.
