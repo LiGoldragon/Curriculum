@@ -27,13 +27,12 @@ A line naming the desired end state without teaching the move, the test, or the 
 A line pairing a goal with a mechanism. The reader cannot tell which one binds.
 A line that explains or justifies a rule instead of directing an action.
 A line that restates a rule another skill holds.
+A line an agent would follow untold. Before keeping a line, say what an agent does without it; if the same thing, cut the line.
 
 ## Keep these
 
 Minimal is the requirement. Imperative is often the shortest form of it, not the only one.
-Agents already behave in the usual way, so an instruction matching default behavior changes nothing.
 Removal is better than addition, when the expected behavior is the desired behavior.
-State a rule only where it diverges from what an agent would do untold.
 Unusual lines carry the behavior change. Remove them only after everything else.
 Agents connect surfaces that use the same term. Do not add a line telling them where to look.
 Skills name capabilities. Workspaces name the implementations that provide them.
