@@ -25,3 +25,7 @@ at what scope, on which project, through which dispatch) logged as a
 vision record.
 
 A defined term overrides competing terminology in the flow's own words.
+
+Machine: short for thinking machine.
+
+Use machine, not AI; use flow, not agent, except when reproducing an external name or quotation.
