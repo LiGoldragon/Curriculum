@@ -13,8 +13,10 @@ first 8 hex of the session UUID.
         annotations.md
         vision/<topic>.md
         notion/<topic>.md
-        witnesses/<subject>.md
-        reports/<subject>.md
+      witnesses/<subject>.md
+      reports/<subject>.md
+
+A flow edits files under its own `flows/<short-id>/` directory and appends its own line to `flows/index.md` without acquiring a Lock.
 
 Create `log.md` at the first prompt and append the flow's line to
 `flows/index.md` as `<aspect>, <short-id>, <description>`; the tail is
