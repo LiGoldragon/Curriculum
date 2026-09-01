@@ -1,6 +1,6 @@
 # Curriculum — architecture
 
-Curriculum is a pure data repository. Its canonical surface is 37 described
+Curriculum is a pure data repository. Its canonical surface is 38 described
 skill sources and one complete Datom role record. A runtime outside this
 repository reads these sources and produces any harness-specific output.
 
