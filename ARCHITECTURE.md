@@ -37,10 +37,10 @@ does not maintain a parallel legacy-DOTOS representation or a generated-output
 inventory.
 
 The current harness deployment interface carries a child brief but has no
-owned automatic parent-identity injection. It must therefore pass `FLOW_ID`,
-`FLOW_DIRECTORY`, and `THREAD_ID` explicitly. A harness that gains a verified
-injection surface may implement this contract there without changing the data
-shape.
+owned automatic parent-identity injection. It must therefore pass `FLOW_ID`
+and `FLOW_DIRECTORY` explicitly. A child obtains its own `THREAD_ID` after
+launch. A harness that gains a verified injection surface may implement this
+contract there without changing the data shape.
 
 ## See also
 

@@ -19,8 +19,9 @@ in `roles.datom`; consumers must read them from the `role_modules` field.
 
 Regenerate every consumer after updating to the revision that removes `flows`
 and `subflows`. Start parent work with `$main-flow` and put `$child-flow`,
-`FLOW_ID`, `FLOW_DIRECTORY`, and `THREAD_ID` in each child brief. Nested child
-briefs preserve `FLOW_ID` and `FLOW_DIRECTORY` unchanged.
+`FLOW_ID`, and `FLOW_DIRECTORY` in each child brief. Nested child briefs
+preserve `FLOW_ID` and `FLOW_DIRECTORY` unchanged. A child obtains its own
+`THREAD_ID` after launch for transcript and evidence provenance.
 
 Child threads no longer create a lane, index entry, or log. Load
 `flow-evidence` only for an artifact delegated by the parent or consumed by a

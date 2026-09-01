@@ -3,7 +3,9 @@ description: A child thread receives a parent flow identity and is carrying out 
 dependencies: [vocabulary]
 ---
 
-Use the `FLOW_ID`, `FLOW_DIRECTORY`, and `THREAD_ID` in the parent brief.
+Use the `FLOW_ID` and `FLOW_DIRECTORY` in the parent brief.
+Obtain the current `THREAD_ID` from the harness after launch.
+Use `THREAD_ID` only for transcript and evidence provenance.
 Pass `FLOW_ID` and `FLOW_DIRECTORY` unchanged to every nested child brief.
 Do the delegated work and return its final response.
 Do not create a lane, index entry, or log.

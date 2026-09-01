@@ -9,7 +9,7 @@ Never block on child flows.
 Never stop waiting for child flows when the living asks a question.
 Tell child flows what is wanted, not how, unless the mechanism is explicit and witnessed.
 Own one canonical short `FLOW_ID` and its `FLOW_DIRECTORY` for the whole flow tree.
-Put `$child-flow`, `FLOW_ID`, `FLOW_DIRECTORY`, and the child's `THREAD_ID` in every child brief.
+Put `$child-flow`, `FLOW_ID`, and `FLOW_DIRECTORY` in every child brief.
 Pass `FLOW_ID` and `FLOW_DIRECTORY` unchanged to every nested child brief.
 Only the parent creates the flow directory, its index entry, and a rare high-level log.
 Keep detail in each thread's transcript.
