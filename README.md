@@ -4,7 +4,7 @@ Curriculum is the canonical data root for reusable agent instruction sources
 and role definitions. It is consumed by an external runtime; it contains no
 runtime, generator, deployment configuration, or generated consumer output.
 
-`skills/*.md` holds the 35 independently described skill sources. Each source
+`skills/*.md` holds the 37 independently described skill sources. Each source
 owns its frontmatter description and instruction body.
 
 `roles.datom` is the complete canonical role record. Its positional fields are

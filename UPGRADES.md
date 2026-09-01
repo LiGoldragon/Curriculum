@@ -14,3 +14,15 @@ generated-inventory surfaces from this repository.
 
 The two former role-composition instruction files are now embedded role modules
 in `roles.datom`; consumers must read them from the `role_modules` field.
+
+## Parent-child flow contract
+
+Regenerate every consumer after updating to the revision that removes `flows`
+and `subflows`. Start parent work with `$main-flow` and put `$child-flow`,
+`FLOW_ID`, `FLOW_DIRECTORY`, and `THREAD_ID` in each child brief. Nested child
+briefs preserve `FLOW_ID` and `FLOW_DIRECTORY` unchanged.
+
+Child threads no longer create a lane, index entry, or log. Load
+`flow-evidence` only for an artifact delegated by the parent or consumed by a
+named tool or flow. Existing historical flow artifacts are not a compatibility
+surface and require a separately approved migration.

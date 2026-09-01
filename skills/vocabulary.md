@@ -3,9 +3,15 @@ description: One of our own terms is used, or a term is being defined.
 dependencies: []
 ---
 
-Flow: one running model session and its context.
+Flow: one parent thread and every child thread it starts.
 
-Transcript: the file the harness writes holding a whole session from beginning to end.
+Flow identity: the canonical short `FLOW_ID` shared by that whole flow.
+
+Flow directory: the parent-owned `FLOW_DIRECTORY` shared by that whole flow.
+
+Thread: one running model session and its context. A `THREAD_ID` identifies one thread in a harness.
+
+Transcript: the file the harness writes holding one thread from beginning to end.
 
 Witness: an observation of the thing itself — a test run, a probe,
 the code read. What someone says about the thing is a claim.
