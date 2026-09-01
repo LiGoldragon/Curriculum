@@ -1,6 +1,5 @@
 ---
 description: A child thread receives a parent flow identity and is carrying out delegated work.
-user-only: true
 dependencies: [vocabulary]
 ---
 
