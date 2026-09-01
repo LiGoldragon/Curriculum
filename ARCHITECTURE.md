@@ -17,8 +17,9 @@ A role module is `{identifier body}`. The general instruction and Codex
 skill-loading bodies are role modules because they compose roles rather than
 describe independently invocable skills.
 
-`main-flow` is a user-only role. It owns one shared flow identity and directory,
-passes them through every child brief, and alone makes a rare flow log.
+`main-flow` is a user-only role. Before its first artifact it claims one shared
+flow identity and directory through the harness `flow-id` CLI, passes both
+through every child brief, and alone makes a rare flow log.
 `child-flow` is model-loadable through that explicit brief and returns delegated
 work without creating a lane, index, or log. `flow-evidence` is loaded only
 when an artifact is delegated or will be consumed; concurrent writers use
@@ -37,10 +38,10 @@ does not maintain a parallel legacy-DOTOS representation or a generated-output
 inventory.
 
 The current harness deployment interface carries a child brief but has no
-owned automatic parent-identity injection. It must therefore pass `FLOW_ID`
-and `FLOW_DIRECTORY` explicitly. A child obtains its own `THREAD_ID` after
-launch. A harness that gains a verified injection surface may implement this
-contract there without changing the data shape.
+owned automatic parent-identity injection. The parent explicitly claims its
+identity with the installed `flow-id` CLI, then passes `FLOW_ID` and
+`FLOW_DIRECTORY` explicitly. A child obtains its own `THREAD_ID` after launch.
+No vendor injection or child lane-claim path is part of this contract.
 
 ## See also
 
