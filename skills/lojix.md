@@ -272,7 +272,7 @@ A `UserEnvironment` deployment uses an explicit user-scoped Nix store URI and SS
 
 When deployment directly names a target pair, use it without asking for a second transport confirmation. If the required pair is absent or invalid, report the missing request detail rather than substituting a route.
 
-A deployment proposal must be an existing absolute regular non-symlink `.dotos` file.
+A deployment proposal must be an existing absolute regular non-symlink `proposal.datom` file.
 
 Use `RequireImmutable` when production deployment must identify one exact source revision. Push producer revisions before pushing the consumer revision that pins them.
 
