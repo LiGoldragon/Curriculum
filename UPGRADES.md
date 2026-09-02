@@ -20,7 +20,8 @@ in `roles.datom`; consumers must read them from the `role_modules` field.
 Regenerate every consumer after updating to the revision that removes `flows`
 and `subflows`. Start parent work with `$main-flow`, claim the parent lane with
 the installed `flow-id codex --flows-root` command before the first artifact,
-then put `$child-flow`, `FLOW_ID`, and `FLOW_DIRECTORY` in each child brief.
+use its normalized hexadecimal alias as `FLOW_ID`, then put `$child-flow`,
+`FLOW_ID`, and `FLOW_DIRECTORY` in each child brief.
 Nested child briefs preserve `FLOW_ID` and `FLOW_DIRECTORY` unchanged. A child
 obtains its own `THREAD_ID` after launch for transcript and evidence provenance.
 

@@ -9,7 +9,7 @@ Never block on child flows.
 Never stop waiting for child flows when the living asks a question.
 Tell child flows what is wanted, not how, unless the mechanism is explicit and witnessed.
 Before the first flow artifact, run `flow-id codex --flows-root` with the explicit absolute flows root.
-Use its alias as the canonical short `FLOW_ID` and its claimed lane as `FLOW_DIRECTORY` for the whole flow tree.
+Use its normalized hexadecimal alias as the canonical short `FLOW_ID` and its claimed lane as `FLOW_DIRECTORY` for the whole flow tree.
 Put `$child-flow`, `FLOW_ID`, and `FLOW_DIRECTORY` in every child brief.
 Pass `FLOW_ID` and `FLOW_DIRECTORY` unchanged to every nested child brief.
 Only the parent creates the flow directory, its index entry, and a rare high-level log.

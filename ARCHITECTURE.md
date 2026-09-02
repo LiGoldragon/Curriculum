@@ -18,8 +18,9 @@ skill-loading bodies are role modules because they compose roles rather than
 describe independently invocable skills.
 
 `main-flow` is a user-only role. Before its first artifact it claims one shared
-flow identity and directory through the harness `flow-id` CLI, passes both
-through every child brief, and alone makes a rare flow log.
+normalized hexadecimal flow identity and directory through the harness
+`flow-id` CLI, passes both through every child brief, and alone makes a rare
+flow log.
 `child-flow` is model-loadable through that explicit brief and returns delegated
 work without creating a lane, index, or log. `flow-evidence` is loaded only
 when an artifact is delegated or will be consumed; concurrent writers use

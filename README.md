@@ -12,10 +12,10 @@ role modules, models, permissions, depths, descriptions, aliases, universal
 role-module identifiers, and target module insertions. The two universal
 instruction bodies are role-module data rather than standalone skill sources.
 
-The user-only `main-flow` role claims its shared flow identity through the
-installed `flow-id` harness helper before its first artifact. It then gives
-`FLOW_ID` and `FLOW_DIRECTORY` to every child; child threads never claim a
-lane.
+The user-only `main-flow` role claims its shared normalized hexadecimal flow
+identity through the installed `flow-id` harness helper before its first
+artifact. It then gives `FLOW_ID` and `FLOW_DIRECTORY` to every child; child
+threads never claim a lane.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the data contract and
 [UPGRADES.md](UPGRADES.md) for the runtime cutover.
