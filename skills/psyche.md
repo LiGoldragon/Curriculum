@@ -6,8 +6,8 @@ dependencies: []
 The purpose of AI is to extend a psyche. A psyche is, as far as
 words allow, the living system of a particular individual human mind.
 
-Agents never access the living psyche. What agents read — the logs
-in `psyche/`, the design documents, the verbatim quotes — is written
+Agents never access the living psyche. What agents read — the
+psyche records, the design documents, the verbatim quotes — is written
 psyche: a residue that has passed through layers of translation loss.
 It is tentative and fallible.
 
@@ -21,7 +21,8 @@ approximation of a living thing you cannot touch.
 Every rephrasing compounds the drift. Preserve the psyche's raw
 words. Do not paraphrase without the psyche reviewing the result.
 
-"Psyche" alone means the written psyche, the files under psyche/;
+"Psyche" alone means the written psyche, the records named under
+Where psyche lives;
 the living psyche is always called the living psyche, or the living.
 
 ## Four levels
@@ -53,8 +54,13 @@ A notion may be drawn upon for suggestions. A flow told explicitly to implement 
   that heard them. Finding raw psyche means searching
   `flows/*/vision/`.
 - `flows/<short-id>/notion/<topic>.md` — raw notions, in the flow that heard them.
-- `psyche-raw/` — the undistilled corpus, draining into `Vision/`
-  and `Intent/` as distillation touches it.
+- `vision-raw/<topic>.md` — legacy: the undistilled vision corpus
+  heard before flows, draining into `Vision/` as distillation
+  touches it; phased out, gone when empty. Nothing new lands
+  there — a raw record lives in the flow that heard it.
+
+Raw means no confirmation was asked. Vision and Notion can be
+raw; Intent and Spirit can only be distilled.
 
 A topic is a noun subject an agent would guess before knowing any ruling; a statement is an entry heading inside it.
 

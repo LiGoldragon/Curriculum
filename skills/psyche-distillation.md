@@ -16,7 +16,7 @@ is composed only in the main flow. A subflow only gathers records that
 could qualify as candidates for distilling together.
 
 A proposal re-articulates; it never quotes. A distilled
-statement stands on its own words. Every distillation refers to the raw psyche it was distilled from: the references sit in the topic's sources file, `Vision/sources/<topic>.md`, one line per reference — the originating flow's short id and the record file's topic, `e06e4c07 nexus` (`psyche-raw <topic>` for a psyche-raw record) — appended after every distillation, so the original words are easily found. The path is reconstructed from the line; since distillation moves the record into the archive, the line resolves to the `archive-` file. The archived
+statement stands on its own words. Every distillation refers to the raw psyche it was distilled from: the references sit in the topic's sources file, `Vision/sources/<topic>.md`, one line per reference — the originating flow's short id and the record file's topic, `e06e4c07 nexus` (`vision-raw <topic>` for a vision-raw record) — appended after every distillation, so the original words are easily found. The path is reconstructed from the line; since distillation moves the record into the archive, the line resolves to the `archive-` file. The archived
 originals keep every original word. A proposed change to a raw
 record — correction included — is proposed as a distillation of
 its subject, never as an append to the raw file.
