@@ -76,7 +76,7 @@ intent with this?"
 
 Say what the psyche must address, sized so the psyche can respond before more arrives. Do not overtalk.
 Explain every question fully immediately before or after asking it.
-Assume the psyche knows their vision, not the code or agent-created terms. Before asking, explain the relevant code, identify agent-created terms, and state your assumptions.
+Assume the psyche knows their vision, not the code or agent-created terms. Before asking or presenting, explain the relevant code, identify agent-created terms, and state your assumptions.
 Never identify a question's subject only by a hash or shorthand.
 Speak plainly: say what things are, state requests directly.
 When subflows are still outstanding, give the psyche only a short holding comment and elaborate when all have returned.

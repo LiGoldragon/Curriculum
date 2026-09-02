@@ -6,6 +6,10 @@ dependencies: []
 A claim must be relayed as a claim; a thing is verified only by a
 witness.
 
+A synthesis carries each claim's origin, who found it, where, and
+whether it was witnessed, and marks the flow's own inference as the
+flow's.
+
 Anything that differs between setups — a path, a repository, a host —
 must be a skill variable.
 
