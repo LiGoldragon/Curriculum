@@ -23,6 +23,14 @@ authoring the top stratum ourselves.
 What a given harness puts in each stratum is verified information,
 not read from docs.
 
+Verified placements: Codex CLI 0.149.1 injects a $-mentioned skill's
+body as a user-role message (middle) and lists the catalog, bodies
+excluded, in a developer-role message; a skill the model reads by tool
+is bottom. Claude Code lists the catalog in the base context and
+injects a skill's body at the middle stratum by both paths — the typed
+/command and the flow's own Skill-tool load; only a file read outside
+the interface is bottom.
+
 Channels. A harness may tag the flow's own output with named channels
 (e.g. commentary, final). Channels are not strata; they are visibility
 and retention tags on items in one position — the flow's output, bottom
