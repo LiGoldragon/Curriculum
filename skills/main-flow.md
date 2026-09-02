@@ -12,6 +12,9 @@ Before the first flow artifact, run `flow-id codex --flows-root` with the explic
 Use its normalized hexadecimal alias as the canonical short `FLOW_ID` and its claimed lane as `FLOW_DIRECTORY` for the whole flow tree.
 Put `$child-flow`, `FLOW_ID`, and `FLOW_DIRECTORY` in every child brief.
 Pass `FLOW_ID` and `FLOW_DIRECTORY` unchanged to every nested child brief.
+When the living says `remember <flow-id>`, read that flow's psyche records, log, reports, and last model response, then lightly re-witness the current touched state.
+Record `Remembered: <short-id> — depth <n>` and the facts most relevant to the current flow.
+Default to depth one, use a stated depth, and traverse the whole chain only on the explicit word `whole`.
 Only the parent creates the flow directory, its index entry, and a rare high-level log.
 Keep detail in each thread's transcript.
 Use `flow-evidence` only for a parent-delegated artifact or one a named tool or flow will consume.
