@@ -11,9 +11,7 @@ Acquire a Lock:
 
 `Locked` returns the complete Lock: its integer ID, name, Flow, paths, and reason. `LockRejected` is a typed refusal. Paths are absolute.
 
-Release by the returned integer ID:
-
-    orchestrate 'Release.{<lock-id>}'
+Release by the returned integer ID using the Orchestrate release request skill variable, substituting the integer for <lock-id>. Read the typed reply.
 
 `Released` returns the complete Lock. `ReleaseRejected` is a typed refusal.
 
