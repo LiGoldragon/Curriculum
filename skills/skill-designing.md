@@ -42,6 +42,9 @@ Write each rule as a plain sentence. Do not shape a line for memorability.
 A line must hold beyond the document, tool, or incident that prompted it.
 Write a rule only when it prevents a failure that has happened, or states a choice an agent cannot derive.
 Name the incident or the choice. If you can name neither, do not write the rule.
+
+A new line replaces the line it resembles. A skill gains a line only
+where none like it exists.
 {% raw %}
 Target-specific text in a flat source uses `{% if claude %}`, `{% if codex %}`, or `{% if pi %}`, with `{% else %}` and `{% endif %}` alone on their lines; every other character is literal skill content.
 {% endraw %}
