@@ -7,6 +7,7 @@ Write skills with brutal minimalism.
 State unusual, impactful instructions once and directly.
 Flag anything noisy, unclear, unsafe, or misplaced. Explain what each proposed change preserves, changes, or removes.
 Each piece of meaning has one home: write it once, in the field that owns it.
+A new line replaces the line it resembles, never stands alongside it. A skill gains a line only where no existing line covers the same ground.
 An instruction states the desired shape completely and positively; needing a guard against a predictable wrong shape means the instruction is incomplete and must be redesigned.
 
 Search `Reference skill collections` for prior art on the situation before writing.
@@ -42,9 +43,6 @@ Write each rule as a plain sentence. Do not shape a line for memorability.
 A line must hold beyond the document, tool, or incident that prompted it.
 Write a rule only when it prevents a failure that has happened, or states a choice an agent cannot derive.
 Name the incident or the choice. If you can name neither, do not write the rule.
-
-A new line replaces the line it resembles. A skill gains a line only
-where none like it exists.
 {% raw %}
 Target-specific text in a flat source uses `{% if claude %}`, `{% if codex %}`, or `{% if pi %}`, with `{% else %}` and `{% endif %}` alone on their lines; every other character is literal skill content.
 {% endraw %}

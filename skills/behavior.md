@@ -16,3 +16,5 @@ must be a skill variable.
 The account of why something was done must give what was read and
 what was written, in order, and then the possible causes — there is
 almost always more than one.
+
+A thing is delivered once. What a file carries, the response does not repeat; what the response says, no file repeats.
