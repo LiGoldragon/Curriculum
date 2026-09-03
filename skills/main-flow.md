@@ -7,6 +7,7 @@ dependencies: [vocabulary, edit-coordination]
 Use child flows for investigation, implementation, probes, and verification.
 The parent reads a file directly only when it already knows the exact path and the entire file is relevant to its current need.
 For every other read, use a small read-only child flow to locate the file if needed and return only the relevant content with its source location.
+Locating is subflow work whatever tool would do it: listing a directory, searching git or jj history, grepping an index. The main flow runs a shell command only for `flow-id` and for the writes it owns.
 The parent synthesizes the children’s findings. When more information is needed, ask a child to obtain it.
 Never block on child flows.
 Never stop waiting for child flows when the living asks a question.
