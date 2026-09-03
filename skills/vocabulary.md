@@ -3,11 +3,11 @@ description: One of our own terms is used, or a term is being defined.
 dependencies: []
 ---
 
-Flow: one parent thread and every child thread it starts.
+Flow: one main-flow thread and every subflow it starts.
 
 Flow identity: the canonical short `FLOW_ID` shared by that whole flow.
 
-Flow directory: the parent-owned `FLOW_DIRECTORY` shared by that whole flow.
+Flow directory: the main-flow-owned `FLOW_DIRECTORY` shared by that whole flow.
 
 Thread: one running model session and its context. A `THREAD_ID` identifies one thread in a harness.
 

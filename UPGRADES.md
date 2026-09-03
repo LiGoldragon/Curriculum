@@ -15,17 +15,18 @@ generated-inventory surfaces from this repository.
 The two former role-composition instruction files are now embedded role modules
 in `roles.datom`; consumers must read them from the `role_modules` field.
 
-## Parent-child flow contract
+## Main-flow/subflow contract
 
 Regenerate every consumer after updating to the revision that removes `flows`
-and `subflows`. Start parent work with `$main-flow`, claim the parent lane with
-the installed `flow-id codex --flows-root` command before the first artifact,
-use its normalized hexadecimal alias as `FLOW_ID`, then put `$child-flow`,
-`FLOW_ID`, and `FLOW_DIRECTORY` in each child brief.
-Nested child briefs preserve `FLOW_ID` and `FLOW_DIRECTORY` unchanged. A child
-obtains its own `THREAD_ID` after launch for transcript and evidence provenance.
+and `subflows`. Start main-flow work with `$main-flow`, claim the main-flow lane
+with the installed `flow-id codex --flows-root` command before the first
+artifact, use its normalized hexadecimal alias as `FLOW_ID`, then put `$subflow`,
+`FLOW_ID`, and `FLOW_DIRECTORY` in each subflow brief.
+Nested subflow briefs preserve `FLOW_ID` and `FLOW_DIRECTORY` unchanged. A
+subflow obtains its own `THREAD_ID` after launch for transcript and evidence
+provenance.
 
-Child threads no longer create a lane, index entry, or log. Load
-`flow-evidence` only for an artifact delegated by the parent or consumed by a
-named tool or flow. Existing historical flow artifacts are not a compatibility
-surface and require a separately approved migration.
+Subflows do not create a lane, index entry, or log. Load `flow-evidence` only
+for an artifact delegated by the main flow or consumed by a named tool or flow.
+Existing historical flow artifacts are not a compatibility surface and require a
+separately approved migration.
