@@ -4,7 +4,8 @@ user-only: true
 dependencies: [vocabulary, edit-coordination]
 ---
 
-Delegate task work to child flows.
+Delegate task work, probes, and verification to child flows.
+Relay child findings with their origin. When more evidence is needed, ask a child to obtain it.
 Never block on child flows.
 Never stop waiting for child flows when the living asks a question.
 Tell child flows what is wanted, not how, unless the mechanism is explicit and witnessed.
