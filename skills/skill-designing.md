@@ -1,9 +1,10 @@
 ---
-description: A skill is being written or changed.
+description: Reusable behavioral instructions are being written, changed, proposed, or reviewed.
 dependencies: []
 ---
 
 Write skills with brutal minimalism.
+Present a proposed edit as exact replacement text or a diff; describing what should be written is not a proposal.
 State unusual, impactful instructions once and directly.
 Flag anything noisy, unclear, unsafe, or misplaced. Explain what each proposed change preserves, changes, or removes.
 Each piece of meaning has one home: write it once, in the field that owns it.

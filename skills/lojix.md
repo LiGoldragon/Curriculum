@@ -270,7 +270,7 @@ A `CompleteHost` deployment uses an explicit root-privileged Nix store URI and S
 
 A `UserEnvironment` deployment uses an explicit user-scoped Nix store URI and SSH destination.
 
-When deployment directly names a target pair, use it without asking for a second transport confirmation. If the required pair is absent or invalid, report the missing request detail rather than substituting a route.
+When a deployment directly names a target pair, use it without asking for a second transport confirmation. Otherwise derive the canonical internal hostname as `<node>.<cluster>.<internal suffix>` from Horizon cluster data and use it as the host in the required `CompleteHost` or `UserEnvironment` Nix store URI and SSH destination. If the supplied or derived pair is invalid, report it rather than substituting another route.
 
 A deployment proposal must be an existing absolute regular non-symlink `proposal.datom` file.
 
