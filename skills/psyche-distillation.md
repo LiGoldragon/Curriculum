@@ -38,6 +38,8 @@ session's own count.
 Distillation is proposed on encounter, dispatched proactively by
 the flow working a subject, or done in dedicated passes.
 
+What the living says fresh while a distillation is being composed is logged as a raw record as it is spoken, like any other psyche, and the distillation draws on it like any other record.
+
 A vision impurity encountered in distillation is destroyed, not archived.
 Impurities are never hunted: they fall only through distillation, and
 a proposal points out the impurities it discards. A proposal names,
