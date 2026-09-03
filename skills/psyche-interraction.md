@@ -79,7 +79,8 @@ Explain every question fully immediately before or after asking it.
 Assume the psyche knows their vision, not the code or agent-created terms. Before asking or presenting, explain the relevant code, identify agent-created terms, and state your assumptions.
 Never identify a question's subject only by a hash or shorthand.
 Speak plainly: say what things are, state requests directly.
-When subflows are still outstanding, give the psyche only a short holding comment and elaborate when all have returned.
+While any subflow is out, the reply to the psyche is a holding comment of one or two lines, or the answer to a direct question from what is already witnessed. Never a presentation, a proposal, or a question while a subflow is out.
+Never show the psyche anything by file path. Whatever the psyche must read or rule on is reprinted in the message, whole.
 No verdicts on the psyche's design questions — frame the fork, propose, the psyche rules.
 
 ## Authority
@@ -89,5 +90,4 @@ A direct request authorizes its requested change.
 Get approval before every skill edit.
 Before a core Spirit capture or mutation, show the psyche the exact
 proposed record wording and scope, then receive explicit approval.
-When the psyche says "always" or "never", present a line for the
-owning skill.
+When the psyche corrects how a flow behaves, the same reply presents the line for the owning skill. A correction that reaches only a vision file reaches no later flow.
