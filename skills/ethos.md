@@ -12,7 +12,7 @@ Two roots: `Library` and `Signal`. A file is one sweet ethos object; the outer b
 ```
 ; A Library file (sweet form). The full form wraps everything in Library.{ ... }.
 Library.{ 0 1 0 }
-[ protos:[ Text ] ]                                            ; imports
+[]                                                             ; imports
 [ Scores.Vector<Integer>                                       ; types
   Record.{ Text Scores } ]
 [ Summarizable.[ summarize.[ Text ] ] ]                        ; kinds
@@ -20,16 +20,19 @@ Library.{ 0 1 0 }
 ```
 ```rust
 pub type Scores = Vec<protos::Integer>;
-pub struct Record { pub text: protos::Text, pub scores: Scores }
+pub struct Record(pub protos::Text, pub Scores);
 // Association: compile-time assertion; the impl body is hand-written.
-const _: fn() = || { fn carries<T>() where T: Summarizable {} carries::<Record>(); };
+const _: () = {
+    fn assert_record_summarizable<T: Summarizable>() {}
+    let _ = assert_record_summarizable::<Record>;
+};
 impl datomic::Datomic for Record { /* generated from anatomy */ }
 ```
 
 ```
 ; A Signal file (sweet form).
 Signal.{ 1 0 0 }
-[ ]                                                            ; imports
+[]                                                             ; imports
 [ Lock.LockRequest  Release.LockId  Observe.ObserveSelection ]  ; requests
 [ Locked.Lock  LockRejected.LockRejection  Released.Lock  ReleaseRejected.ReleaseRejection  Observed.Observation ]
 [ LockId.Integer  LockName.Text  LockRequest.{ LockName FlowId LockPaths LockReason } ... ]  ; types
@@ -42,12 +45,12 @@ pub enum Reply { Locked(Lock), LockRejected(LockRejection), /* ... */ }
 
 ## Type declarations
 
-`Name.{ ... }` -- a struct; fields are positional, named by their type:
+`Name.{ ... }` -- a struct; positions are unnamed; the type says what each position holds:
 ```
 Lock.{ LockId LockName FlowId LockPaths LockReason }
 ```
 ```rust
-pub struct Lock { pub lock_id: LockId, pub lock_name: LockName, /* ... */ }
+pub struct Lock(pub LockId, pub LockName, pub FlowId, pub LockPaths, pub LockReason);
 ```
 
 `Name.[ ... ]` -- an enum; each variant bare or carrying an inline payload:
@@ -122,7 +125,12 @@ A type bears a kind. The generated code asserts the type bears the kind at compi
 [ Sink.[ Summarizable Fillable ] ]
 ```
 ```rust
-const _: fn() = || { fn carries<T>() where T: Summarizable + Fillable {} carries::<Sink>(); };
+const _: () = {
+    fn assert_sink_summarizable<T: Summarizable>() {}
+    let _ = assert_sink_summarizable::<Sink>;
+    fn assert_sink_fillable<T: Fillable>() {}
+    let _ = assert_sink_fillable::<Sink>;
+};
 ```
 
 Every ethos-declared type gets `impl datomic::Datomic` generated from its anatomy.

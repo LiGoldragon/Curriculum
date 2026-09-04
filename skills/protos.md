@@ -16,7 +16,7 @@ Six delimiter pairs, four structural and two opaque:
 | `« »` | Guillemets (U+00AB/U+00BB) | map: key value key value by position |
 | `< >` | Angles | kind constraints: `Vector<Text>`, `Processable<[Clonable Sendable] Serializable>` |
 | `“ ”` | Curly quotes (U+201C/U+201D) | opaque string: every glyph inside is content until the closing quote; no escapes |
-| `( )` | Parentheses | opaque, read by balance: nesting counted, closing at the matching parenthesis; a backslash before any character makes it literal (`\)` is an unmatched closing parenthesis, `\\` is a literal backslash) |
+| `( )` | Parentheses | opaque, read by balance with backslash escapes (`\)` `\(` `\\`) |
 
 ## Separators
 
