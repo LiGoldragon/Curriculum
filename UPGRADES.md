@@ -18,9 +18,15 @@ in `roles.datom`; consumers must read them from the `role_modules` field.
 ## Main-flow/subflow contract
 
 Regenerate every consumer after updating to the revision that removes `flows`
-and `subflows`. Start main-flow work with `$main-flow`, claim the main-flow lane
-with the installed `flow-id codex --flows-root` command before the first
-artifact, use its normalized hexadecimal alias as `FLOW_ID`, then put `$subflow`,
+and `subflows`. Start main-flow work with `$main-flow`, then claim the main-flow
+lane before the first artifact:
+{% if claude %}
+`flow-id claude --flows-root ABSOLUTE_DIRECTORY --parent-session "$CLAUDE_CODE_SESSION_ID"`.
+{% endif %}
+{% if codex %}
+`flow-id codex --flows-root` with the explicit absolute flows root.
+{% endif %}
+Use its normalized hexadecimal alias as `FLOW_ID`, then put `$subflow`,
 `FLOW_ID`, and `FLOW_DIRECTORY` in each subflow brief.
 Nested subflow briefs preserve `FLOW_ID` and `FLOW_DIRECTORY` unchanged. A
 subflow obtains its own `THREAD_ID` after launch for transcript and evidence
