@@ -1,47 +1,5 @@
-Roles.{
-  [
-    {general-instructions (The brief is your authority. Decide what it settles; return what it does not.
+; Curriculum role data: modules, models, permissions, depths, descriptions, aliases, universal modules, target insertions.
+Roles.{ [ { general-instructions “The brief is your authority. Decide what it settles; return what it does not.
 
 Return unresolved intent, authority, safety, or privacy questions to the caller.
-Do not make material authority, security, compatibility, schema, curriculum, or deployment changes without explicit psyche approval.)}
-    {codex-skill-loading (Do not reload a complete pasted skill unless freshness or source verification is required.)}
-  ]
-  [
-    {claude-haiku-4-5 Claude []}
-    {claude-sonnet-5 Claude [Low Medium High Xhigh]}
-    {claude-sonnet-4-6 Claude [Low Medium High Xhigh]}
-    {claude-opus-4-6 Claude [Low Medium High Xhigh]}
-    {(claude-opus-4-6[1m]) Claude [Low Medium High Xhigh]}
-    {gpt-5.4-mini ChatGpt [Low Medium High Xhigh]}
-    {gpt-5.6-luna ChatGpt [Low Medium High Xhigh]}
-    {gpt-5.6-terra ChatGpt [Low Medium High Xhigh]}
-    {gpt-5.6-sol ChatGpt [Low Medium High Xhigh]}
-  ]
-  [
-    {read (Do not edit files, commit, or push. Fetching, cloning, and tool queries are fine.) Restricted}
-    {write () Unrestricted}
-  ]
-  [
-    {trivial {claude-haiku-4-5 None} {gpt-5.6-luna Some.Low}}
-    {ordinary {claude-sonnet-4-6 Some.Medium} {gpt-5.6-luna Some.Xhigh}}
-    {demanding {(claude-opus-4-6[1m]) Some.Medium} {gpt-5.6-terra Some.High}}
-    {critical {(claude-opus-4-6[1m]) Some.High} {gpt-5.6-terra Some.Xhigh}}
-  ]
-  [
-    {read trivial (The answer is in one known place. You are fetching it, not finding it.)}
-    {read ordinary (You know what you are looking for but not where it is.)}
-    {read demanding (The answer is written nowhere. Assemble it from how the parts behave.)}
-    {read critical (A missed detail changes the conclusion.)}
-    {write trivial (The change is fully specified. No decisions remain.)}
-    {write ordinary (The approach is known. Applying it is the work.)}
-    {write demanding (The approach has to be chosen.)}
-    {write critical (New design, or a mistake that would surface too late to be cheap.)}
-  ]
-  [
-    {default write ordinary (General-purpose sub-agent for the Codex orchestrator) [CodexAgent]}
-    {explorer read ordinary (Read-only exploration sub-agent for the Codex orchestrator) [CodexAgent]}
-    {worker write demanding (Implementation sub-agent for the Codex orchestrator) [CodexAgent]}
-  ]
-  [general-instructions]
-  [{general-instructions CodexAgent [codex-skill-loading]}]
-}
+Do not make material authority, security, compatibility, schema, curriculum, or deployment changes without explicit psyche approval.” } { codex-skill-loading “Do not reload a complete pasted skill unless freshness or source verification is required.” } ] [ { claude-haiku-4-5 Claude [] } { claude-sonnet-5 Claude [ Low Medium High Xhigh ] } { claude-sonnet-4-6 Claude [ Low Medium High Xhigh ] } { claude-opus-4-6 Claude [ Low Medium High Xhigh ] } { “claude-opus-4-6[1m]” Claude [ Low Medium High Xhigh ] } { gpt-5.4-mini ChatGpt [ Low Medium High Xhigh ] } { gpt-5.6-luna ChatGpt [ Low Medium High Xhigh ] } { gpt-5.6-terra ChatGpt [ Low Medium High Xhigh ] } { gpt-5.6-sol ChatGpt [ Low Medium High Xhigh ] } ] [ { read “Do not edit files, commit, or push. Fetching, cloning, and tool queries are fine.” Restricted } { write “” Unrestricted } ] [ { trivial { claude-haiku-4-5 None } { gpt-5.6-luna Some.Low } } { ordinary { claude-sonnet-4-6 Some.Medium } { gpt-5.6-luna Some.Xhigh } } { demanding { “claude-opus-4-6[1m]” Some.Medium } { gpt-5.6-terra Some.High } } { critical { “claude-opus-4-6[1m]” Some.High } { gpt-5.6-terra Some.Xhigh } } ] [ { read trivial “The answer is in one known place. You are fetching it, not finding it.” } { read ordinary “You know what you are looking for but not where it is.” } { read demanding “The answer is written nowhere. Assemble it from how the parts behave.” } { read critical “A missed detail changes the conclusion.” } { write trivial “The change is fully specified. No decisions remain.” } { write ordinary “The approach is known. Applying it is the work.” } { write demanding “The approach has to be chosen.” } { write critical “New design, or a mistake that would surface too late to be cheap.” } ] [ { default write ordinary “General-purpose sub-agent for the Codex orchestrator” [ CodexAgent ] } { explorer read ordinary “Read-only exploration sub-agent for the Codex orchestrator” [ CodexAgent ] } { worker write demanding “Implementation sub-agent for the Codex orchestrator” [ CodexAgent ] } ] [ general-instructions ] [ { general-instructions CodexAgent [ codex-skill-loading ] } ] }
