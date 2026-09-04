@@ -28,7 +28,7 @@ Map — guillemets, key and value by position:
 Variant — a head alone for a variant carrying nothing; a head, the dot, and a body for a variant carrying data:
 ```
 Pending
-Accepted.{ 42 “2026-09-03T17:46:20” }
+Accepted.{ 42 2026-09-03T17:46:20 }
 Observed.Locks.[]
 ```
 
@@ -44,7 +44,7 @@ Integer — bare ASCII decimal, optional leading `-`, no `+`, no leading zero ex
 0  42  -42
 ```
 
-Decimal — finite, point-mandatory, no exponent:
+Decimal — finite, point-mandatory:
 ```
 3.14  -0.5
 ```
@@ -75,11 +75,20 @@ With no argument, a CLI prints its contract's ethos.
 A Rust type bears `Datomic` through two capabilities — `incorporate` (static, constructs the value from a `Datom`) and `datomize` (projects the value into a `Datom`):
 
 ```rust
-// The kind: every corporal type that crosses the text boundary.
-// incorporate is static (:), datomize takes self (.).
-trait Datomic: Corporal<Datom> {
-    fn incorporate(datom: &Datom) -> Result<Self, Fault>;
+// Corporal: the kind whose static capability takes a concept and yields Self.
+pub trait Corporal<C: Protosizable>: Embodied {
+    type Fault;
+    fn incorporate(concept: C) -> Result<Self, Self::Fault>;
+}
+
+// Datomic: the corporal kind of the datom dialect.
+pub trait Datomic: Corporal<Datom, Fault = Fault> {
     fn datomize(&self) -> Datom;
+}
+
+// Provided for every Datomic: datomize -> protosize -> print.
+pub trait Textualizable {
+    fn textualize(&self) -> protos::Text;
 }
 ```
 
@@ -88,7 +97,7 @@ trait Datomic: Corporal<Datom> {
 ```rust
 let potential = Potential::<Lock>::from(text);
 let lock: Lock = potential.actualize()?;
-let text: Text<Lock> = lock.textualize();
+let text: protos::Text = lock.textualize();
 ```
 
 Every ethos-declared type gets its `Datomic` generated. No hand-written Datomic implementations for declared types.

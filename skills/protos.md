@@ -16,7 +16,7 @@ Six delimiter pairs, four structural and two opaque:
 | `« »` | Guillemets (U+00AB/U+00BB) | map: key value key value by position |
 | `< >` | Angles | kind constraints: `Vector<Text>`, `Processable<[Clonable Sendable] Serializable>` |
 | `“ ”` | Curly quotes (U+201C/U+201D) | opaque string: every glyph inside is content until the closing quote; no escapes |
-| `( )` | Parentheses | opaque, read by balance: nesting counted, closing at the matching parenthesis; `\(` and `\)` escape unmatched parentheses |
+| `( )` | Parentheses | opaque, read by balance: nesting counted, closing at the matching parenthesis; a backslash before any character makes it literal (`\)` is an unmatched closing parenthesis, `\\` is a literal backslash) |
 
 ## Separators
 
@@ -58,8 +58,8 @@ Descent is realization and may fault. Ascent is textualization and cannot fault.
 | Conceptual\<C\> | Protoform | `conceive` -> C |
 | Actualizable\<T\> | Potential | `actualize` -> T (blanket: delineate, conceive, incorporate) |
 | Printing | Protoform | `print` -> Text |
-| Corporal | -- | the bound borne by every corporal type; each dialect defines its own |
-| Embodied | -- | alias of Sized |
+| Corporal\<C\> | Concept -> Corporal | `incorporate` (static) takes a concept C and yields Self; borne by every corporal type |
+| Embodied | -- | the bound: alias of Sized, blanket-implemented |
 
 ## What protos does not know
 

@@ -10,78 +10,79 @@ Ethos is the schema language. It specifies the types; datom fills them with data
 Two roots: `Library` and `Signal`. A file is one sweet ethos object; the outer braces are omitted and always implied:
 
 ```
-; A Library file (sweet form). The full form wraps everything in Library.{ … }.
-Library.{0 1 0}
-[ protos:[Text Textualizable] ]                                ; imports
-[ Record.{ Text Integer }                                      ; types
-  Report.{ Text Vector<Integer> } ]
-[ Textualizable.[ textualize.[ Text ] ] ]                      ; kinds
-[ Report.[ Textualizable ] ]                                   ; associations
+; A Library file (sweet form). The full form wraps everything in Library.{ ... }.
+Library.{ 0 1 0 }
+[ protos:[ Text ] ]                                            ; imports
+[ Scores.Vector<Integer>                                       ; types
+  Record.{ Text Scores } ]
+[ Summarizable.[ summarize.[ Text ] ] ]                        ; kinds
+[ Record.[ Summarizable ] ]                                    ; associations
 ```
 ```rust
-struct Record(protos::Text, protos::Integer);
-struct Report(protos::Text, Vec<protos::Integer>);
-impl Textualizable for Report { /* … */ }
-impl datomic::Datomic for Record { /* generated */ }
-impl datomic::Datomic for Report { /* generated */ }
+pub type Scores = Vec<protos::Integer>;
+pub struct Record { pub text: protos::Text, pub scores: Scores }
+// Association: compile-time assertion; the impl body is hand-written.
+const _: fn() = || { fn carries<T>() where T: Summarizable {} carries::<Record>(); };
+impl datomic::Datomic for Record { /* generated from anatomy */ }
 ```
 
 ```
 ; A Signal file (sweet form).
-Signal.{1 0 0}
-[]                                                             ; imports
+Signal.{ 1 0 0 }
+[ ]                                                            ; imports
 [ Lock.LockRequest  Release.LockId  Observe.ObserveSelection ]  ; requests
 [ Locked.Lock  LockRejected.LockRejection  Released.Lock  ReleaseRejected.ReleaseRejection  Observed.Observation ]
-[ LockId.Integer … ]                                            ; types
+[ LockId.Integer  LockName.Text  LockRequest.{ LockName FlowId LockPaths LockReason } ... ]  ; types
 ```
 ```rust
-enum Request { Lock(LockRequest), Release(LockId), Observe(ObserveSelection) }
-enum Reply { Locked(Lock), LockRejected(LockRejection), /* … */ }
+pub type LockId = protos::Integer;
+pub enum Request { Lock(LockRequest), Release(LockId), Observe(ObserveSelection) }
+pub enum Reply { Locked(Lock), LockRejected(LockRejection), /* ... */ }
 ```
 
 ## Type declarations
 
-`Name.{ … }` — a struct. Positions are unnamed; the type carries the shape:
+`Name.{ ... }` -- a struct; fields are positional, named by their type:
 ```
-Sink.{ Text Vector<Text> }
+Lock.{ LockId LockName FlowId LockPaths LockReason }
 ```
 ```rust
-struct Sink(protos::Text, Vec<protos::Text>);
+pub struct Lock { pub lock_id: LockId, pub lock_name: LockName, /* ... */ }
 ```
 
-`Name.[ … ]` — an enum. Each variant bare or carrying an inline payload:
+`Name.[ ... ]` -- an enum; each variant bare or carrying an inline payload:
 ```
 SinkError.[ Closed Full ]
 LockRejection.[ DuplicateName.Lock  PathOverlap.LockOverlap ]
 ```
 ```rust
-enum SinkError { Closed, Full }
-enum LockRejection { DuplicateName(Lock), PathOverlap(LockOverlap) }
+pub enum SinkError { Closed, Full }
+pub enum LockRejection { DuplicateName(Lock), PathOverlap(LockOverlap) }
 ```
 
-`Name.Type` — an alias:
+`Name.Type` -- an alias; `Name.« K V »` is a map alias:
 ```
 LockId.Integer
 Roles.« Text Integer »
 ```
 ```rust
-type LockId = protos::Integer;
-type Roles = BTreeMap<protos::Text, protos::Integer>;
+pub type LockId = protos::Integer;
+pub type Roles = BTreeMap<protos::Text, protos::Integer>;
 ```
 
 ## Kinds
 
 A kind is the bearer of capabilities. The `.` receiver takes self, `!` takes mutable self, `:` takes no self.
 
-Simple kind — capabilities in a bracket:
+Simple kind -- capabilities in a bracket:
 ```
 Summarizable.[ summarize.[ Text ] ]
 ```
 ```rust
-trait Summarizable { fn summarize(&self) -> protos::Text; }
+pub trait Summarizable { fn summarize(&self) -> protos::Text; }
 ```
 
-Complex kind — a struct of superkinds, associated types with their constraints, associated constants in `« UPPER_CASE Type »`, and capabilities:
+Complex kind -- a struct of superkinds, associated types with their constraints, associated constants in `« UPPER_CASE Type »`, and capabilities:
 ```
 Streamable.{ [ Fillable ]
              [ Item<Serializable> ]
@@ -89,7 +90,7 @@ Streamable.{ [ Fillable ]
              [ next![ Option<Item> ] ] }
 ```
 ```rust
-trait Streamable: Fillable {
+pub trait Streamable: Fillable {
     type Item: Serializable;
     const CAPACITY: protos::Integer;
     fn next(&mut self) -> Option<Self::Item>;
@@ -108,28 +109,27 @@ fn create() -> Self;
 
 Kind identity is the name and the constraints, written as one head:
 ```
-Processable<[Clonable Sendable] Serializable>.[ … ]
+Processable<[Clonable Sendable] Serializable>.[ ... ]
 ```
 ```rust
-trait Processable<A: Clone + Send, B: Serialize> { /* … */ }
+pub trait Processable<A: Clone + Send, B: Serialize> { /* ... */ }
 ```
 
 ## Associations
 
-A type bears a kind:
+A type bears a kind. The generated code asserts the type bears the kind at compile time; the impl body is hand-written:
 ```
 [ Sink.[ Summarizable Fillable ] ]
 ```
 ```rust
-impl Summarizable for Sink { /* … */ }
-impl Fillable for Sink { /* … */ }
+const _: fn() = || { fn carries<T>() where T: Summarizable + Fillable {} carries::<Sink>(); };
 ```
 
 Every ethos-declared type gets `impl datomic::Datomic` generated from its anatomy.
 
 ## Imports and intrinsics
 
-`[ protos:[Text Textualizable] ]` imports names from another library. Intrinsic names known without import: Text, Integer, Decimal, Boolean, Meaning, Vector, Option, Result, Self.
+`[ protos:[ Text Textualizable ] ]` imports names from another library. Intrinsic names known without import: Text, Integer, Decimal, Boolean, Meaning, Vector, Option, Result, Self.
 
 ## Generation
 
