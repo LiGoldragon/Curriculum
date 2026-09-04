@@ -9,7 +9,7 @@ Acquire a Lock:
 
     orchestrate 'Lock.{ <name> <flow> [ <absolute-path> ... ] <reason> }'
 
-A reason containing a space or a delimiter is written in curly quotes, "like this"; a single word is bare.
+A reason containing a space or a delimiter is written in curly quotes, “like this”; a single word is bare.
 
 `Locked` returns the complete Lock: its integer ID, name, Flow, paths, and reason. `LockRejected` is a typed refusal. Paths are absolute.
 
