@@ -33,3 +33,10 @@ nothing else. Tool schemas travel in the API's tools parameter and
 remain; the permission system, hooks, the scanning of subflow
 output, entry-file injection, and the model's training persist
 outside the prompt.
+
+Claude Code stops its background tasks when the host's free memory
+looks low, judging by free rather than available memory, so another
+process's build can end a long task that is nowhere near its own
+limit. A long-running process launched from the harness runs
+detached, as a transient systemd user service or scope with its own
+memory cap, and the harness watches for its end.
