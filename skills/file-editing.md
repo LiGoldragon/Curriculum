@@ -20,3 +20,5 @@ push.
 
 Every `jj` command that takes a description uses `-m`. Never open
 an editor. Never use raw `git`.
+
+A source file is written in pieces of a few hundred lines; a module that would exceed that is split.
