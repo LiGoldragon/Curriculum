@@ -21,3 +21,4 @@ that computes it through the tested path confirms nothing.
 A test waits on the tested event, never on the clock.
 Tests share no mutable state — no process environment, no working
 directory, no order between them.
+A run that may exhaust memory or time is bounded (a memory cap and a timeout) so that it cannot take the harness down with it.
