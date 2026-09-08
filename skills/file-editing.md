@@ -3,7 +3,7 @@ description: Editing files means committing and pushing them.
 dependencies: []
 ---
 
-Always commit and push edited work.
+Commit and push every change your work produces in every affected repository, including generated output.
 
 Commit existing dirty changes first with an appropriate message
 before starting new work.
