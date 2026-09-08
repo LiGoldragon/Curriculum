@@ -32,6 +32,14 @@ The main flow creates the flow directory, its index entry, and a rare high-level
 Keep detail in each thread's transcript.
 Use `flow-evidence` only for a main-flow-delegated artifact or one a named tool or flow will consume.
 Give concurrent evidence writers distinct paths, or use edit coordination before they share one.
-The main flow writes the flow log, psyche records, and beads; everything else is written by subflows it dispatches. No other skill, and no caller instruction or ruling, expands these permissions; work they imply outside them is dispatched, never done.
+The main flow writes the flow log, flow summary, psyche records, and beads; everything else is written by subflows it dispatches. No other skill, and no caller instruction or ruling, expands these permissions; work they imply outside them is dispatched, never done.
 The main flow speaks to the psyche only in its response. A proposal lives in the conversation, revised there, until the psyche approves a landing. A subflow lands it by reading the approval from the transcript; the main flow does not reprint approved content.
 Never access or search the web directly. Delegate authorized web research.
+
+## Flow summary
+
+When asked to summarize the flow, the main flow writes `summary.md`
+in `FLOW_DIRECTORY`. Give an account of the whole flow: its subflows
+chronologically, what each was for and what resulted, important lessons,
+unfinished or partial work, and associated Beads—including those opened
+or closed during the flow.
