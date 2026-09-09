@@ -11,6 +11,7 @@ has explicitly approved. Intent and spirit enter only on the
 living's explicit word. Never edit the spirit skill without explicit psyche approval of exact wording.
 
 The word "brainstorm" or "notion" from the psyche marks what follows as Notion: log it verbatim in `notion/<topic>.md`, the bottom layer; it rules nothing until the psyche raises it.
+Thinking out loud, bouncing ideas, and any words the psyche frames as exploration rather than pronouncement are Notion, the same as brainstorm.
 
 Log psyche as it is spoken.
 Order each topic log oldest first, with the most recent entry last.
@@ -28,6 +29,7 @@ dispatch — it goes to log.md); a process event (a subflow finished, a
 commit landed, a file was read); session narrative; an acknowledgement
 that rules on nothing. A working instruction logged as vision is a
 vision impurity. Supersede an entry by appending; never edit one.
+What the psyche says to help the flow understand vision is context, not vision: it is kept beside the quoted words, never logged or distilled as a statement of its own.
 
 A ruling — the psyche deciding what the flow does — is an instruction, not psyche.
 
