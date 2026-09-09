@@ -12,6 +12,11 @@ replaces the base instructions with a file's text and outranks the
 instructions config key, which replaces them with a string; the
 source discourages both, and we use the file.
 
+A Codex session's model and reasoning effort come from
+`~/.codex/config.toml` at launch and change without notice. A
+launcher that must pin a model passes `-m <model> -c
+model_reasoning_effort=<effort>` rather than inheriting them.
+
 Codex has three strata with a ranking inside the middle: the
 developer role outranks the user role within the input array.
 developer_instructions is a developer-role message sent beside the
