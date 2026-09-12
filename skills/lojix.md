@@ -202,7 +202,7 @@ A test execution profile has, in order:
 
 Ordinary reply families are `Queried`, `DeploymentEventsQueried`, `TestRunsQueried`, `Watching`, `Unwatched`, `QueryRejected`, `WatchRejected`, and `UnwatchRejected`.
 
-Owner reply families are `DeployAccepted`, `DeployRejected`, `DeployTerminal`, `Pinned`, `PinRejected`, `Unpinned`, `UnpinRejected`, `Retired`, `RetireRejected`, `Tested`, and `TestRejected`.
+Owner reply families are `DeployAccepted`, `DeployRejected`, `DeployRefused`, `DeployTerminal`, `Pinned`, `PinRejected`, `Unpinned`, `UnpinRejected`, `Retired`, `RetireRejected`, `Tested`, and `TestRejected`.
 
 `DeployAccepted` has, in order:
 
@@ -217,9 +217,11 @@ DeployAccepted.{ 13 { 263 263 } }
 
 `DeployAccepted` is admission only. It does not prove evaluation, build, copy, activation, or completion.
 
+`DeployRefused` carries a `DeployRefusalReason` (`ContinuationBudgetExhausted`, `NoCorrelatedDeployment`, or `DurableWriteFailed`) and a state marker read best-effort. Unlike `DeployRejected`, it names no deployment, because for these three reasons none exists to name.
+
 `DeployTerminal` carries the terminal deployment record.
 
-A deployment terminal is bare `Succeeded`, `Rejected` carrying a terminal reason, or `Failed` carrying failure stage and terminal reason.
+A deployment terminal is bare `Succeeded`, `Rejected` carrying a terminal reason, or `Failed` carrying failure stage and terminal reason — for example `Failed.{ CopyClosure ClosureCopyFailed }`, when the copy to the target store itself fails. `BuilderUnreachable` is not produced by a copy failure; it names an unreachable build target, not a copy target.
 
 Exact witnessed failed-activation form:
 
@@ -295,6 +297,16 @@ Success prints:
 ConfigurationWritten.[ path ]
 ```
 
+## Readiness
+
+`lojix-nexus` announces readiness on standard output once both sockets are bound and started:
+
+```text
+(LojixNexusReady /run/lojix/ordinary.sock /run/lojix/meta.sock)
+```
+
+A supervisor waits on this line, or on standard output closing — which is what a Nexus that dies before readiness does — never on a clock. The announcement never reaches a socket; the wire stays pure signal.
+
 ## Store inspection and reset
 
 Inspect a store read-only with exactly:
@@ -337,17 +349,32 @@ Reset is destructive for a recognized v2/v3/v4 store.
 
 `BuildOnly` carries:
 
-1. direct immutable build request
+1. a `BootstrapInput`
 2. optional builder
 3. journal parent
 4. GC root
 5. terminal-evidence path
 
-The direct immutable build request carries:
+The journal parent, the GC root's parent, and the terminal-evidence path's parent must each already exist, be owned by the caller, and be mode `0700`. A parent left at the default umask (`0755`) is refused with a bare `BootstrapRejected.[ InvalidRequest ]` that names no permission problem — `chmod 700` each parent before submitting the request.
+
+A `BootstrapInput` is `Direct` or `Horizon`.
+
+`Direct` carries:
 
 1. immutable flake
 2. Nix system
 3. output selector
+
+`Horizon` carries:
+
+1. proposal source
+2. cluster name
+3. node name
+4. host composition
+5. secrets input
+6. immutable flake
+7. Nix system
+8. output selector
 
 `BootOnce` additionally carries a test plan and either `RemoteNixosSystemdBootV1` or `LocalBootstrapV1`.
 
@@ -375,6 +402,21 @@ github:owner/repository/40-lowercase-hex-revision
 This differs from Nexus deployment flake syntax.
 
 Terminal output is bare `BootstrapTerminal.Succeeded` or `BootstrapTerminal.Failed`. Parse or validation failure prints a redacted `BootstrapRejected.[ … ]`.
+
+## Rust library surface
+
+Since `lojix` 6.0.0, every public method on the store and the schema engine lives on a trait, never on an inherent `impl Store` or `impl SchemaRuntime` block. Import the trait that names the question being asked, not the type:
+
+- `LojixRecord` — a record type's table, family, and schema hash
+- `DurableStore` — the store's identity, write counter, and `records::<R>()`
+- `NexusPersistable` — the Nexus's durable configuration
+- `TransitionJournal` — exactly-once delivery of a durable transition
+- `DeploymentLedger` / `GenerationLedger` / `TestRunLedger` — durable deployment, generation, and test-run state
+- `RuntimeCore` — constructing the engine and driving one action to a reply
+- `DeployDriving` / `TestDriving` — driving one deployment or test run to its terminal
+- `NexusReadiness` — the readiness announcement (below)
+
+No method above is reachable through an inherent method any more.
 
 ## Placement
 
