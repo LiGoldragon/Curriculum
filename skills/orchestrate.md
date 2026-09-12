@@ -27,6 +27,6 @@ Observe current Locks:
 
     orchestrate 'Observe.Locks'
 
-`Observed` carries one complete point-in-time Lock snapshot. It is not a subscription.
+`Observed` carries the complete Lock set on open, then again after every Lock or Release — the connection itself is the subscription, with no token and no `Unwatch`. The current `orchestrate` CLI reads one `Observed` frame and exits; it does not yet hold the connection open to receive the later ones, so re-issuing `Observe.Locks` is today's only way to see a change, not the designed one.
 
 Treat a client failure as a failed operation.

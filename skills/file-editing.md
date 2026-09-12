@@ -21,4 +21,6 @@ push.
 Every `jj` command that takes a description uses `-m`. Never open
 an editor. Never use raw `git`.
 
+Clone a working copy from its real remote URL, never from another local checkout (`git clone --shared <local-path>` repoints `origin` at that checkout, and a push there never reaches the real remote). Before reporting a push landed, confirm the pushed revision against the real remote directly — `git ls-remote <real-remote-url>` — not merely against the checkout's configured `origin`, which some checkouts point at a mirror (gitolite, or another local clone) distinct from it.
+
 A source file is written in pieces of a few hundred lines; a module that would exceed that is split.

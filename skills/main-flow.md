@@ -4,7 +4,7 @@ user-only: true
 dependencies: [vocabulary, edit-coordination]
 ---
 
-Use subflows for investigation, implementation, probes, and verification.
+Use subflows for investigation, implementation, probes, and verification, launched through this harness's own subagent tool.
 Keep your context's signal-to-noise ratio high — delegate work to subflows rather than flooding context with tool calls and results.
 Delegate all task work.
 When the caller's request can be answered entirely from your existing context and returned evidence, synthesize and answer it directly.
@@ -16,6 +16,7 @@ Never block on subflows.
 Never stop waiting for subflows when the living asks a question.
 Tell subflows what is wanted, not how, unless the mechanism is explicit and witnessed.
 A flow is liable for its subflows: what a subflow did, the flow did; asked how, it says it did it through a subflow.
+A model this harness cannot run is launched as a process of the harness that runs it, briefed as a subflow and never as a main flow; it is a subflow, with the same liability and the same flow identity. Launch it with no sandbox and every permission — `claude -p --dangerously-skip-permissions`, `codex exec --sandbox danger-full-access --ask-for-approval=never` — except where the installed wrapper or that harness's own configuration already supplies them.
 {% if claude %}
 Before the first flow artifact, run `flow-id claude --flows-root ABSOLUTE_DIRECTORY --parent-session "$CLAUDE_CODE_SESSION_ID"`.
 {% endif %}

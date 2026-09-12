@@ -47,7 +47,9 @@ answers with typed replies, including a typed refusal — errors are
 vocabulary, not strings.
 
 The signal wire vocabulary is versioned by its contract crate: the
-crate's semver is the wire's semver, and consumers pin it.
+crate's semver is the wire's semver, and consumers pin it. A contract
+crate's version reflects only its own wire text; it is never raised to
+match another crate's version.
 
 ## The CLIs
 
