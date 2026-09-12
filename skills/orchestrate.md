@@ -11,9 +11,9 @@ Acquire a Lock. Its four positional fields are `LockName`, `FlowId`, `LockPaths`
 
 `LockName` names the work; `FlowId` is the owning flow's `FLOW_ID`; `LockPaths` lists the reserved absolute paths; `LockReason` states why. Put the actual owning `FLOW_ID` only in `FlowId`, never concatenated into `LockName` merely for uniqueness or title display. A name such as `FlowIdDocumentation` remains valid when flow ID is the subject of the work.
 
-A reason containing a space or a delimiter is written in Datom curly quotes, “like this”; ASCII double quotes are not Datom string delimiters. A copyable multi-word reason example is:
+A reason containing a space or a delimiter is written in guillemets. A copyable multi-word reason example is:
 
-    orchestrate 'Lock.{ OrchestrateDocs 444e5e [ /absolute/path/to/file ] “Clarify Lock fields” }'
+    orchestrate 'Lock.{ OrchestrateDocs 444e5e [ /absolute/path/to/file ] «Clarify Lock fields» }'
 
 A single-word reason is bare.
 
