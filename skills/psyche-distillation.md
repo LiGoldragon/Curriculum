@@ -36,8 +36,9 @@ beside their source file.
 A record's id is its originating session's short id and that
 session's own count.
 
-Distillation is proposed on encounter, dispatched proactively by
-the flow working a subject, or done in dedicated passes.
+A flow that gathers raw vision on a subject distills what it
+gathered in the same conversation, and presents the skill edit the
+distilled statements call for beside the proposal.
 
 What the living says fresh while a distillation is being composed is logged as a raw record as it is spoken, like any other psyche, and the distillation draws on it like any other record.
 
