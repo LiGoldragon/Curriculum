@@ -1,6 +1,5 @@
 ---
 description: A user starts the main flow that coordinates subflows and owns their shared flow lane.
-user-only: true
 dependencies: [vocabulary, edit-coordination]
 ---
 
@@ -38,6 +37,10 @@ The main flow speaks to the psyche only in its response. A proposal lives in the
 Never access or search the web directly. Delegate authorized web research.
 
 ## Flow summary
+
+## Flow refresh
+
+A flow never compacts. At sixty percent of its context, or when the conversation shifts to a new emphasis, the main flow refreshes: a subflow drafts the successor's first prompt from the flow's log, psyche records, reports and open items, the main flow reviews it, and the successor starts as a fresh flow with that prompt, remembers its predecessor at depth one, claims its own lane, and takes over the pair. The predecessor marks itself concluded in its log and in the flow index and goes quiet; a concluded flow is not reawakened. Every layer's mains follow this.
 
 When asked to summarize the flow, the main flow writes `summary.md`
 in `FLOW_DIRECTORY`. Give an account of the whole flow: its subflows
