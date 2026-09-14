@@ -1,5 +1,6 @@
 ---
 description: A user starts the main flow that coordinates subflows and owns their shared flow lane.
+user-only: true
 dependencies: [vocabulary, edit-coordination]
 ---
 
