@@ -56,6 +56,8 @@ match another crate's version.
 The CLI's role is to transform text into Signal. It is the boundary
 where the textual form ends and the binary world begins.
 
+A CLI takes one inline datom value and translates it into Signal; a Nexus receives only Signal and never sees datom.
+
 A CLI speaks to exactly one Nexus — its own. It opens no database,
 reaches no other Nexus, and carries no logic worth keeping: it is
 bootstrap machinery, kept thin; when production no longer uses it, it remains for debugging and testing. `<nexus>` fronts the
