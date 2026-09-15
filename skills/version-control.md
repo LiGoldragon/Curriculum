@@ -7,6 +7,8 @@ Use Jujutsu for repository operations.
 
 Before a write, identify the repository, isolated workspace path and name, current change ID, intended bookmark, remote, and every dirty file's writer.
 
+Commit only files your flow owns. Preserve every other dirty file in place and report its writer; do not absorb it into a convenience commit.
+
 One writer owns one workspace. A colocated checkout is shared state; do not run Jujutsu commands there while another flow owns it.
 
 Use an isolated workspace created from the real remote or an assigned clean workspace. Never clone from another local checkout.

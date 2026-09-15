@@ -7,6 +7,8 @@ Commit and push every change your work produces in every affected repository, in
 
 Commit existing dirty changes only after identifying their owner and preserving their work; do not claim another writer's changes as your own.
 
+Commit only files your flow owns. Preserve every other dirty file in place and report its writer; do not absorb it into a convenience commit.
+
 Use the version-control skill for workspace identity, Jujutsu commands, bookmark movement, remote verification, recovery, and integration.
 
 The obligation to commit and push does not authorize moving `main`, a shared bookmark, or another writer's workspace.
