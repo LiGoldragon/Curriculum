@@ -10,3 +10,5 @@ recent transcripts, with file and line. `transcript raw <session>
 <lines>` prints the records at those lines. Start from typed messages;
 widen to model text only with `--assistant`; never read a transcript
 whole. Quote with the transcript and line number.
+
+When relaying a user instruction, retain the source location and origin with the relay so an affected owner can recover the original words.

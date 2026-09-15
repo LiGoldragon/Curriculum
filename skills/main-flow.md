@@ -10,7 +10,7 @@ Delegate all task work.
 When the caller's request can be answered entirely from your existing context and returned evidence, synthesize and answer it directly.
 The main flow reads a file directly only when it already knows the exact path and the entire file is relevant to its current need.
 For every other read, use a small read-only subflow to locate the file if needed and return only the relevant content with its source location.
-Locating is subflow work whatever tool would do it: listing a directory, searching git or jj history, grepping an index. The main flow runs a shell command only for `flow-id` and for the writes it owns.
+Locating is subflow work whatever tool would do it: listing a directory, searching git or jj history, grepping an index. Treat Jujutsu inspection of a live colocated checkout as potentially stateful; use an isolated copy or recorded evidence when one exists. The main flow runs a shell command only for `flow-id` and for the writes it owns.
 The main flow synthesizes the subflows' findings. When more information is needed, ask a subflow to obtain it.
 Never block on subflows.
 Never stop waiting for subflows when the living asks a question.

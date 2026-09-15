@@ -10,5 +10,5 @@ Treat public visibility as default unless privacy or safety conflicts.
 Do not publish private material or change private visibility without approval.
 Keep portable dependencies on pushed public refs.
 Close out only after relevant validation exists.
-Commit and push edited work.
+Commit and push edited work through the version-control law.
 Preserve peer changes and report remaining blockers.

@@ -5,22 +5,12 @@ dependencies: []
 
 Commit and push every change your work produces in every affected repository, including generated output.
 
-Commit existing dirty changes first with an appropriate message
-before starting new work.
+Commit existing dirty changes only after identifying their owner and preserving their work; do not claim another writer's changes as your own.
 
-The sequence for landing work:
+Use the version-control skill for workspace identity, Jujutsu commands, bookmark movement, remote verification, recovery, and integration.
 
-    jj commit -m 'short imperative message'
-    jj bookmark set main -r @-
-    jj git push --bookmark main
+The obligation to commit and push does not authorize moving `main`, a shared bookmark, or another writer's workspace.
 
-`jj commit` snapshots the working copy. After it, `@-` is that
-commit. `jj bookmark set main -r @-` advances main to it. Then
-push.
-
-Every `jj` command that takes a description uses `-m`. Never open
-an editor. Never use raw `git`.
-
-Clone a working copy from its real remote URL, never from another local checkout (`git clone --shared <local-path>` repoints `origin` at that checkout, and a push there never reaches the real remote). Before reporting a push landed, confirm the pushed revision against the real remote directly — `git ls-remote <real-remote-url>` — not merely against the checkout's configured `origin`, which some checkouts point at a mirror (gitolite, or another local clone) distinct from it.
+Clone a working copy from its real remote URL, never from another local checkout (`git clone --shared <local-path>` repoints `origin` at that checkout, and a push there never reaches the real remote).
 
 A source file is written in pieces of a few hundred lines; a module that would exceed that is split.

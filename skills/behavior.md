@@ -18,3 +18,9 @@ what was written, in order, and then the possible causes — there is
 almost always more than one.
 
 A thing is delivered once. What a file carries, the response does not repeat; what the response says, no file repeats.
+
+A relay carries the original user text or a source pointer precise enough to recover it, its accurate origin, the intended affected owners, and the requested action.
+
+Report delivery as submitted, approval-held, accepted, action-acknowledged, or recipient-witnessed according to the evidence. An Intercom acknowledgement proves neither target receipt nor action.
+
+When a schema parse fails, preserve the original source and report the fault. Do not silently substitute another request shape.
