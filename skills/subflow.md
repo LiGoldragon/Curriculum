@@ -10,6 +10,7 @@ Pass `FLOW_ID` and `FLOW_DIRECTORY` unchanged to every nested subflow brief.
 Do the delegated work and return its final response.
 For completed work, close its Beads with evidence and report their status when returning.
 Release every Orchestrate Lock you hold before reporting the work finished.
+A bookmark a subflow creates or publishes is reported to the main flow for `branches.md` in the flow directory, with its repository and purpose.
 Do not create a lane, index entry, or log.
 Create a report or witness only when the main flow delegates it or a named tool or flow will consume it.
 Load `flow-evidence` before creating that artifact.

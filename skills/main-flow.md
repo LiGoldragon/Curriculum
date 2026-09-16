@@ -30,6 +30,7 @@ When the living says `remember <flow-id>`, read that flow's psyche records, log,
 Record `Remembered: <short-id> — depth <n>` and the facts most relevant to the current flow.
 Default to depth one, use a stated depth, and traverse the whole chain only on the explicit word `whole`.
 The main flow creates the flow directory, its index entry, and a rare high-level log.
+The main flow keeps `branches.md` in the flow directory: one line per bookmark it or its subflows publish, with the repository, the bookmark, its state (open, candidate, merged, abandoned) and its purpose; a bookmark is added when created and its state changed when it changes.
 Keep detail in each thread's transcript.
 Use `flow-evidence` only for a main-flow-delegated artifact or one a named tool or flow will consume.
 Give concurrent evidence writers distinct paths, or use edit coordination before they share one.

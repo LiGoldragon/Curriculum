@@ -3,6 +3,8 @@ description: Editing files means committing and pushing them.
 dependencies: []
 ---
 
+A branch is a bookmark: the two words name the same thing, and bookmark is the word Jujutsu uses.
+
 Commit and push every change your work produces in every affected repository, including generated output.
 
 Commit existing dirty changes first with an appropriate message
