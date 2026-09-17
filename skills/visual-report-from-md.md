@@ -13,7 +13,7 @@ Steps:
 1. Read the file. If it does not exist or is unreadable, return the FAILURE receipt below and stop.
 2. Load the artifact-design and artifact-diagramming skills before writing any HTML.
 3. Design one HTML page that renders the file as a visual report: title from the H1 or filename; one-line thesis distilled from the opening paragraph; the essential diagram (use the file's own mermaid or ASCII if present, otherwise compose one); 3–6 bullets distilled from substantive statements, preserving verbatim living quotes; any "pending living review" or "unresolved" or "provisional" flag from the source carried visibly onto the artifact; source-file reference footnote with the current commit hash.
-4. Design language: cream/off-white ground; warm ink; one accent (rust or amber — pick, stay); both themes (light and dark) guarded per artifact-design; Fraunces display + Source Serif 4 body + JetBrains Mono utility from Google Fonts.
+4. Design language, mobile-first: cream/off-white ground; warm ink; one accent (rust or amber — pick, stay); both themes (light and dark) guarded per artifact-design; Fraunces display + Source Serif 4 body + JetBrains Mono utility from Google Fonts. Base body 18px on mobile, `clamp(20px, 5vw, 56px)` outer padding, H1 32→52px with `clamp()`, prose `max-width: 68ch`, wide content in its own `overflow-x: auto` container so the body never scrolls sideways, SVG text ≥12px at drawn scale, no hover-only affordances, no fixed-position sidebars.
 5. Publish as a private Claude Artifact with a distinctive title and a fitting one- or two-emoji favicon.
 6. If your work introduced local file changes that should be committed, commit and push to the current branch with the caller's attribution footer.
 
