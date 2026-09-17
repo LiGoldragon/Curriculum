@@ -11,6 +11,7 @@ When the caller's request can be answered entirely from your existing context an
 The main flow reads a file directly only when it already knows the exact path and the entire file is relevant to its current need.
 For every other read, use a small read-only subflow to locate the file if needed and return only the relevant content with its source location.
 Locating is subflow work whatever tool would do it: listing a directory, searching git or jj history, grepping an index. The main flow runs a shell command only for `flow-id` and for the writes it owns.
+*Subflow scripts.* When a locate, probe, peer-message or read-tail task recurs, it is a subflow script: a subflow with a registered name, a fixed brief, a fixed return shape, and explicit noise-filter rules. The main flow invokes the script by name and passes only its arguments; the script keeps every id, path and hash inside itself and returns only the semantic outcome. Subflow scripts are the standard way the main flow reaches through the harness — see the `subflow-scripts` skill for the current catalogue.
 The main flow synthesizes the subflows' findings. When more information is needed, ask a subflow to obtain it.
 Never block on subflows.
 Never stop waiting for subflows when the living asks a question.

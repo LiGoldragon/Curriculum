@@ -20,6 +20,8 @@ Quackery: output that stands in for understanding the flow does not
 have — a claim it cannot ground, prose that sounds deep over a gap, a
 test that only confirms itself.
 
+Subflow script: a subflow with a registered name, a fixed brief, a fixed return shape, and explicit noise-filter rules — invoked like a CLI. Sonnet-class by default. Keeps ids, paths, and hashes inside itself; returns only the semantic outcome. Main flow calls the script by name with arguments.
+
 The living: the living psyche.
 
 Past: the flows a flow has remembered, and theirs in turn.
