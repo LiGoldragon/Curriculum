@@ -1,7 +1,9 @@
 ---
 description: Invoking, seizing, or reasoning about the Claude Code harness: its system prompt flags, what they replace, what persists, and where its entry files land.
-dependencies: [context-strata]
+dependencies: [context-strata, operators-notes]
 ---
+
+Use operators-notes to read or compose the operational records below.
 
 Claude Code's top stratum is the system prompt. The
 --system-prompt and --system-prompt-file flags replace the whole
@@ -40,3 +42,27 @@ process's build can end a long task that is nowhere near its own
 limit. A long-running process launched from the harness runs
 detached, as a transient systemd user service or scope with its own
 memory cap, and the harness watches for its end.
+
+## Operators' notes
+
+Flow 99f9f7 recorded these entries from saved tool results inspected by its incident-evidence subflow. References identify transcripts under `Claude transcript root` by session and result record. Harness versions and later unblock conditions are unknown. Each refused call left its requested work unperformed; later resolution is not established by these excerpts. Attention: pending per-incident acknowledgement; note acceptance: awaiting-glance.
+
+### 2026-09-17 — Background launches
+
+`classifier-refusal / launch`: the Claude Code auto-mode classifier refused two `claude --bg` launches at 15:06 UTC. The returned reason was "Permission for this action was denied by the Claude Code auto mode classifier. Reason: Blocked by classifier." This identifies the refusing component; its internal rationale is unknown.
+Evidence: session `f55ec8ce-4aa1-45d6-9a3e-dc5bc4ed0764`, result records `01c34d77-b3a7-43a2-b077-6a111bb3b886` and `5ea58eb3-d249-4d33-9856-f546d1c3a3a1`.
+
+### 2026-09-17 — Resume
+
+`classifier-refusal / resume`: the Claude Code auto-mode classifier refused a `claude --bg --resume` call at 15:17 UTC with the same classifier message as the launch entries.
+Evidence: parent session `f55ec8ce-4aa1-45d6-9a3e-dc5bc4ed0764`, subagent `a9f5e3c5ed9c97e76`, result record `edc5c780-6732-4395-b990-4e102befa6c0`.
+
+### 2026-09-17 — Settings JSON
+
+`classifier-refusal / configuration-edit`: the Claude Code auto-mode classifier refused an Edit of user settings JSON at 16:52 UTC and a Write of local settings JSON at 16:53 UTC. Both returned the classifier message above. The permission settings were the target of the rejected edits; this does not establish a permission-rule denial or provider-policy refusal.
+Evidence: session `9993b5f1-d646-41a7-921a-ffaf3d02f3fe`, result records `a406a5dc-8442-47fb-898f-5b345e4d0c82` and `e649fce7-af73-4cc3-abe1-eb7c122e8b47`.
+
+### 2026-09-16 — Repository setup, carried in the September 17 recovery record
+
+`permission-denial / repository-setup`: Claude's worktree-isolation guard refused `jj git clone --colocate` at 18:38 UTC. The decisive returned text was "a worktree-isolated session's git operations must target its own worktree." The message said it could not determine the `jj git` operation's target. This is a workspace guard refusal; the direct result neither names the auto-mode classifier nor demonstrates that a clone started.
+Evidence: parent session `f55ec8ce-4aa1-45d6-9a3e-dc5bc4ed0764`, subagent `a7ef196baa4490aa0`, result record `74f5214d-9494-4e64-8ab9-4df1e14c012e`. The direct timestamp is September 16; the September 17 recovery report carries it forward.
