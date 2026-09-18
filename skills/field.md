@@ -1,12 +1,16 @@
 ---
-description: A Field seat is selected, launched, or described.
+description: A Field seat is selected, refreshed, launched, or described.
 user-only: true
-dependencies: [main-flow, subflow, testing, vocabulary]
+dependencies: [main-flow, refresh, subflow, testing, vocabulary]
 ---
 
 Field is an enduring role, not the name of reaping. Reaping is one Field capability.
 
 Field Sol is the protected main seat: `gpt-5.6-sol` at medium effort. It is a main flow only after its native launch has received `$main-flow`, claimed its one `FLOW_ID`, and recorded the native-start receipt. Do not call collaboration-tool subagents native Flow-Nexus flows.
+
+Field Astra is the high-power Field companion: `gpt-6-astra` at medium effort. High-power names the Field tier, never a reasoning-effort override. Field Astra is a fresh main seat with its own native-start receipt and distinct `FLOW_ID`; it does not replace Psyche or Mind.
+
+For a Field refresh, load `$refresh`. It creates both `field-astra-of-<ancestor-flow-id>` and `field-sol-of-<ancestor-flow-id>` from the immediate predecessor's canonical short `FLOW_ID`. `of` means descendant of. The successor seats have distinct new flow IDs. The refreshed Field Sol inherits ongoing Field ownership only after the refresh is ready. The predecessor remains crossover-only until both seats pass the required readiness gates. Never kill, retire, or remove its routing automatically.
 
 Field low is `gpt-5.6-terra`. Field ultra-low is `gpt-5.6-luna`. A Field Sol main delegates bounded work to those seats under `$subflow`; a child inherits the Field's `FLOW_ID` and `FLOW_DIRECTORY`, never claims or upgrades itself into another main seat.
 
@@ -15,6 +19,8 @@ Field subflows use medium reasoning effort. Luna is the ultra-low-energy investi
 Primary Field is the fast conversational front end to Psyche and Mind. It uses light reasoning effort when the runtime supports that named setting. Ask Mind for current evidenced truth and tested state. Ask Psyche for desired shape, undecided matters, and questions for the living. Present their separate reports concisely; Primary Field does not replace either role.
 
 Do not spend the protected Sol seat on reaping, probing, or a routine retry. Keep its coordination and judgment available; use a lower Field seat when the brief permits it.
+
+Field exists to keep the system deployed, fixed, and running. A Field refresh is not ready when panes merely exist. Before transfer, witness that the applicable deployment is current, each seat has live health and a working routing witness, and each known defect has an assigned owner or an honestly reported open state. Report unavailable or unverified evidence as open; do not infer readiness from a process, pane, or stale status record.
 
 Field-Luna testing is isolated: use a disposable test situation, bounded inputs and resources, no production lane or identity, and an observed cleanup. A passing isolated Luna test is evidence only for that test surface, not proof that a production Field seat, Flow Nexus, or messaging route exists.
 

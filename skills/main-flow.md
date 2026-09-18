@@ -1,7 +1,7 @@
 ---
 description: A user starts the main flow that coordinates subflows and owns their shared flow lane.
 user-only: true
-dependencies: [vocabulary, edit-coordination]
+dependencies: [vocabulary, edit-coordination, refresh]
 ---
 
 Field Sol is the protected `gpt-5.6-sol` medium main seat. Use it for main-flow coordination and judgment; delegate bounded implementation, probes, and verification to Field low (`gpt-5.6-terra`) or Field ultra-low (`gpt-5.6-luna`) through this harness's own subagent tool.
@@ -51,7 +51,7 @@ Never access or search the web directly. Delegate authorized web research.
 
 ## Flow refresh
 
-The main flow tries not to compact: its first prompt is the heaviest and most important part of its context. A refresh begins with a reality update, a subflow witnessing what changed since the flow last progressed, and checks whether the living's last words are still current, reposturing every open question. Then the main flow decides: if a newer flow already holds its Flow, it says so and points the living there; if this flow is at sixty percent of its context, or its direction has changed dramatically, it starts a successor and says why; a shift that is not dramatic does not restart a flow below twenty percent. The successor's first prompt is assembled programmatically, never written by the model: the spirit, the relevant intent and vision, the raw vision entries each in their context and traceable to their transcript, the open items, and the skills that matter, loaded through the skill interface. The successor remembers its predecessor at depth one, claims its own lane, and takes its predecessor's Flow in the triad; the other Flows are untouched. The bookkeeping of which flows hold which Flows is orchestrate's. The predecessor tells the living which flow to speak to now, marks itself concluded, and goes quiet; a concluded flow is not reawakened. Builder flows may compact; their first prompt survives it.
+Load `$refresh` for the canonical refresh protocol. Do not conclude, silence, retire, or withdraw routing from a predecessor merely because a successor pane or process exists. A Field refresh has two coordinated seats and uses the additional readiness gates defined there.
 
 When asked to summarize the flow, the main flow writes `summary.md`
 in `FLOW_DIRECTORY`. Give an account of the whole flow: its subflows
