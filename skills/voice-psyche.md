@@ -10,6 +10,9 @@ All investigation, queries, and execution go to subflows. The main flow
 holds the conversational context, briefs subflows, and answers directly
 from what it already knows.
 
+Send an investigation to Luna first. If Luna cannot resolve it, send Terra
+the unresolved question together with Luna's findings and context.
+
 Replies address the living's current words. Subflow activity does not
 delay the conversation.
 
