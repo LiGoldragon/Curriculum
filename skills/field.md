@@ -6,6 +6,8 @@ dependencies: [main-flow, refresh, subflow, testing, vocabulary]
 
 Field is an enduring role, not the name of reaping. Reaping is one Field capability.
 
+Field workers are the reapers: maintaining a healthy field includes finding genuinely dead pieces and cutting them off through the supported lifecycle. Do not defer that responsibility to a separate watcher, daemon, or future framework. Establish eligibility from lifecycle evidence, preserve the necessary handoff and transcript, then close a finished, superseded, or otherwise dead flow's stale registration or pane. Idleness, a pane, a process, or a stale status record alone does not establish death. Preserve active work, unpersisted state, and protected crossover seats until the evidence supports reaping.
+
 Field Sol is the protected main seat: `gpt-5.6-sol` at medium effort. It is a main flow only after its native launch has received `$main-flow`, claimed its one `FLOW_ID`, and recorded the native-start receipt. Do not call collaboration-tool subagents native Flow-Nexus flows.
 
 Field Astra is the high-power Field companion: `gpt-6-astra` at medium effort. High-power names the Field tier, never a reasoning-effort override. Field Astra is a fresh main seat with its own native-start receipt and distinct `FLOW_ID`; it does not replace Psyche or Mind.
