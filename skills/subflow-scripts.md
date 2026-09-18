@@ -18,7 +18,7 @@ Return shape: `{ found: yes|no|ambiguous, name: <session name>, note?: <one line
 
 ### queue-to-codex
 Arguments: a name substring or hint identifying the target thread, and the message text.
-Task: resolve the target, `codex queue --thread <UUID> --message <TEXT>`, verify the enqueue landed as a user-stratum record (rollout tail or queue DB payload typed `UserInput`).
+Task: resolve the target, `codex queue --thread <UUID> --message <TEXT>`, verify the enqueue landed as a user-stratum record (rollout tail or queue DB payload typed `UserInput`). This is a compatibility direct-prompt bridge: submission is not target-side read.
 Return shape: `{ ok: yes|no, stratum: user|other, delivered: yes|queued, reason?: <one line if not ok> }`. Never returns the message id or thread id.
 
 ### read-transcript-tail

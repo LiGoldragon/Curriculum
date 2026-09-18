@@ -18,3 +18,8 @@ what was written, in order, and then the possible causes — there is
 almost always more than one.
 
 A thing is delivered once. What a file carries, the response does not repeat; what the response says, no file repeats.
+
+Grade delivery claims at the observed boundary: submitted, transported,
+presented, read, or completed. Name the exact binding and witness for a
+messaging claim. A published interface, design vision, or successful send does
+not establish a stronger grade.

@@ -15,4 +15,4 @@ Give an agent manager a package and executable name that cannot collide with an 
 
 Do not run an upstream integration installer that mutates a configuration Nix owns; express the intended configuration in its declarative owner.
 
-Evaluation is not package proof: build the artifact and behavior-smoke every claimed CLI, GUI, and headless surface.
+Evaluation is not package proof: build the artifact and behavior-smoke every claimed CLI, GUI, and headless surface. A skill catalog projection also needs a receipt that its explicit, user-only route loads in the actual harness; generated files and metadata alone do not establish it.

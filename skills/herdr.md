@@ -26,10 +26,15 @@ Herdr's own top-level verbs, by shape:
 To learn what a subcommand does before using it, always run
 `herdr <sub> --help` — never guess by name.
 
-Herdr is the substrate the message CLI and the flow CLI will ride
-on. Do not reinvent multiplexer plumbing. The tier-priority
-messaging system (hard abrupt / middle / soft) delivers its bytes
-through herdr's existing pane + notification + agent APIs.
+Herdr is the transport substrate on which the message CLI and flow CLI
+will ride. Do not reinvent multiplexer plumbing. The tier-priority
+messaging system (hard abrupt / middle / soft) will deliver its bytes
+through Herdr's existing pane, notification, and agent APIs when that
+route is implemented and witnessed.
+
+Herdr is transport, not a message receipt store, Flow identity resolver, or
+central messenger. Follow the `messaging` skill for the operational layer and
+receipt grade; do not rename the tool to fit a future component.
 
 Common failure mode: searching for the spelling "herder" and
 concluding the tool does not exist. It does. The tool is `herdr`.

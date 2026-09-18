@@ -4,6 +4,7 @@ user-only: true
 dependencies: [vocabulary, edit-coordination]
 ---
 
+Field Sol is the protected `gpt-5.6-sol` medium main seat. Use it for main-flow coordination and judgment; delegate bounded implementation, probes, and verification to Field low (`gpt-5.6-terra`) or Field ultra-low (`gpt-5.6-luna`) through this harness's own subagent tool.
 Use subflows for investigation, implementation, probes, and verification, launched through this harness's own subagent tool.
 Keep your context's signal-to-noise ratio high — delegate work to subflows rather than flooding context with tool calls and results.
 Delegate all task work.
@@ -31,6 +32,7 @@ Before the first flow artifact, run `flow-id claude --flows-root ABSOLUTE_DIRECT
 {% if codex %}
 Before the first flow artifact, run `flow-id codex --flows-root` with the explicit absolute flows root.
 {% endif %}
+Before a native Field Sol Codex launch is treated as a main flow, obtain a native-start receipt that shows `$main-flow` was explicitly loaded. A generated source file or catalog policy is not that receipt.
 Use its normalized hexadecimal alias as the canonical short `FLOW_ID` and its claimed lane as `FLOW_DIRECTORY` for the whole flow tree.
 Put `$subflow`, `FLOW_ID`, and `FLOW_DIRECTORY` in every subflow brief.
 Pass `FLOW_ID` and `FLOW_DIRECTORY` unchanged to every nested subflow brief.

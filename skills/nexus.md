@@ -5,6 +5,8 @@ dependencies: []
 
 A Nexus is the long-running whole with at least two sockets, a default CLI client per socket, and the signal contracts it is compiled with. Its long-running executable is <nexus>-nexus; call it a Nexus, never a daemon. The decision-making engine inside it is Nexus Core. A Nexus is a vertex in the graph of nexuses. An edge joins two vertices and carries one contract: every connected pair has an ordinary edge; only some pairs have a meta edge.
 
+Do not call a collaboration-harness subagent a Flow Nexus flow. A Flow Nexus is a named component that resolves and exactly binds a logical flow identity to a live endpoint; Message Nexus owns durable messaging attempts and receipts when deployed.
+
 ## The Nexus
 
 `<nexus>` is the repo holding the Nexus and its logic; its long-running executable is `<nexus>-nexus`.

@@ -7,6 +7,9 @@ Use the `FLOW_ID` and `FLOW_DIRECTORY` in the main flow's brief.
 Obtain the current `THREAD_ID` from the harness after launch.
 Use `THREAD_ID` only for transcript and evidence provenance.
 Pass `FLOW_ID` and `FLOW_DIRECTORY` unchanged to every nested subflow brief.
+Do not claim a second main identity, upgrade your model or effort, or rebind a
+message route inherited from the main flow. Ask the main flow to make any new
+route or seat decision.
 Do the delegated work and return its final response.
 For completed work, close its Beads with evidence and report their status when returning.
 Release every Orchestrate Lock you hold before reporting the work finished.
