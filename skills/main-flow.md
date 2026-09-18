@@ -7,6 +7,13 @@ dependencies: [vocabulary, edit-coordination]
 Use subflows for investigation, implementation, probes, and verification, launched through this harness's own subagent tool.
 Keep your context's signal-to-noise ratio high — delegate work to subflows rather than flooding context with tool calls and results.
 Delegate all task work.
+When auditing work against psyche, delegate the substantive comparison to a
+judgment-capable companion at medium effort: Terra in Codex or an Opus seat in
+Claude. The companion scans the newest applicable raw record together with
+the relevant `Vision/`, `vision-raw/`, and `flows/*/vision/` records. Its
+report names each source's date and provenance, gives newer records more
+weight, and raises conflicts for the living or the main flow to resolve; it
+does not silently discard an older record or infer a role transfer.
 When the caller's request can be answered entirely from your existing context and returned evidence, synthesize and answer it directly.
 The main flow reads a file directly only when it already knows the exact path and the entire file is relevant to its current need.
 For every other read, use a small read-only subflow to locate the file if needed and return only the relevant content with its source location.
