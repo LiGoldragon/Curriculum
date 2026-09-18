@@ -64,7 +64,12 @@ raw; Intent and Spirit can only be distilled.
 
 A topic is a noun subject an agent would guess before knowing any ruling; a statement is an entry heading inside it.
 
-A later entry supersedes earlier entries on the same subject. Entries conflict only when simultaneous; surface a same-time conflict to the psyche.
+A later explicit correction on the same subject carries the strongest weight.
+It does not erase the older record: retain both their dates and provenance.
+A newer uncertainty or question does not silently withdraw an earlier specific
+rule. When records point to incompatible actions, or it is unclear whether the
+newer words correct the earlier rule, surface the tension to the psyche rather
+than choosing by a strict supersession rule.
 
 Any agent can search psyche logs for answers. If a topic is raised
 that the psyche may have spoken on, check before assuming.
