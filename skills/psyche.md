@@ -25,6 +25,20 @@ words. Do not paraphrase without the psyche reviewing the result.
 Where psyche lives;
 the living psyche is always called the living psyche, or the living.
 
+Psyche contains Spirit, Intent, Vision, and Notion, in descending authority.
+
+Operational vision skills use the `operational-` prefix and support faster
+iteration with an overview to the living. Testing skills use `testing-`.
+Pure vision skills use neither prefix. Distilled vision preserves references
+to its supporting raw records; archived records retain their original words
+and provenance.
+
+Psyche data belongs in a dedicated repository symlinked into Primary. Primary
+Next begins from Primary's root commit and carries selected repository mounting
+points plus a README and AGENTS.md explaining those relationships. Orchestrate
+coordinates concurrent work across those repositories. This is a target shape,
+not authorization to migrate data or rewrite history.
+
 ## Four levels
 
 Descending authority:
