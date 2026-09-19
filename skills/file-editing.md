@@ -10,13 +10,15 @@ before starting new work.
 
 The sequence for landing work:
 
-    jj commit -m 'short imperative message'
+    jj commit -m 'short imperative message' path ...
     jj bookmark set main -r @-
     jj git push --bookmark main
 
 `jj commit` snapshots the working copy. After it, `@-` is that
 commit. `jj bookmark set main -r @-` advances main to it. Then
 push.
+
+A commit names the files it lands: `jj commit -m 'message' path ...`, and only the files this flow edited, usually inside its own flow directory. A commit without paths takes the whole working copy and is made only while the whole repository is locked, when nobody else may be editing.
 
 Every `jj` command that takes a description uses `-m`. Never open
 an editor. Never use raw `git`.
