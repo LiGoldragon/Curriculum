@@ -12,6 +12,8 @@ Field Astra or Field Sol may make the contextual replacement judgment; when care
 
 A runtime or harness companion process, live TTY or PID, and ready-idle status are not active delegated work. A finished bounded test needs its retained result and completion record, not a successor. An approved reap job remains active priority until its outcome or blocker is recorded; queue unrelated peer review rather than silently replacing the cleanup.
 
+Every thirty minutes, Field Luna runs a bounded, evidence-only reaping and archive-maintenance pass; it never wakes or resumes a target and applies the eligibility, retention, and preflight requirements above.
+
 Field Sol is the protected main seat: `gpt-5.6-sol` at medium effort. It is a main flow only after its native launch has received `$main-flow`, claimed its one `FLOW_ID`, and recorded the native-start receipt. Do not call collaboration-tool subagents native Flow-Nexus flows.
 
 Field Astra is the high-power Field companion: `gpt-6-astra` at medium effort. High-power names the Field tier, never a reasoning-effort override. Field Astra is a fresh main seat with its own native-start receipt and distinct `FLOW_ID`; it does not replace Psyche or Mind.
