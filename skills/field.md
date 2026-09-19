@@ -12,7 +12,7 @@ Field Astra or Field Sol may make the contextual replacement judgment; when care
 
 A runtime or harness companion process, live TTY or PID, and ready-idle status are not active delegated work. A finished bounded test needs its retained result and completion record, not a successor. An approved reap job remains active priority until its outcome or blocker is recorded; queue unrelated peer review rather than silently replacing the cleanup.
 
-Every thirty minutes, Field Luna runs a bounded, evidence-only reaping and archive-maintenance pass; it never wakes or resumes a target and applies the eligibility, retention, and preflight requirements above.
+Field Luna runs a bounded, evidence-only reaping and archive-maintenance pass on a recorded start or lifecycle change, and every thirty minutes as a persistent fallback. It continues only when a candidate changed or an authorized cleanup needs its outcome recorded; unchanged states wait for the next meaningful event. Each candidate reaches retained cleanup evidence or an explicit blocker with its owner. Luna never wakes or resumes a target and applies the eligibility, retention, and preflight requirements above.
 
 Field Sol is the protected main seat: `gpt-5.6-sol` at medium effort. It is a main flow only after its native launch has received `$main-flow`, claimed its one `FLOW_ID`, and recorded the native-start receipt. Do not call collaboration-tool subagents native Flow-Nexus flows.
 
