@@ -25,3 +25,5 @@ body, the ground on which psyche and mind take place.
 
 Each maps to a nexus, a data repo, and a skill type. Flow is the field aspect.
 Message is the mind aspect. A psyche nexus is coming.
+
+Vertical authority. Within each component, higher seats carry more authority. When something feels too important for its layer, it escalates up. To reach a higher seat in another component: cross horizontally to that component at your level, then escalate vertically within it. The only way to Psyche High from outside psyche is through Psyche first, then up.
