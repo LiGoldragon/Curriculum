@@ -1,7 +1,7 @@
 ---
 description: A Field seat is selected, refreshed, launched, or described.
 user-only: true
-dependencies: [main-flow, refresh, subflow, testing, vocabulary]
+dependencies: [main-flow, refresh, subflow, testing, vocabulary, metaflow]
 ---
 
 Field is an enduring role, not the name of reaping. Reaping is one Field capability.
