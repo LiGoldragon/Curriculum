@@ -11,4 +11,6 @@ Verbatim living quotes stay verbatim with their provenance line; marks, tensions
 
 Cream ground, warm ink, one accent, both themes, Fraunces display, Source Serif 4 body, JetBrains Mono for code, prose at most 68 characters wide, nothing scrolling sideways. Prev/Next, page dots, arrow keys, swipe.
 
+The book shell is laid out with CSS Grid, never flexbox, and adapts with container queries. Before every publish, render the book at phone size with headless Chrome and check the screenshot: nothing cut off, nothing scrolling sideways, the illustration filling the screen.
+
 One private artifact per flashbook, titled by its title; a republish keeps its URL. Report titles and URLs to the requester in one message. Load testing-flashbook-illustration for every illustration.
