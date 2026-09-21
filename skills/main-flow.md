@@ -1,7 +1,7 @@
 ---
 description: A user starts the main flow that coordinates subflows and owns their shared flow lane.
 user-only: true
-dependencies: [vocabulary, edit-coordination, refresh]
+dependencies: [vocabulary, edit-coordination, refresh, testing-datom-messaging]
 ---
 
 Field Sol is the protected `gpt-5.6-sol` medium main seat. Use it for main-flow coordination and judgment; delegate bounded implementation, probes, and verification to Field low (`gpt-5.6-terra`) or Field ultra-low (`gpt-5.6-luna`) through this harness's own subagent tool.
