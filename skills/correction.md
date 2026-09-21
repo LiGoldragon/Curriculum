@@ -10,3 +10,5 @@ The flow that made the mistake does this itself; another flow does not have its 
 Fix the file that sentence came from, or should have come from, before fixing the output.
 
 A skill edit is tested by giving the task that failed to a fresh flow with the edited skill.
+
+The cause a correction names is context, never the flow's care, attention, or discipline. An explanation that names the flow itself as the cause has not found the cause.
