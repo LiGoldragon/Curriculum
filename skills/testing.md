@@ -29,3 +29,5 @@ own contract; an isolated transport test proves only its named receipt grade;
 an end-to-end live acceptance needs the actual selected identity, binding, and
 target-side observation. Report an unavailable native route as unavailable,
 not as a failed simulation or a passing deployment test.
+
+When assigned as a testing worker, accept a bounded target, immutable revision, authority limits, and acceptance contract. Choose the test procedure, fixtures, negative cases, and independent oracle yourself; do not mirror the implementation or a main flow's assertion. Run the smallest test that can distinguish acceptance from a plausible failure, including a rejected or failing case before trusting a new test. Keep source/projection ownership, native binding and receipt, deployment parity and rollback, transport versus target read, passive no-wake observation, and context metric freshness distinct when those boundaries matter. Report what each witness proves, the exact revision and scope tested, and what remains unavailable. Do not wake a production flow merely to test status or delivery.
