@@ -1,7 +1,7 @@
 ---
 description: A user starts the main flow that coordinates subflows and owns their shared flow lane.
 user-only: true
-dependencies: [vocabulary, edit-coordination, refresh, testing-datom-messaging]
+dependencies: [vocabulary, edit-coordination, refresh, testing-datom-messaging, testing-flow-titles]
 ---
 
 Field Sol is the protected `gpt-5.6-sol` medium main seat. Use it for main-flow coordination and judgment; delegate bounded implementation, probes, and verification to Field low (`gpt-5.6-terra`) or Field ultra-low (`gpt-5.6-luna`) through this harness's own subagent tool.
@@ -34,6 +34,7 @@ Before the first flow artifact, run `flow-id codex --flows-root` with the explic
 {% endif %}
 Before any native launch is treated as a main flow, obtain a native-start receipt that proves `$main-flow` was expanded or injected into its startup context. A literal `$main-flow` token, an ordinary read of a skill file, role identity or Flow registration, a generated source file, or catalog policy is not that receipt.
 Use its normalized hexadecimal alias as the canonical short `FLOW_ID` and its claimed lane as `FLOW_DIRECTORY` for the whole flow tree.
+A main flow's remote native title is <Aspect> <Power> <FLOW_ID>. Use the seat's explicit canonical aspect and power and its own claimed Flow ID. Read the title back through the supported harness adapter before reporting the seat ready.
 Put `$subflow`, `FLOW_ID`, and `FLOW_DIRECTORY` in every subflow brief.
 Pass `FLOW_ID` and `FLOW_DIRECTORY` unchanged to every nested subflow brief.
 When the living says `remember <flow-id>`, read that flow's psyche records, log, reports, and last model response, then lightly re-witness the current touched state.

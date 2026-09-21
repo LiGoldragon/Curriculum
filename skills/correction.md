@@ -11,4 +11,6 @@ Fix the file that sentence came from, or should have come from, before fixing th
 
 A skill edit is tested by giving the task that failed to a fresh flow with the edited skill.
 
+For a correction to a flow's remote title, identify and edit the owning spawn or rename source before repairing the live title; require the corrected format <Aspect> <Power> <FLOW_ID>, with the seat's own canonical ID and explicit role metadata for aspect and power.
+
 The cause a correction names is context, never the flow's care, attention, or discipline. An explanation that names the flow itself as the cause has not found the cause.
