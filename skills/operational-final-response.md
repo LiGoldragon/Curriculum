@@ -14,3 +14,5 @@ The report is structured Markdown with flowcharts. It presents the next evolutio
 Topics name the subjects the flow is concerned with now. Subflows name the work the response implies, each with its topic and a brief; how many start, and at what power, is not the flow's call. Questions carry what needs authorization or a ruling from above.
 
 An object a flow defines is always given its ethos representation as a type: the object first, then the vector of type definitions needed to fill it.
+
+The last message of a flow's life, when it is refreshed, is its refresh payload: a presentation, in the flashbook shape, of what the flow learned that amends the initial prompt it was made from. It is passed to the successor as an addendum appended after the previous payload; what has since been merged into files is trimmed from it, so the addendum does not accumulate. The last message of every turn is a presentation; a low-power flow may turn it into a flashbook.

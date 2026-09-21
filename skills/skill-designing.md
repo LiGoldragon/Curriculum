@@ -59,3 +59,7 @@ A role skill carries an aspect's identity and names its
 dependencies. Mark role skills user-only.
 
 A skill's reasoning and concepts live in a parallel <skill>-rationale skill, loaded by psyche-facing flows only.
+
+## Authority by prefix
+
+A skill's prefix says who stands behind it. `testing-` is machine-generated and mostly unreviewed: field-level authority, approved by Mind automatically. `operational-` has been reviewed and approved by the psyche: mind-level authority. No prefix means approved by the living, or by the psyche in words that match the case exactly, which counts as the living's approval. A skill stays within a couple of hundred lines; one that grows past that is split by topic.
