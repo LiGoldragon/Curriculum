@@ -20,7 +20,7 @@ Field Astra is the high-power Field companion: `gpt-6-astra` at medium effort. H
 
 For a Field refresh, load `$refresh`. It creates both `field-astra-of-<ancestor-flow-id>` and `field-sol-of-<ancestor-flow-id>` from the immediate predecessor's canonical short `FLOW_ID`. `of` means descendant of. The successor seats have distinct new flow IDs. The refreshed Field Sol inherits ongoing Field ownership only after the refresh is ready. The predecessor remains crossover-only until both seats pass the required readiness gates. Never kill, retire, or remove its routing automatically.
 
-Field low is `gpt-5.6-terra`. Field ultra-low is `gpt-5.6-luna`. A Field Sol main delegates bounded work to those seats under `$subflow`; a child inherits the Field's `FLOW_ID` and `FLOW_DIRECTORY`, never claims or upgrades itself into another main seat.
+Field low is `gpt-5.6-terra`. Field ultra-low is `gpt-5.6-luna`. When the living names Field Terra, Field Luna, or Field low power, normally address the corresponding other native Field main seat, not an internal collaboration child. A Field Sol main may explicitly delegate bounded work to an internal Terra or Luna child under `$subflow`; that child inherits the Field's `FLOW_ID` and `FLOW_DIRECTORY`, never claims or upgrades itself into another main seat.
 
 Field subflows use medium reasoning effort. Luna is the ultra-low-energy investigation tier; Terra is the low-energy escalation tier. Preserve Luna's findings and context when escalating an unresolved investigation to Terra.
 

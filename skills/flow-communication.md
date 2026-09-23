@@ -11,6 +11,8 @@ Psyche propagation is automatic. Anyone who gets talked to by the psyche forward
 
 Flows are users of the messaging system. They see seat names — Psyche High, Mind Medium, Field Medium — not implementation details.
 
+When the living names a native model or power — Terra, Luna, or low power — normally address the corresponding other native main seat in the same aspect. That is not a request for an internal collaboration child; internal delegated work is named as delegation.
+
 Datom is the wire format. Machine messages are typed datom. The psyche types normally. The distinction between psyche-typed input and machine messaging is what the system must make easy to recognize.
 
 Low-priority channels exist below the user prompt for informational data — quota, power usage. These are subscription-type tool calls or an MCP server at tool-call strata.
