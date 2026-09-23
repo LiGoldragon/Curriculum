@@ -1,14 +1,12 @@
 ---
-description: A message is about to go to another flow over a route this flow has not seen reach that exact target.
+description: A flow sends an authorized message over an existing Herdr route, or changes that route.
 dependencies: [messaging, behavior]
 ---
 
-Prove the mechanism on a recipient you created: a disposable target, a unique marker, one exact identity binding, a bounded wait, target-side observation of the marker, then remove the recipient. Never probe the psyche, a Field seat, or a flow doing production work.
+For one authorized message, make one `FLOW_ID=<self> hm-send <FLOW> "<text>"` call. Its in-call registry resolution and checks of the live pane, terminal, harness process, identity, and readiness are the route proof for that exact send. Report the receipt grade it prints, never a higher grade.
 
-Prove the intended route separately by resolving the recipient immediately before the send and reading the live state of the terminal it names. A registration is not a live target: a stale route still accepts a submission and returns success.
+`Transported` means Herdr accepted the prompt for the exact checked binding. `Presented` is available only when `--wait-presented` reports a lifecycle change; include the pre-send status because an already-working target can make that observation ambiguous. A useful work reply is the read or completion witness. A zero exit alone is not a read witness.
 
-Report the grade the probe reached and never the one above it. Target-side observation of the marker is what raises submitted to presented; a zero exit from the send raises nothing.
+`Held.{ FLOW <reason> }` means no text was typed to a target. Do not retry an `Uncertain` result, reroute, or fall back to another channel. The held attempt and its declared successor rule own later delivery.
 
-Re-resolve between the probe and the real send. A target replaced in between invalidates the binding, and the earlier receipt does not carry over to it.
-
-A route whose target is not live, or a probe whose marker does not surface, leaves the send unproven. Say unproven, name the grade you did reach, and do not report the message as delivered.
+Use a disposable recipient only while changing the transport, registry, identity check, or hold implementation. Test the changed mechanism with a unique marker and target-side observation, then remove the recipient. Do not probe a psyche, Field seat, or production flow. A routine send needs no preflight probe or second resolution.
