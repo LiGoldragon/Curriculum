@@ -31,7 +31,7 @@ Before the first flow artifact, run `flow-id codex --flows-root` with the explic
 {% endif %}
 Before any native launch is treated as a main flow, obtain a native-start receipt that proves `$main-flow` was expanded or injected into its startup context. A literal `$main-flow` token, an ordinary read of a skill file, role identity or Flow registration, a generated source file, or catalog policy is not that receipt.
 Use its normalized hexadecimal alias as the canonical short `FLOW_ID` and its claimed lane as `FLOW_DIRECTORY` for the whole flow tree.
-A main flow's remote native title is <Aspect> <Power> <FLOW_ID>. Canonical powers are High, Medium, Low, and Ultra Low. Astra and Sol are seat labels, not power values. Use the seat's explicit canonical aspect and power and its own claimed Flow ID. Read the title back through the supported harness adapter before reporting the seat ready.
+A main flow's remote native title is <Aspect> <Model> <FLOW_ID>. Derive the model display from its exact observed model identifier through the authoritative model-display map; refuse an unmapped identifier. For example, the Medium Mind seat on `gpt-5.6-sol` is `Mind Sol <FLOW_ID>`. Its separate typed power remains High, Medium, Low, or Ultra Low and controls behavior, delegation, and routing. Read the model, title, and power declaration back through the supported harness adapter before reporting the seat ready.
 Put `$subflow`, `FLOW_ID`, and `FLOW_DIRECTORY` in every subflow brief.
 Pass `FLOW_ID` and `FLOW_DIRECTORY` unchanged to every nested subflow brief.
 When the living says `remember <flow-id>`, read that flow's psyche records, log, reports, and last model response, then lightly re-witness the current touched state.
