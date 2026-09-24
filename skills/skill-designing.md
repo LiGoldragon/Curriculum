@@ -50,10 +50,10 @@ Target-specific text in a flat source uses `{% if claude %}`, `{% if codex %}`, 
 
 ## Skill types
 
-`user-only: true` — the skill enters only through the user's
-typed prompt; the flow cannot load it. It deploys as
-`disable-model-invocation: true` in Claude Code and as
-$-name-only injection in Codex.
+`user-only: true` — the skill enters only through the user prompt or a
+launcher's first turn; the flow cannot load it. It deploys as
+`disable-model-invocation: true` in Claude Code, and in Codex as a policy
+sidecar beside the skill that withholds it from the skills catalog.
 
 A role skill carries an aspect's identity and names its
 dependencies. Mark role skills user-only.

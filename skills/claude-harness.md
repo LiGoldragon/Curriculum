@@ -24,6 +24,27 @@ injections, skills loaded through the skill interface, and subflow
 briefs. Tool results and the machine's own output are bottom
 stratum.
 
+A skill's frontmatter says who may invoke it.
+`disable-model-invocation: true` withholds it from the model: the name is
+absent from the available-skills listing, and the skill interface refuses
+it. `user-invocable: false` withholds it from the typed command list.
+
+A withheld skill enters through the user prompt. The harness reads a
+leading `/name` from that prompt, expands the skill body itself, and
+delivers it as a middle-stratum message; two records mark the turn, one
+naming the command and one carrying the rest of the prompt as its
+argument. The command is read only at the head of the prompt, up to five
+may stack there, and the first text that is not a command ends the parse,
+so a command written further down a block stays literal. One block of
+startup text carries a skill only when the command is its first token.
+
+A launcher has two other routes into the first turn: a SessionStart hook
+returns `initialUserMessage` or `additionalContext`, or the launcher reads
+the skill file and writes its body into the first prompt.
+
+A subflow receives no startup prompt of its own. It cannot see or load a
+withheld skill; what it must carry belongs in its brief.
+
 The machine reads its system prompt; the living cannot, through
 any channel the harness offers: debug logs, session transcripts,
 JSON output, and verbose mode all omit it. The living witnesses
