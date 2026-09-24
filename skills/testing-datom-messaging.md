@@ -3,9 +3,9 @@ description: A main flow is preparing a machine-origin message for another flow.
 dependencies: [datom, messaging, testing-message-route]
 ---
 
-Send a machine-origin message with `FLOW_ID=<self> hm-send <FLOW> "<body>"`. The relay header is the typed `Machine.Relay` machine envelope. Until the recipient declares a message type for the intended body, the body may be ordinary prose. Do not invent a variant or delay useful authorized work to discover a missing type.
+Datom is sufficient for a machine-origin message. Write one complete Datom value in the recipient's declared root variant and positional form. Do not construct a `Machine.Relay` body, provenance header, wrapper, or a fake variant or field merely for transport.
 
-When the recipient declares a type, write one complete Datom value in that type's required root variant and positional form. Validate it against the declared parser or type before sending, and report that semantic validation separately from the `hm-send` transport grade. Test syntax locally; reserve a disposable recipient for a changed transport mechanism.
+Validate the value against the recipient's declared parser or type before sending, and report that semantic validation separately from the transport grade. When no recipient type exists, establish the type before claiming semantic acceptance; do not replace the missing type with ordinary prose or invented structure. Test syntax locally; reserve a disposable recipient for a changed transport mechanism.
 
 This applies to machine-origin interflow work by main flows. A direct reply to the living remains ordinary prose under its response contract; do not recast the living's words as machine origin.
 

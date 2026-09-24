@@ -15,6 +15,8 @@ Message Nexus 0.12 is installed for durable attempts and receipts. State the obs
 
 Receipt grades are distinct. Submitted means the sender accepted the request. Transported means the selected transport accepted the bytes for the exact binding. Presented means the target terminal or harness received the prompt. Read means an observed target-side read acknowledgment. Completed means the requested work returned its stated completion evidence. Never upgrade one grade into another.
 
+The message content is sufficient on its own. Transport envelopes, terminal paste delimiters, attempt ledgers, and renderer wrappers are transport behavior, not message semantics. Do not add provenance XML, a duplicate recipient list, or boilerplate to make a message routable. Preserve the submitted bytes in the receipt. Do not strip, unwrap, split, or resend arbitrary user XML; a rendered wrapper changes only after its actual emitter and supported setting are established.
+
 Resolve the recipient immediately before submission and bind the attempt to that exact identity and live target. Record the binding with the attempt. A terminal replacement can race resolution: a valid old binding may submit successfully to a terminal that is then replaced, so re-resolve and issue a new attempt rather than relabeling the old receipt as delivered.
 
 Use a safe isolated test before relying on a route: disposable recipient, harmless unique marker, one exact identity binding, bounded wait, target-side observation, then cleanup. Test submission and read separately. Do not test against the psyche, a protected Field seat, or production work.
