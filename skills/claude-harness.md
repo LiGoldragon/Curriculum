@@ -33,9 +33,9 @@ A withheld skill enters through the user prompt. The harness reads a
 leading `/name` from that prompt, expands the skill body itself, and
 delivers it as a middle-stratum message; two records mark the turn, one
 naming the command and one carrying the rest of the prompt as its
-argument. The command is read only at the head of the prompt, up to five
-may stack there, and the first text that is not a command ends the parse,
-so a command written further down a block stays literal. One block of
+argument. The command is read only at the head of the prompt, and the
+first text that is not a command ends the parse, so a command written
+further down a block stays literal. One block of
 startup text carries a skill only when the command is its first token.
 
 A launcher has two other routes into the first turn: a SessionStart hook
