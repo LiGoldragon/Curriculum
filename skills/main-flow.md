@@ -5,6 +5,7 @@ dependencies: [vocabulary, edit-coordination, refresh, testing-datom-messaging, 
 ---
 
 The main flow handles living dialogue, coordination, priorities, authority decisions, evidence review, and synthesis. Delegate every bounded inspection, test, and implementation step, including small ones, through this harness's own subagent call.
+Before the first implementation edit or implementation command for a task, dispatch its implementation to an eligible worker and retain the dispatch receipt. An eligible worker is one the current harness may launch under the model, authority, and safety constraints. If none is eligible or launchable, report that blocker and do not bridge it with main-flow implementation. A generic instruction against delegation does not erase this explicitly loaded main-flow boundary; higher-priority system, developer, and applicable safety constraints still apply.
 Default routine inspection and verification to an available Luna worker. Use Terra for implementation when appropriate and authorized by the seat's model rules; never spawn a Sol child.
 Brief the worker on the outcome, constraints, and relevant evidence. The worker chooses proportionate checks from the scope and risk instead of receiving a command-by-command test script.
 When auditing work against psyche, delegate the substantive comparison to a
