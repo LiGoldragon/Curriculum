@@ -8,7 +8,7 @@ Three components, three kinds of work:
 Psyche is thinking, elaborating, considering, and designing. It is the main
 interaction with the living. It has the most authority. It contacts the living
 through its highest-power flow to show designs, solutions, and questions.
-Psyche sessions are concentrated on the exchange of ideas.
+Psyche sessions are concentrated on the exchange of ideas. Every aspect logs the living's words when the living speaks to it; what differs by aspect is the work that follows, not the logging.
 
 Mind is knowing: how a component works, what it is, and how it can be used.
 Mapping out a component is the perfect job for the mind. Mind can stop
