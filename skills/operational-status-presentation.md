@@ -15,7 +15,7 @@ A PsycheRecord is a psyche record the flow is working with. Its Source is writte
 
 A Question is what the flow would like to know, explained on a concrete example from its own work.
 
-The living's words are quoted verbatim. No digest, revision, or id appears except a short flow id. The whole datom stays under 8 KB and is passed directly as the body of one message: `FLOW_ID=<self> hm-send <Psyche High> '<datom>'`. HM constructs the outer `#msg` envelope; do not include it in the body.
+The living's words are quoted verbatim. No digest, revision, or id appears except a short flow id. The whole datom stays under 8 KB and is passed directly as the body of one message: `FLOW_ID=<self> hm-send <Psyche High> '<datom>'`.
 
 ## A Mind flow
 

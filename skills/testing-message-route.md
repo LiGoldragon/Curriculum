@@ -3,7 +3,7 @@ description: A flow sends an authorized message over an existing Herdr route, or
 dependencies: [messaging, behavior]
 ---
 
-For one authorized message, make one `FLOW_ID=<self> hm-send <FLOW> "<text>"` call with the body only. HM constructs the one-line `#msg` envelope and records the recipient and exact route in Datalevin. Its in-call registry resolution and checks of the live pane, terminal, harness process, identity, and readiness are the route proof for that exact send. Report the receipt grade it prints, never a higher grade.
+For one authorized message, make one `FLOW_ID=<self> hm-send <FLOW> "<text>"` call with the body only. Its in-call registry resolution and checks of the live pane, terminal, harness process, identity, and readiness are the route proof for that exact send. Report the receipt grade it prints, never a higher grade.
 
 `Transported` means Herdr accepted the prompt for the exact checked binding. `Presented` is available only when `--wait-presented` reports a lifecycle change; include the pre-send status because an already-working target can make that observation ambiguous. A useful work reply is the read or completion witness. A zero exit alone is not a read witness.
 
