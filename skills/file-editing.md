@@ -20,6 +20,8 @@ push.
 
 A commit names the files it lands: `jj commit -m 'message' path ...`, and only the files this flow edited, usually inside its own flow directory. A commit without paths takes the whole working copy and is made only while the whole repository is locked, when nobody else may be editing.
 
+`field-clj 'commit ["message" ["path" ...]]'` runs this landing under one rule: it commits exactly the named paths, leaves other dirty paths uncommitted, and refuses when a named path is clean or when `jj diff -r @- --name-only` differs from the named set.
+
 Every `jj` command that takes a description uses `-m`. Never open
 an editor. Never use raw `git`.
 
