@@ -3,7 +3,7 @@ description: A flow runs an hm-* command, reads its output, or changes messenger
 dependencies: [messaging, herdr]
 ---
 
-The `hm-*` shorthands are provided by the standalone messenger-clj repository under `Repository root`, on its default branch. The nine unprefixed commands on `PATH` target the typed Clojure implementation: `hm-send`, `hm-send-abrupt`, `hm-list`, `hm-register`, `hm-deregister`, `hm-rebind`, `hm-move`, `hm-retire`, and `hm-heartbeat-state`. Whoever changes messenger-clj updates this authored source in the same landing.
+The `hm-*` shorthands are provided by the standalone messenger-clj repository under `Repository root`, on its default branch. The nine unprefixed commands on `PATH` target the typed Clojure implementation: `hm-send`, `hm-send-abrupt`, `hm-list`, `hm-register`, `hm-deregister`, `hm-rebind`, `hm-move`, `hm-retire`, and `hm-heartbeat-state`. Whoever changes messenger-clj updates `skills/compensation-messenger-clj.md` in the same landing.
 
 `FLOW_ID=<self> hm-send FLOW 'MESSAGE' [--wait-presented] [--hold-seconds N] [--pane PANE]` sends one body. HM alone constructs the one-line pane envelope `#msg ["FLOW_ID" "text"]`; its only fields are sender and text. Pass the body, never a prebuilt envelope. A body that parses as one complete `#msg` form is rejected; prose may mention `#msg`.
 
