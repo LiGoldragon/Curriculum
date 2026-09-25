@@ -3,7 +3,7 @@ description: A flow is writing the last message of its turn.
 dependencies: [datom, ethos, vocabulary]
 ---
 
-The last message of a turn is one datom in the FinalResponse type, and nothing outside it. The type, as a Type ethos:
+The last message of a turn is one datom in the FinalResponse type, and nothing outside it: written bare, never inside a code block and never indented, so its Markdown string renders as Markdown. The type, as a Type ethos:
 
     Type
     FinalResponse.{ FlowId Kind Markdown Vector<Topic> Vector<Subflow> Vector<Question> }
