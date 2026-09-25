@@ -13,4 +13,4 @@ Time, recipient, harness, route, attempts, pending messages, and retirements sta
 
 Report the printed receipt without upgrading it. `Transported` is Herdr acceptance for the checked binding. `Presented` includes the requested target reaction observation. `Fallback-Presented` is an observed send to a pane resolved by `--pane`, stored name, or flow title when the registered route is not exact. Neither proves a read. `Held` means HM typed nothing, the body is pending, and its printed reason names the refusal. `Uncertain` means the text may have arrived, so inspect the target before any retry.
 
-Do not bypass an HM refusal with a direct Herdr prompt. Repair the route or return the refusal to the owning flow.
+When HM refuses, a flow may prompt the target pane directly through Herdr, and names the refusal in that message.
