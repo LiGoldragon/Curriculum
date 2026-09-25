@@ -7,7 +7,7 @@ Name the layer before claiming delivery.
 
 Herdr 0.8.2 is the live terminal-workspace transport. It can inject into a running terminal through its own witnessed APIs; it is not durable message storage or identity resolution.
 
-Hacky Messenger is the live compatibility bridge: it resolves a running target and directly prompts it through Herdr. A successful submission is not a read receipt. It is a bridge, not Flow Nexus or Message Nexus.
+Hacky Messenger is the live compatibility bridge: its typed Clojure implementation resolves a running target and prompts it through Herdr. The pane receives one line, `#msg ["FLOW_ID" "text"]`, containing only sender and body. Datalevin keeps the recipient, time, harness, route, attempts, pending messages, and retirements. A successful submission is not a read receipt. It is a bridge, not Flow Nexus or Message Nexus.
 
 Flow Nexus 0.3 is the identity and resolution design: it binds the exact logical flow identity to the exact live target. It does not itself prove transport or durable delivery.
 
@@ -15,7 +15,7 @@ Message Nexus 0.12 is installed for durable attempts and receipts. State the obs
 
 Receipt grades are distinct. Submitted means the sender accepted the request. Transported means the selected transport accepted the bytes for the exact binding. Presented means the target terminal or harness received the prompt. Read means an observed target-side read acknowledgment. Completed means the requested work returned its stated completion evidence. Never upgrade one grade into another.
 
-The message content is sufficient on its own. Transport envelopes, terminal paste delimiters, attempt ledgers, and renderer wrappers are transport behavior, not message semantics. Do not add provenance XML, a duplicate recipient list, or boilerplate to make a message routable. Preserve the submitted bytes in the receipt. Do not strip, unwrap, split, or resend arbitrary user XML; a rendered wrapper changes only after its actual emitter and supported setting are established.
+The message content is sufficient on its own. Give `hm-send` the body and let HM construct the envelope. Never nest a complete `#msg` form as the body; an ordinary prose mention of `#msg` is allowed. Transport envelopes, terminal paste delimiters, attempt ledgers, and renderer wrappers are transport behavior, not message semantics. Do not add provenance XML, a duplicate recipient list, or boilerplate to make a message routable.
 
 Resolve the recipient immediately before submission and bind the attempt to that exact identity and live target. Record the binding with the attempt. A terminal replacement can race resolution: a valid old binding may submit successfully to a terminal that is then replaced, so re-resolve and issue a new attempt rather than relabeling the old receipt as delivered.
 

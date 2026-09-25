@@ -1,65 +1,16 @@
 ---
-description: A flow runs hm-send, hm-send-abrupt, hm-list, hm-register, hm-rebind, hm-move or hm-retire, reads what one of them printed, or changes Hacky Messenger (HM) itself.
+description: A flow runs an hm-* command, reads its output, or changes Hacky Messenger.
 dependencies: [messaging, herdr]
 ---
 
-HM's source is the HackyMessenger repository under `Repository root`; the `hm-*` commands on `PATH` are links into its `bin/`. Whoever changes HM updates `skills/compensation-hacky-messenger.md` in Curriculum in the same landing.
+HM's live source is the `clojure` branch of the HackyMessenger repository under `Repository root`. The eight unprefixed commands on `PATH` target the typed Clojure implementation: `hm-send`, `hm-send-abrupt`, `hm-list`, `hm-register`, `hm-deregister`, `hm-rebind`, `hm-move`, and `hm-retire`. Whoever changes HM updates this authored source in the same landing.
 
-## Commands
+`FLOW_ID=<self> hm-send FLOW 'MESSAGE' [--wait-presented] [--hold-seconds N]` sends one body. HM alone constructs the one-line pane envelope `#msg ["FLOW_ID" "text"]`; its only fields are sender and text. Pass the body, never a prebuilt envelope. A body that parses as one complete `#msg` form is rejected; prose may mention `#msg`.
 
-`FLOW_ID=<self> hm-send FLOW 'MESSAGE' [--wait-presented] [--hold-seconds N]` prompts the pane registered to FLOW with the message in a `Machine.Relay` envelope. The message is one shell argument: nonempty, at most 64 KiB, no control characters except newline and tab. A missing or in-transition registration is waited for up to N seconds (0 to 60, default 10).
+Time, recipient, harness, route, attempts, pending messages, and retirements stay in the typed Datalevin ledger. The state root is `HM_REGISTRY` or the installed default. Long bodies are stored under the sender's flow directory and the pane receives a short file pointer inside the same envelope.
 
-`hm-send-abrupt` takes the same arguments and interrupts the turn first: one Escape for Codex; two Escapes for Claude, then Enter after the prompt. Text already in the input box is not cleared and joins the message.
+`hm-send-abrupt` takes the send arguments and interrupts the active turn first. `hm-list` prints live and stale registrations. `hm-register`, `hm-deregister`, `hm-rebind`, `hm-move`, and `hm-retire` mutate one exact typed route or retirement; follow their required identity arguments and refusal output. The `hm-clj-` maintenance commands are not ordinary send commands.
 
-`hm-list` prints `FLOW AGENT SESSION STATE` for every live Herdr agent (`-` for no registered Flow), then each registered Flow with no live agent as `STALE`.
+Report the printed receipt without upgrading it. `Transported` is Herdr acceptance for the checked binding; `Presented` includes the requested target reaction observation; neither proves a read. `Held` means HM typed nothing. `Uncertain` means the text may have arrived, so inspect the target before any retry.
 
-`hm-register FLOW AGENT_NAME [--session S] [--native-thread T] [--readiness-probe MARKER --rollout TRANSCRIPT]` binds FLOW to the one live agent of that name. It refuses a Flow bound to another terminal, a retired native thread, and a held route.
-
-`hm-rebind FLOW NEW_NAME --old-name --session --pane-id --terminal-id --agent --native-thread` renames an otherwise unchanged route.
-
-`hm-move FLOW DEST_WORKSPACE --session --pane-id --terminal-id --name --agent --native-thread --process-pid` moves the pane to a new tab under a route hold and follows its new pane ID.
-
-`hm-retire FLOW --session --pane-id --terminal-id --name --agent --native-thread --evidence RECEIPT --evidence-sha256 SHA` blocks every later send to FLOW and registration of that native thread.
-
-`python3 hm.py deregister FLOW --session --pane-id --terminal-id --name` removes a registration as route repair; it does not retire the Flow. `hm.py import-retirement` takes `hm-retire`'s arguments after a witnessed deregistration.
-
-## Plain delivery
-
-The full text Herdr types into the pane — the `Machine.Relay` header plus
-the body — is kept to one line of 800 characters or less, because Claude
-Code wraps a submission in a `<pasted_content id=...>` box once it is a
-single line over 800 characters or has 4 or more lines (witnessed in
-`flows/e51411/reports/pasted-content-threshold.md`); up to 3 lines, or a
-single line of up to 800 characters, arrives plain. A short body with
-embedded newlines is collapsed onto one line first. A body that still
-would not fit — too long even collapsed, or already 4+ lines — is written
-instead to `<sender's flow directory>/messages/<time>-<recipient>.md`
-(the sender's flow directory the way `hm.py` already resolves it from
-`FLOW_ID`, under `HM_PRIMARY_ROOT`, default `~/primary`), and the pane
-receives one short line in its place: the `Machine.Relay` header plus
-`Message too long for a pane; read <path> in full.`.
-
-## Receipts
-
-`Transported.{ FLOW STATUS }` on stdout: Herdr accepted the prompt for the exact binding.
-`Presented.{ FLOW STATUS }` with `--wait-presented`: Herdr also saw the pane react within five seconds.
-Neither is a read receipt.
-`Held.{ FLOW REASON attempt-ID }` on stderr, exit 1: nothing was typed. REASON is `NotRegistered`, `InTransition`, `RouteHold`, `PaneMissing`, `IdentityChanged`, `ProcessMismatch`, `NotReady`, `Blocked`, or `Uncertain` (agent status not idle, working or done). `Held` after `NotRegistered` or `InTransition` keeps the text in the registry's `pending/`.
-`Held.{ FLOW Stalled ... }` with `--wait-presented`: Herdr reported the prompt stalled; the text may be in the pane.
-`hm: Uncertain.{ FLOW attempt-ID } ...`: the prompt failed or the pane changed after it; the text may have arrived. Look at the pane before sending again.
-Any other `hm: ...` line is a refusal before anything was typed.
-
-## Registration on this Herdr
-
-When `herdr agent get PANE` shows no `interactive_ready: true`, plain `hm-register` refuses with "Agent is not interactively ready". Register with the probe:
-
-    FLOW_ID=FLOW hm-register FLOW AGENT_NAME --session messaging-build \
-      --native-thread EXACT_SESSION_ID \
-      --readiness-probe HM_READY_FLOW_YYYYMMDD_HHMM \
-      --rollout TRANSCRIPT_JSONL
-
-The probe prompts the pane to reply with the marker and waits about five seconds for that exact reply from the same native thread in TRANSCRIPT_JSONL: the Claude transcript `Claude transcript root/<project>/<session>.jsonl` or the Codex rollout under `Codex transcript root`. The marker matches `HM_READY_[A-Za-z0-9_-]{8,96}` and is new each time. A Herdr `agent_not_ready` refusal while the pane shows `launch_pending` clears by itself; wait and register again.
-
-## When a send fails
-
-A pane may be prompted directly when `hm-send` fails: `herdr --session SESSION agent prompt PANE 'TEXT'`, with SESSION and PANE read from `hm-list` and `herdr agent list`. Report Herdr's reply as the grade, not an HM receipt.
+Do not bypass an HM refusal with a direct Herdr prompt. Repair the route or return the refusal to the owning flow.

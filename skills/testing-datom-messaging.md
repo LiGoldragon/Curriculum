@@ -3,7 +3,7 @@ description: A main flow is preparing a machine-origin message for another flow.
 dependencies: [datom, messaging, testing-message-route]
 ---
 
-Datom is sufficient for a machine-origin message. Write one complete Datom value in the recipient's declared root variant and positional form. Do not construct a `Machine.Relay` body, provenance header, wrapper, or a fake variant or field merely for transport.
+Datom is sufficient for a machine-origin message. Write one complete Datom value in the recipient's declared root variant and positional form, and pass that value itself as the HM body. HM constructs `#msg ["FLOW_ID" "text"]`; do not construct that transport envelope, a provenance header, or a fake variant or field. A complete `#msg` body is forbidden nesting, while prose that mentions `#msg` remains ordinary message text.
 
 Validate the value against the recipient's declared parser or type before sending, and report that semantic validation separately from the transport grade. When no recipient type exists, establish the type before claiming semantic acceptance; do not replace the missing type with ordinary prose or invented structure. Test syntax locally; reserve a disposable recipient for a changed transport mechanism.
 
