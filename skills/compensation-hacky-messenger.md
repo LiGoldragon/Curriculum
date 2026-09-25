@@ -1,9 +1,9 @@
 ---
-description: A flow runs hm-send, hm-send-abrupt, hm-list, hm-register, hm-rebind, hm-move or hm-retire, reads what one of them printed, or changes Hacking Messenger (HM) itself.
+description: A flow runs hm-send, hm-send-abrupt, hm-list, hm-register, hm-rebind, hm-move or hm-retire, reads what one of them printed, or changes Hacky Messenger (HM) itself.
 dependencies: [messaging, herdr]
 ---
 
-HM's source is the HackingMessenger repository under `Repository root`; the `hm-*` commands on `PATH` are links into its `bin/`. Whoever changes HM updates `skills/compensation-hacking-messenger.md` in Curriculum in the same landing.
+HM's source is the HackyMessenger repository under `Repository root`; the `hm-*` commands on `PATH` are links into its `bin/`. Whoever changes HM updates `skills/compensation-hacky-messenger.md` in Curriculum in the same landing.
 
 ## Commands
 
