@@ -20,7 +20,7 @@ push.
 
 A commit names the files it lands: `jj commit -m 'message' path ...`, and only the files this flow edited, usually inside its own flow directory. A commit without paths takes the whole working copy and is made only while the whole repository is locked, when nobody else may be editing.
 
-`field-clj 'commit ["message" ["path" ...]]'` runs this landing under one rule: it commits exactly the named paths, leaves other dirty paths uncommitted, and refuses when a named path is clean or when `jj diff -r @- --name-only` differs from the named set.
+FLOW_ID=<id> field-clj '#commit ["message" ["path" ...]]' runs this landing under one rule: it commits exactly the named repository-relative paths with a `Flow: <id>` trailer, leaves other dirty paths uncommitted, refuses when `FLOW_ID` is unset, when a named path is clean, or when `jj diff -r @- --name-only` differs from the named set, and prints one positional variant, `#success [flow commit [path ...] :main :pushed :present]` or `#refused …`.
 
 Every `jj` command that takes a description uses `-m`. Never open
 an editor. Never use raw `git`.
