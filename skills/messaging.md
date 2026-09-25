@@ -7,7 +7,7 @@ Name the layer before claiming delivery.
 
 Herdr 0.8.2 is the live terminal-workspace transport. It can inject into a running terminal through its own witnessed APIs; it is not durable message storage or identity resolution.
 
-Hacky Messenger is the live compatibility bridge: it resolves a running target and prompts it through Herdr. A successful submission is not a read receipt.
+messenger-clj is the live compatibility bridge behind the `hm-*` command shorthands: it resolves a running target and prompts it through Herdr. A successful submission is not a read receipt.
 
 Flow Nexus 0.3 is the identity and resolution design: it binds the exact logical flow identity to the exact live target. It does not itself prove transport or durable delivery.
 
