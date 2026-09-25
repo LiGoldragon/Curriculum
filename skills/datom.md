@@ -39,9 +39,13 @@ Observed.Locks.[]                            ; the Observed variant, its Locks v
 The descent into a composition is the datom's act, written once. What only the type can supply, its positions in order, is stated by the type through the derive, so arity, budget and locus live in one place and no type repeats them.
 
 ```rust
-pub trait Composable { fn compose<T: Compositional>(&self, budget: &mut Budget) -> Result<T, Error>; }
-pub trait Compositional: Sized { fn compose(datom: &Datom, budget: &mut Budget) -> Result<Self, Error>; }
-pub trait Datomizable { type Output; fn datomize(&self, at: Path) -> Self::Output; }
+pub trait Composable {
+    fn compose<T: Composing>(&self, budget: &mut Budget) -> Result<T, Error>;
+    fn compose_positions<T: Compositional>(&self, budget: &mut Budget) -> Result<T, Error>;
+}
+pub trait Composing: Sized { fn compose(datom: &Datom, budget: &mut Budget) -> Result<Self, Error>; }
+pub trait Compositional: Composing { const ARITY: Integer; fn from_positions(positions: Positions<'_>) -> Result<Self, Error>; }
+pub trait Datomizable { fn datomize(&self, at: Path) -> Datom; }
 ```
 
 ## Any Rust type
@@ -49,18 +53,21 @@ pub trait Datomizable { type Output; fn datomize(&self, at: Path) -> Self::Outpu
 Any Rust type bears the two kinds through datom-codec's derive, with no attributes, because datom is structural all the way down: field order is position order, a field's type is the position's type, a bare variant carries nothing, a single-field variant carries its type's own form, a multi-field variant carries an inline struct. Hand-written impls are reserved to the intrinsics.
 
 ```rust
-#[derive(datom_codec::Datomizable, datom_codec::Compositional)]
+#[derive(datom_codec::Datomizable, datom_codec::Composing)]
 pub struct Locus { pub path: Path, pub extent: Extent }
 
-impl Compositional for Locus {                              // generated
+impl Compositional for Locus {                              // generated: the positions, in order
+    const ARITY: Integer = 2;
+    fn from_positions(mut positions: Positions<'_>) -> Result<Self, Error> {
+        Ok(Self { path: positions.position()?, extent: positions.position()? })
+    }
+}
+impl Composing for Locus {                                  // generated: the datom reads, spending the budget
     fn compose(datom: &Datom, budget: &mut Budget) -> Result<Self, Error> {
-        budget.spend(&datom.path)?;                         // the arity the type knows, asked of the datom
-        let mut positions = datom.positions(2)?;
-        Ok(Self { path: positions.position(budget)?, extent: positions.position(budget)? })
+        datom.compose_positions(budget)
     }
 }
 impl Datomizable for Locus {                                // generated: each child placed as the tree is built
-    type Output = Datom;
     fn datomize(&self, at: Path) -> Datom {
         Datom { path: at.clone(), form: Form::Struct(vec![self.path.datomize(at.child(0)), self.extent.datomize(at.child(1))]) }
     }

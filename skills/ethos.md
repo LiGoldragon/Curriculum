@@ -21,7 +21,7 @@ Library                                   ; the sweet form, as a file is written
 Library.{ [] [ Record.{ String Integer } ] [] [] }   ; the canonical form the reader sees
 ```
 ```rust
-#[derive(datom_codec::Datomizable, datom_codec::Compositional, Clone, Debug, PartialEq)]
+#[derive(datom_codec::Datomizable, datom_codec::Composing, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Record { pub string: String, pub integer: i64 }
 ```
 
@@ -46,8 +46,8 @@ Signal
 pub type LockId = i64;
 pub type LockName = String;
 pub type LockPath = String;
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Compositional))]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct LockRequest { pub lock_name: LockName, pub lock_path_vector: std::vec::Vec<LockPath> }
 // … Lock and PathOverlap_Data likewise
 pub struct PathOverlap_Data { pub first_lock: Lock, pub second_lock: Lock }
