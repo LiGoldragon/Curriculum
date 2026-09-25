@@ -50,7 +50,7 @@ A kind is borne by the type converted and named for the layer it becomes. No typ
 | `Datom` | `Protosizable` | protos |
 | `Datom` | `Composable` | any compositional type |
 | composition | `Datomizable` | datom |
-| composition | `Compositional` | states its own positions, so a datom can compose it |
+| composition | `Composing` | read from a datom; a struct form states its positions through `Compositional` |
 
 ```rust
 pub enum Protos {
