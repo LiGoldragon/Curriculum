@@ -23,6 +23,22 @@ HM's source is the HackingMessenger repository under `Repository root`; the `hm-
 
 `python3 hm.py deregister FLOW --session --pane-id --terminal-id --name` removes a registration as route repair; it does not retire the Flow. `hm.py import-retirement` takes `hm-retire`'s arguments after a witnessed deregistration.
 
+## Plain delivery
+
+The full text Herdr types into the pane — the `Machine.Relay` header plus
+the body — is kept to one line of 800 characters or less, because Claude
+Code wraps a submission in a `<pasted_content id=...>` box once it is a
+single line over 800 characters or has 4 or more lines (witnessed in
+`flows/e51411/reports/pasted-content-threshold.md`); up to 3 lines, or a
+single line of up to 800 characters, arrives plain. A short body with
+embedded newlines is collapsed onto one line first. A body that still
+would not fit — too long even collapsed, or already 4+ lines — is written
+instead to `<sender's flow directory>/messages/<time>-<recipient>.md`
+(the sender's flow directory the way `hm.py` already resolves it from
+`FLOW_ID`, under `HM_PRIMARY_ROOT`, default `~/primary`), and the pane
+receives one short line in its place: the `Machine.Relay` header plus
+`Message too long for a pane; read <path> in full.`.
+
 ## Receipts
 
 `Transported.{ FLOW STATUS }` on stdout: Herdr accepted the prompt for the exact binding.
