@@ -29,14 +29,26 @@ A skill's frontmatter says who may invoke it.
 absent from the available-skills listing, and the skill interface refuses
 it. `user-invocable: false` withholds it from the typed command list.
 
-A withheld skill enters through the user prompt. The harness reads a
-leading `/name` from that prompt, expands the skill body itself, and
-delivers it as a middle-stratum message; two records mark the turn, one
-naming the command and one carrying the rest of the prompt as its
-argument. The command is read only at the head of the prompt, and the
-first text that is not a command ends the parse, so a command written
-further down a block stays literal. One block of
-startup text carries a skill only when the command is its first token.
+A withheld skill enters through the user prompt or the start argument.
+The harness reads the `/name` commands at the head of the text, expands
+each skill body itself, and delivers it as a middle-stratum message. Each
+command's record carries, as its argument, all the text after the last
+loaded command, so that text appears once per command. A command further
+down the text stays literal. The route decides how many load:
+
+- `claude "<text>"`, the start argument, is never wrapped, even across
+  lines. The head command and up to five more load; the harness then
+  reports "Stacked command limit (5) reached — remaining input passed as
+  arguments", and later commands arrive as text.
+- Input into a running session arrives wrapped in `<pasted_content>` when
+  it is one line over 800 characters, four or more lines at any length,
+  or two or three lines totalling 900 characters or more; one line of up
+  to 800 characters, and two or three lines of about 80 characters,
+  arrive plain. Plain input loads every command at its head; wrapped
+  input loads none. The stock system prompt, as the machine transcribes
+  it, withholds authority from wrapped text unless the user's own words
+  promote it.
+- Headless `claude -p` loads only the first command.
 
 A launcher has two other routes into the first turn: a SessionStart hook
 returns `initialUserMessage` or `additionalContext`, or the launcher reads
@@ -44,6 +56,27 @@ the skill file and writes its body into the first prompt.
 
 A subflow receives no startup prompt of its own. It cannot see or load a
 withheld skill; what it must carry belongs in its brief.
+
+A launcher starts Claude with `CLAUDE_CODE_CHILD_SESSION` and
+`CLAUDE_JOB_DIR` unset. An inherited `CLAUDE_CODE_CHILD_SESSION` turns
+transcript saving off ("Transcript saving is off — inherited
+CLAUDE_CODE_CHILD_SESSION marker"). Sessions sharing a `CLAUDE_JOB_DIR`
+share one title: a new session adopts the other's, and `/rename` in
+either renames both.
+
+`--dangerously-skip-permissions` alone can still raise "Make auto mode
+your default permission mode?". Claude Code 2.1.280's code shows it only
+while no project, local, flag, or policy settings source sets
+`permissions.defaultMode`, so `--settings
+'{"permissions":{"defaultMode":"bypassPermissions"}}'` suppresses it;
+read from code, not yet witnessed live.
+
+`--remote-control [name]` at start, or `/remote-control` in a running
+session, makes the session reachable from claude.ai/code and the Claude
+app.
+
+`/effort low|medium|high|xhigh` in a session also saves that level as the
+default for new sessions.
 
 The machine reads its system prompt; the living cannot, through
 any channel the harness offers: debug logs, session transcripts,
