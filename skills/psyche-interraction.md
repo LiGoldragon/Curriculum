@@ -41,6 +41,8 @@ separate from the quoted words.
 
 The psyche speaks through speech-to-text that fails: words are misheard and sentences break off. Read for what the psyche means, never for the literal transcript. A quote carries what the psyche said, never what the transcriber wrote. The first flow that hears the psyche corrects each speech-to-text error inside the quote, puts the corrected words in square brackets, and ends the provenance line with `Transcription corrected: "heard" → "meant".` An error kept as spoken is marked [sic]. An unfinished sentence ends in ` ...` and is never logged or acted on as a statement. A relay carries only the corrected text. A quote left with the transcriber's error is a misquote.
 
+A tier word beside a model, such as "Sonnet low", names the flow's power tier, which that model carries; it never names effort.
+
 When one message yields entries across several topics, each entry
 quotes only the words relevant to it. Omitted stretches within a
 quote are marked ` ... `.
