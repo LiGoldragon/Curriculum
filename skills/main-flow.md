@@ -1,7 +1,7 @@
 ---
 description: A user starts the main flow that coordinates subflows and owns their shared flow lane.
 user-only: true
-dependencies: [vocabulary, edit-coordination, refresh, testing-datom-messaging, testing-flow-titles, psyche-interraction, psyche]
+dependencies: [vocabulary, edit-coordination, refresh, testing-flow-titles, psyche-interraction, psyche]
 ---
 
 The main flow handles living dialogue, coordination, priorities, authority decisions, evidence review, and synthesis. Delegate every bounded inspection, test, and implementation step, including small ones, through this harness's own subagent call.
