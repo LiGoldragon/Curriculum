@@ -23,7 +23,7 @@ Baseline a7d2f4f (2026-09-10). The recovered `skills/nix-workflow.md` is the bas
 Made by: no model trailer (a Codex seat by the audit reading).
 
 Flow cf3553 (Field Astra), with the living (flows/cf3553/vision/operational-nixBuiltTestingAndRustDataSeparation.md): "make sure all the testing uses nix built binaries ... built on the remote builders ... create rust-only repos for rust". On 2026-09-24 (flow 752e0f) the living partly corrected it: when the builder is not reachable, build locally.
-View: candidate, corrected. Keep "test with Nix-built binaries" and "Rust-only repositories, data in separate inputs" (the living's words). Drop "do not silently fall back" (against the later correction) and "A Nix command alone does not prove offload: retain the remote-builder evidence", which goes by the living's ruling of 2026-09-28: a build reported green is green wherever it ran.
+Restored on the living's word of 2026-09-28 as the view said ("test with Nix-built binaries" and the Rust-only repository line), with his addition on Rust repositories (see README).
 
 ````diff
 --- a/skills/nix-workflow.md

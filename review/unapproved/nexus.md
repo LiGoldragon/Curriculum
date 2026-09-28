@@ -57,7 +57,7 @@ View: drop, or ask. A contract-version rule may be sound design, but it is proce
 Made by: Claude Fable 5.1 <noreply@anthropic.com>.
 
 Flow fd0f97/5f4fea. Matches the living's correction "the Nexus only gets signal ... has to be clear everywhere". The subflow that landed it went beyond its brief.
-View: candidate. A CLI takes one inline datom and translates it to Signal; a Nexus sees only Signal: the living's rule.
+Restored on the living's word of 2026-09-28, with his additions on the Nexus boundary (see README).
 
 ````diff
 --- a/skills/nexus.md

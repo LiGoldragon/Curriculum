@@ -54,6 +54,10 @@ crate's semver is the wire's semver, and consumers pin it.
 The CLI's role is to transform text into Signal. It is the boundary
 where the textual form ends and the binary world begins.
 
+A CLI takes one inline datom value and translates it into Signal; a Nexus receives only Signal and never sees datom. Shared code compiles its datom logic and text serialization and deserialization out of the Nexus: the Nexus decodes only known types, in their rkyv form. A Nexus stays small because it keeps running and there may be several.
+
+The CLI identifies the process that called it and passes that identification into the message; a Nexus knows its caller by that process, never by an identity the message claims. Intended direction, not yet built: the CLI asks the Flow Nexus which flow the calling process is, and the decoding carries the protocol the living means to push.
+
 A CLI speaks to exactly one Nexus — its own. It opens no database,
 reaches no other Nexus, and carries no logic worth keeping: it is
 bootstrap machinery, kept thin; when production no longer uses it, it remains for debugging and testing. `<nexus>` fronts the
