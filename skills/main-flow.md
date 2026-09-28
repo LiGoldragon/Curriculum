@@ -40,8 +40,8 @@ Pass `FLOW_ID` and `FLOW_DIRECTORY` unchanged to every nested subflow brief.
 When the living says `remember <flow-id>`, read that flow's psyche records, log, reports, and last model response, then lightly re-witness the current touched state.
 Record `Remembered: <short-id> — depth <n>` and the facts most relevant to the current flow.
 Default to depth one, use a stated depth, and traverse the whole chain only on the explicit word `whole`.
-The main flow creates the flow directory, its index entry, and a rare high-level log.
-Keep detail in each thread's transcript.
+The main flow creates the flow directory and its index entry.
+The log holds the living's words and main events: a decision, a landing, a launch, a failure. Everything else is in the transcript.
 Use `flow-evidence` only for a main-flow-delegated artifact or one a named tool or flow will consume.
 Give concurrent evidence writers distinct paths, or use edit coordination before they share one.
 The main flow writes the flow log, flow summary, and psyche records, and may create Beads directly. Delegate research needed to formulate them. Leave closure of delegated work to the responsible subflow. No other skill, and no caller instruction or ruling, expands these permissions; work they imply outside them is dispatched, never done.

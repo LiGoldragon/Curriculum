@@ -25,9 +25,9 @@ Record the psyche's vision, whatever it designs — a machine, a
 syntax, a vocabulary, an agent's behavior, the way the work itself is
 done. Not vision, and not an entry: a working instruction (what to do
 now, in what order, at what scope, on which project, through which
-dispatch — it goes to log.md); a process event (a subflow finished, a
+dispatch); a process event (a subflow finished, a
 commit landed, a file was read); session narrative; an acknowledgement
-that rules on nothing. A working instruction logged as vision is a
+that rules on nothing. A working instruction recorded as vision is a
 vision impurity. Supersede an entry by appending; never edit one.
 What the psyche says to help the flow understand vision is context, not vision: it is kept beside the quoted words, never logged or distilled as a statement of its own.
 
