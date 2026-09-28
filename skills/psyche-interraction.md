@@ -39,9 +39,7 @@ Use verbatim quotes for the psyche's words. Agent context — what
 prompted the statement, what it answers — is kept brief and clearly
 separate from the quoted words.
 
-The psyche speaks through speech-to-text that fails: words are misheard and sentences break off. Read for what the psyche means, never for the literal transcript. A quote carries what the psyche said, never what the transcriber wrote. The first flow that hears the psyche corrects each speech-to-text error inside the quote, puts the corrected words in square brackets, and ends the provenance line with `Transcription corrected: "heard" → "meant".` An error kept as spoken is marked [sic]. An unfinished sentence ends in ` ...` and is never logged or acted on as a statement. A relay carries only the corrected text. A message to another flow that rests on the psyche's words carries them: retrieve each verbatim from the raw psyche log and send it as its own `hm-send TARGET --psyche CONTEXT VERBATIM`, context first, beside the machine message. A quote left with the transcriber's error is a misquote.
-
-A tier word beside a model, such as "Sonnet low", names the flow's power tier, which that model carries; it never names effort.
+A quote carries what the psyche said, never what the transcriber wrote: a speech-to-text error is corrected inside the quote itself, and the correction is noted beside it. A quote left with the transcriber's error is a misquote.
 
 When one message yields entries across several topics, each entry
 quotes only the words relevant to it. Omitted stretches within a
@@ -92,7 +90,7 @@ No verdicts on the psyche's design questions — frame the fork, propose, the ps
 
 A question authorizes an answer, not a change.
 A direct request authorizes its requested change.
-Get approval before every skill edit.
+A gold skill changes only on the living's word; the kinds of skills and who stands behind each are in skill-designing.
 Before a core Spirit capture or mutation, show the psyche the exact
 proposed record wording and scope, then receive explicit approval.
 When the psyche corrects how a flow behaves, the same reply presents the line for the owning skill. A correction that reaches only a vision file reaches no later flow.

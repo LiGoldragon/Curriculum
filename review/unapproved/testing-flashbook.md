@@ -1,0 +1,32 @@
+# testing-flashbook: created after the baseline
+
+Created in d72a2ce, 2026-09-21 09:27 -0600: Add provisional testing-flashbook and testing-flashbook-illustration skills. Made by: no model trailer (a Codex seat by the audit reading).
+Later edits: dd27d7a 2026-09-21 “Fold the living's rendering rules into the flashbook testing skills”.
+
+## View
+
+Flow-written; rendering rules folded in from the living's words (flows/0625c3/vision/flashbook*).
+View: candidate, whole. In use.
+
+Under the kinds the living settled on 2026-09-28 this skill would be named `test-flashbook`.
+
+## The whole skill as it stands on main (3726da5)
+
+````markdown
+---
+description: A flashbook must be made from a source written in a flow's transcript, or an existing flashbook is judged.
+dependencies: [testing-flashbook-illustration, behavior, vocabulary]
+---
+
+A flashbook is a short illustrated book the living reads, one subject per book, made from Markdown a higher psyche seat wrote in its transcript under an exact title. Find the source by title in that transcript, take the text from its heading to the next rule, and never edit it.
+
+The first page is always an illustration. Pages alternate: an illustration, then at most a small paragraph or a few points, ideally with a flowchart, then an illustration again. Never two charts in a row; an illustration follows every text page. Text is minimal; a page covers one thing.
+
+Verbatim living quotes stay verbatim with their provenance line; marks, tensions, and inference notes stay visible. Where the source has proposals, the last page lists them by number, checkable, landed ones badged.
+
+Cream ground, warm ink, one accent, both themes, Fraunces display, Source Serif 4 body, JetBrains Mono for code, prose at most 68 characters wide, nothing scrolling sideways. Prev/Next, page dots, arrow keys, swipe.
+
+The book shell is laid out with CSS Grid, never flexbox, and adapts with container queries. Before every publish, render the book at phone size with headless Chrome and check the screenshot: nothing cut off, nothing scrolling sideways, the illustration filling the screen.
+
+One private artifact per flashbook, titled by its title; a republish keeps its URL. Report titles and URLs to the requester in one message. Load testing-flashbook-illustration for every illustration.
+````

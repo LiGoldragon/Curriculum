@@ -11,9 +11,9 @@ Acquire a Lock. Its four positional fields are `LockName`, `FlowId`, `LockPaths`
 
 `LockName` names the work; `FlowId` is the owning flow's `FLOW_ID`; `LockPaths` lists the reserved absolute paths; `LockReason` states why. Put the actual owning `FLOW_ID` only in `FlowId`, never concatenated into `LockName` merely for uniqueness or title display. A name such as `FlowIdDocumentation` remains valid when flow ID is the subject of the work.
 
-A reason containing a space or a delimiter is written in guillemets. A copyable multi-word reason example is:
+A reason containing a space or a delimiter is written in Datom curly quotes, “like this”; ASCII double quotes are not Datom string delimiters. A copyable multi-word reason example is:
 
-    orchestrate 'Lock.{ OrchestrateDocs 444e5e [ /absolute/path/to/file ] «Clarify Lock fields» }'
+    orchestrate 'Lock.{ OrchestrateDocs 444e5e [ /absolute/path/to/file ] “Clarify Lock fields” }'
 
 A single-word reason is bare.
 
@@ -27,6 +27,6 @@ Observe current Locks:
 
     orchestrate 'Observe.Locks'
 
-`Observed` carries the complete Lock set on open, then again after every Lock or Release — the connection itself is the subscription, with no token and no `Unwatch`. The current `orchestrate` CLI reads one `Observed` frame and exits; it does not yet hold the connection open to receive the later ones, so re-issuing `Observe.Locks` is today's only way to see a change, not the designed one.
+`Observed` carries one complete point-in-time Lock snapshot. It is not a subscription.
 
 Treat a client failure as a failed operation.

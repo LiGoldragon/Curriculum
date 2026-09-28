@@ -22,12 +22,3 @@ A test waits on the tested event, never on the clock.
 Tests share no mutable state — no process environment, no working
 directory, no order between them.
 A run that may exhaust memory or time is bounded (a memory cap and a timeout) so that it cannot take the harness down with it.
-Stop a process a test started by the PID that test holds, never by a process-name or path pattern — a scratch and a production instance of the same build share that pattern.
-
-Live acceptance has a boundary. A fixture or generated-output test proves its
-own contract; an isolated transport test proves only its named receipt grade;
-an end-to-end live acceptance needs the actual selected identity, binding, and
-target-side observation. Report an unavailable native route as unavailable,
-not as a failed simulation or a passing deployment test.
-
-When assigned as a testing worker, accept a bounded target, immutable revision, authority limits, and acceptance contract. Choose the test procedure, fixtures, negative cases, and independent oracle yourself; do not mirror the implementation or a main flow's assertion. Run the smallest test that can distinguish acceptance from a plausible failure, including a rejected or failing case before trusting a new test. Keep source/projection ownership, native binding and receipt, deployment parity and rollback, transport versus target read, passive no-wake observation, and context metric freshness distinct when those boundaries matter. Report what each witness proves, the exact revision and scope tested, and what remains unavailable. Do not wake a production flow merely to test status or delivery.

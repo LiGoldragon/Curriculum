@@ -10,8 +10,9 @@ every distilled statement explicitly before it stands.
 A distillation agglomerates records across flows that touch the
 same topic. Records are considered individually, never by file.
 One record may serve many distillations; one distillation may
-draw from many topics. When readings overlap or contradict, the
-more recent and the more certain statement is favored. A distillation
+draw from many topics. When readings overlap or contradict, weigh
+them as the psyche skill says: a later explicit correction carries the
+most weight, and any other tension goes to the psyche. A distillation
 is composed only in the main flow. A subflow only gathers records that
 could qualify as candidates for distilling together.
 
@@ -36,9 +37,8 @@ beside their source file.
 A record's id is its originating session's short id and that
 session's own count.
 
-A flow that gathers raw vision on a subject distills what it
-gathered in the same conversation, and presents the skill edit the
-distilled statements call for beside the proposal.
+Distillation is proposed on encounter, dispatched proactively by
+the flow working a subject, or done in dedicated passes.
 
 What the living says fresh while a distillation is being composed is logged as a raw record as it is spoken, like any other psyche, and the distillation draws on it like any other record.
 

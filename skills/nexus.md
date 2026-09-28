@@ -5,8 +5,6 @@ dependencies: []
 
 A Nexus is the long-running whole with at least two sockets, a default CLI client per socket, and the signal contracts it is compiled with. Its long-running executable is <nexus>-nexus; call it a Nexus, never a daemon. The decision-making engine inside it is Nexus Core. A Nexus is a vertex in the graph of nexuses. An edge joins two vertices and carries one contract: every connected pair has an ordinary edge; only some pairs have a meta edge.
 
-Do not call a collaboration-harness subagent a Flow Nexus flow. A Flow Nexus is a named component that resolves and exactly binds a logical flow identity to a live endpoint; Message Nexus owns durable messaging attempts and receipts when deployed.
-
 ## The Nexus
 
 `<nexus>` is the repo holding the Nexus and its logic; its long-running executable is `<nexus>-nexus`.
@@ -49,16 +47,12 @@ answers with typed replies, including a typed refusal — errors are
 vocabulary, not strings.
 
 The signal wire vocabulary is versioned by its contract crate: the
-crate's semver is the wire's semver, and consumers pin it. A contract
-crate's version reflects only its own wire text; it is never raised to
-match another crate's version.
+crate's semver is the wire's semver, and consumers pin it.
 
 ## The CLIs
 
 The CLI's role is to transform text into Signal. It is the boundary
 where the textual form ends and the binary world begins.
-
-A CLI takes one inline datom value and translates it into Signal; a Nexus receives only Signal and never sees datom.
 
 A CLI speaks to exactly one Nexus — its own. It opens no database,
 reaches no other Nexus, and carries no logic worth keeping: it is

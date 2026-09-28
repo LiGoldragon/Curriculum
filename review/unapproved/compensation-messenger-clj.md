@@ -1,0 +1,36 @@
+# compensation-messenger-clj: created after the baseline
+
+Created in 3975783, 2026-09-25 09:41 -0600: Add compensation-hacking-messenger: the HM commands, receipts, probe registration and pane fallback. Made by: no model trailer (a Codex seat by the audit reading).
+Later edits: 375fdb6 2026-09-25 “compensation-hacking-messenger: document plain-delivery threshold and overflow-to-file”; bdb5764 2026-09-25 “compensation-hacky-messenger: rename from the misheard Hacking name”; b52929d 2026-09-25 “Teach the live Clojure HM message boundary”; 9fb4a93 2026-09-25 “Add HM heartbeat-state to the command skill”; 867b060 2026-09-25 “Apply HM skill semantic audit”; a278317 2026-09-25 “Clarify HM receipt definitions”; b2b4f3d 2026-09-25 “Remove duplicated HM Held reason list”; 226f2e5 2026-09-25 “Rename authored messenger references”; 569cb5f 2026-09-25 “Rename compensation skill for messenger-clj”; 5b36d7c 2026-09-25 “Document full Messenger body and psyche variants”; 5694aaf 2026-09-25 “Allow direct Herdr prompt after Messenger refusal”; 2d567a9 2026-09-25 “Document bounded psyche message envelopes”; e1dbf26 2026-09-25 “Teach whole psyche message envelopes”; 8302213 2026-09-25 “Teach judged Messenger route repair”; 0b2a7d9 2026-09-26 “Document plural psyche and socket transport limit”.
+
+## View
+
+The living asked for it (2026-09-25, flows/e51411/vision/launch.md: "Do we have a compensation skill that documents how to use this HM panoply of tools and keeps it up?"). Changed sixteen times in two days by Codex seats with no model trailer.
+View: candidate, trimmed. In use by every seat that sends a message. Cut the landing gate ("Whoever changes messenger-clj updates ... in the same landing"), the byte-limit and escaping detail, and the history of numbered psyche attempts. By the living's ruling of 2026-09-28 ("after a refused send, fix it"), the last sentence, which lets a flow type into the pane through Herdr after a refusal, goes; at most "A refused send is reported and the route is mended" stays.
+
+## The whole skill as it stands on main (3726da5)
+
+````markdown
+---
+description: A flow runs an hm-* command, reads its output, or changes messenger-clj.
+dependencies: [messaging, herdr]
+---
+
+The `hm-*` shorthands are provided by the standalone messenger-clj repository under `Repository root`, on its default branch. The ten unprefixed commands on `PATH` target the typed Clojure implementation: `hm-send`, `hm-send-abrupt`, `hm-list`, `hm-register`, `hm-repair`, `hm-deregister`, `hm-rebind`, `hm-move`, `hm-retire`, and `hm-heartbeat-state`. Whoever changes messenger-clj updates `skills/compensation-messenger-clj.md` in the same landing.
+
+`FLOW_ID=<self> hm-send TARGET BODY [--wait-presented] [--hold-seconds N] [--pane PANE]` sends one complete machine body as `#msg [sender machine-prose]`. Use `--stdin` in place of `BODY` for a large or multiline body. `FLOW_ID=<self> hm-send TARGET --psyche CONTEXT VERBATIM ...` sends one complete `#psyche [sender context whole-verbatim]`; use `--psyche CONTEXT --stdin` to read the verbatim from standard input.
+
+`FLOW_ID=<self> hm-send TARGET --psyches --stdin ...` reads one EDN vector of `[context verbatim]` pairs and sends one `#psyches [[sender context whole-verbatim] ...]` envelope. Messenger derives the same source sender for every entry; callers do not supply senders. Every context and verbatim is a separate complete string. The singular and plural forms preserve whitespace, newlines, quotes, backslashes, and Unicode through an exact EDN round trip.
+
+Messenger does not impose an 800-character cap, number or split parts, truncate, write overflow files, or substitute pointers. It submits the complete `agent.prompt` through Herdr's typed Unix socket API, avoiding Linux's per-argument limit at both command boundaries. Herdr 0.8 accepts at most 1,048,576 UTF-8 bytes in the complete serialized initial JSON request line, excluding its terminating newline. JSON escaping, the envelope, target, wait options, and request metadata all count. Messenger computes that exact serialized size before `Submitting`; an oversized send is held durably as `RelayOverflow` and does not prompt. A long or multiline envelope may appear in a Claude pane inside Claude's `pasted_content` wrapper; that accepted presentation does not change the envelope or authorize a retry. Pass message fields, never a prebuilt envelope. A field that parses as one complete `#msg`, `#psyche`, or `#psyches` form is rejected as nesting; ordinary prose may mention the tags.
+
+Time, recipient, harness, route, attempts, pending messages, and retirements stay in the typed Datalevin ledger. The state root is `HM_REGISTRY` or the installed default. Each record retains the variant, its fields, and the exact submitted envelope. Historical numbered psyche attempts remain readable; current sends do not write part fields.
+
+`hm-send-abrupt` takes the send arguments and interrupts the active turn first. `hm-list` prints live and stale registrations. `hm-heartbeat-state` takes no body or arguments and prints a read-only view of typed routes and retirements; it sends and mutates nothing. `hm-register`, `hm-repair`, `hm-deregister`, `hm-rebind`, `hm-move`, and `hm-retire` mutate one exact typed route or retirement; follow their required identity arguments and refusal output. The `hm-clj-` maintenance commands are not ordinary send commands.
+
+When a normal send has no exact valid route, Messenger does not choose a pane or prompt one. It stores the original envelope as a pending message, records every fully validated live candidate as `RepairCandidate`, and returns `Held.{ FLOW RepairRequired PENDING_ID }` with candidate identity evidence. The invoking flow is the thinking agent: judge the evidence and, only when one candidate is known to be the intended recipient, run `FLOW_ID=<self> hm-repair FLOW --pending-id ID --session SESSION --pane-id PANE --terminal-id TERMINAL --name NAME --agent AGENT`. The repair command re-fetches that exact Herdr object, requires its typed official `agent_session` to match its agent, checks retirement, route hold, transition, terminal drift, ambiguity, and cross-Flow reuse, then atomically records the route and repair decision. It consumes the pending intent into `Submitting` before one normal-envelope prompt. A repeated repair cannot resend the message. If the pending intent is absent or any identity field changed, stop and judge the new evidence; never substitute process argv or a title alone for the official session identity.
+
+Report the printed receipt without upgrading it. `Transported` is Herdr acceptance for the checked binding. `Presented` includes the requested target reaction observation. Neither proves a read. `Held` means HM typed nothing, the whole body is pending, and its printed reason names the refusal. `RepairRequired` means a thinking flow must judge the recorded candidates and use `hm-repair`; a unique title match is evidence, not an automatic decision. `Uncertain` means the one whole envelope may have arrived: inspect the target and never retry blindly.
+
+When HM refuses, a flow may prompt the target pane directly through Herdr, and names the refusal in that message.
+````
