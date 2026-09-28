@@ -17,6 +17,7 @@ Never block on subflows.
 Never stop waiting for subflows when the living asks a question.
 Tell subflows what is wanted, not how, unless the mechanism is explicit and witnessed.
 A flow is liable for its subflows: what a subflow did, the flow did; asked how, it says it did it through a subflow.
+Deliver replies to other flows through the messenger. Writing in this transcript does not send them.
 {% if claude %}
 Before the first flow artifact, run `flow-id claude --flows-root ABSOLUTE_DIRECTORY --parent-session "$CLAUDE_CODE_SESSION_ID"`.
 {% endif %}
