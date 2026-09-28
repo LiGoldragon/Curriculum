@@ -3,49 +3,28 @@ description: A Lojix request must be constructed, submitted, observed, or interp
 dependencies: [nix-workflow]
 ---
 
-`lojix-daemon` owns durable state and two authority-tiered sockets. The ordinary contract is `signal-lojix`; the owner contract is `meta-signal-lojix`.
+`lojix-nexus` owns durable state and two authority-tiered sockets. The ordinary contract is `signal-lojix`; the owner contract is `meta-signal-lojix`.
 
-Use `lojix` on the ordinary socket for `Query`, `WatchDeployments`, `WatchCacheRetention`, `Unwatch`, and `CheckHostKeyMaterial`.
+Use `lojix` on the ordinary socket for `Query`, `WatchDeployments`, `WatchCacheRetention`, and `Unwatch`.
 
-Use `meta-lojix` on the owner socket for `Deploy`, `Pin`, `Unpin`, `Retire`, and `Test`. The owner contract is not optional.
+Use `lojix-meta` on the owner socket for `Deploy`, `Pin`, `Unpin`, `Retire`, and `Test`. The owner contract is not optional.
 
 Use `LOJIX_ORDINARY_SOCKET` and `LOJIX_OWNER_SOCKET`; neither socket has a default path.
 
-## Dotos syntax
+## Request syntax
 
-Each public client accepts exactly one inline Dotos object. It rejects files, signal files, flags, subcommands, zero arguments, and extra arguments.
+Each public client accepts exactly one inline datom value and rejects files, flags, subcommands, zero arguments, and extra arguments. A request root is one value.
 
-Inline decoding requires the client build's `dotos-text` feature. Missing Dotos support is a client-build defect, not permission to pass a file or flag.
-
-A request root is one object.
-
-A variant is `Head.Payload`, with the period glued to both sides. Unit variants are bare.
-
-Lojix products are positional and parenthesized:
+A struct is brace-enclosed and positional, a vector is bracket-enclosed, a variant is a head with the period glued to both sides, and a variant carrying nothing is bare. `None` is bare and `Some` carries one glued payload. A string with a space or a delimiter is written in guillemets.
 
 ```text
-Variant.(field0 field1 field2)
-```
-
-Vectors use square brackets:
-
-```text
-[field0 field1]
-```
-
-`None` is bare. `Some` carries one glued payload:
-
-```text
+Variant.{ field0 field1 field2 }
+[ field0 field1 ]
 Some.Value
+«alpha beta»
 ```
 
-A period is structural and right-associative. When a string is expected, a dotted bare value is reconstructed as one string. Use current Dotos curly text for a string that cannot be bare:
-
-```text
-“alpha beta”
-```
-
-Never name fields or copy the braces from an Ethos type declaration into a socket-client request. The generated Lojix product readers require parentheses.
+Never name a field in a request; the position carries the data.
 
 ## Ordinary requests
 
@@ -60,7 +39,7 @@ Never name fields or copy the braces from an Ethos type declaration into a socke
 Exact witnessed form:
 
 ```sh
-lojix 'Query.ByNode.(alpha node-1 None)'
+lojix 'Query.ByNode.{ alpha node-1 None }'
 ```
 
 `ByGeneration` carries one generation identifier.
@@ -87,7 +66,7 @@ lojix 'Query.ByNode.(alpha node-1 None)'
 The all-target schema-derived form is:
 
 ```sh
-lojix 'WatchDeployments.(None None None)'
+lojix 'WatchDeployments.{ None None None }'
 ```
 
 `WatchCacheRetention` has, in order:
@@ -98,13 +77,13 @@ lojix 'WatchDeployments.(None None None)'
 The all-target schema-derived form is:
 
 ```sh
-lojix 'WatchCacheRetention.(None None)'
+lojix 'WatchCacheRetention.{ None None }'
 ```
 
 A successful watch request returns:
 
 ```text
-Watching.(subscription-token commit-sequence)
+Watching.{ subscription-token commit-sequence }
 ```
 
 A rejection is `WatchRejected.MalformedWatch`, `WatchRejected.SubscriptionLimitReached`, or `WatchRejected.StreamUnavailable`.
@@ -112,12 +91,6 @@ A rejection is `WatchRejected.MalformedWatch`, `WatchRejected.SubscriptionLimitR
 The current `lojix` executable exchanges one request for one reply and exits. It cannot consume ongoing subscription events. Do not use it as a streaming terminal monitor; re-query with `Query.ByDeployment` or `Query.ByEventLog`.
 
 `Unwatch` carries one subscription token.
-
-`CheckHostKeyMaterial` has, in order:
-
-1. cluster name
-2. node name
-3. proposal source
 
 ## Owner requests
 
@@ -127,15 +100,16 @@ The current `lojix` executable exchanges one request for one reply and exits. It
 2. node name
 3. host composition
 4. proposal source
-5. flake reference
-6. deployment transport
-7. deployment input mode
-8. deployment output selector
-9. activation backend
-10. host deploy action
-11. source revision policy
-12. optional Nix builder
-13. extra substituters
+5. secrets input
+6. flake reference
+7. deployment transport
+8. deployment input mode
+9. deployment output selector
+10. activation backend
+11. host deploy action
+12. source revision policy
+13. optional Nix builder
+14. extra substituters
 
 `Deploy.UserEnvironment` has, in order:
 
@@ -143,15 +117,16 @@ The current `lojix` executable exchanges one request for one reply and exits. It
 2. node name
 3. user name
 4. proposal source
-5. flake reference
-6. deployment transport
-7. deployment input mode
-8. deployment output selector
-9. activation backend
-10. user-environment action
-11. source revision policy
-12. optional Nix builder
-13. extra substituters
+5. secrets input
+6. flake reference
+7. deployment transport
+8. deployment input mode
+9. deployment output selector
+10. activation backend
+11. user-environment action
+12. source revision policy
+13. optional Nix builder
+14. extra substituters
 
 A deployment transport is the positional product of:
 
@@ -186,7 +161,7 @@ Source revision policies are `RequireImmutable` and `ResolveAndRecord`.
 Exact witnessed form:
 
 ```sh
-meta-lojix 'Pin.(alpha node-1 42 keep)'
+lojix-meta 'Pin.{ alpha node-1 42 keep }'
 ```
 
 `Unpin` has, in order:
@@ -225,7 +200,7 @@ A test execution profile has, in order:
 
 ## Replies and terminal state
 
-Ordinary reply families are `Queried`, `DeploymentEventsQueried`, `TestRunsQueried`, `Watching`, `Unwatched`, `KeyMaterialChecked`, `QueryRejected`, `WatchRejected`, `UnwatchRejected`, and `KeyMaterialCheckRejected`.
+Ordinary reply families are `Queried`, `DeploymentEventsQueried`, `TestRunsQueried`, `Watching`, `Unwatched`, `QueryRejected`, `WatchRejected`, and `UnwatchRejected`.
 
 Owner reply families are `DeployAccepted`, `DeployRejected`, `DeployTerminal`, `Pinned`, `PinRejected`, `Unpinned`, `UnpinRejected`, `Retired`, `RetireRejected`, `Tested`, and `TestRejected`.
 
@@ -237,7 +212,7 @@ Owner reply families are `DeployAccepted`, `DeployRejected`, `DeployTerminal`, `
 Exact witnessed reply:
 
 ```text
-DeployAccepted.(13 (263 263))
+DeployAccepted.{ 13 { 263 263 } }
 ```
 
 `DeployAccepted` is admission only. It does not prove evaluation, build, copy, activation, or completion.
@@ -249,7 +224,7 @@ A deployment terminal is bare `Succeeded`, `Rejected` carrying a terminal reason
 Exact witnessed failed-activation form:
 
 ```text
-Some.Failed.(Activate ActivationFailed)
+Some.Failed.{ Activate ActivationFailed }
 ```
 
 `Pinned` and `Unpinned` carry generation identifier, pin label, source slot, destination slot, and state marker.
@@ -272,7 +247,7 @@ A `UserEnvironment` deployment uses an explicit user-scoped Nix store URI and SS
 
 When a deployment directly names a target pair, use it without asking for a second transport confirmation. Otherwise derive the canonical internal hostname as `<node>.<cluster>.<internal suffix>` from Horizon cluster data and use it as the host in the required `CompleteHost` or `UserEnvironment` Nix store URI and SSH destination. If the supplied or derived pair is invalid, report it rather than substituting another route.
 
-A deployment proposal must be an existing absolute regular non-symlink `proposal.datom` file.
+A deployment proposal must be an existing absolute regular non-symlink `horizon-definition.datom` file.
 
 Use `RequireImmutable` when production deployment must identify one exact source revision. Push producer revisions before pushing the consumer revision that pins them.
 
@@ -282,9 +257,9 @@ A terminal activation failure can follow a partial target change. Inspect the ta
 
 ## Startup configuration
 
-The daemon does not accept operator request Dotos. `lojix-write-configuration` is the Dotos-to-startup boundary and writes the archive consumed by `lojix-daemon`.
+The Nexus does not accept operator requests. `lojix-write-configuration` is the datom-to-startup boundary and writes the archive consumed by `lojix-nexus`.
 
-Its single request is the curly positional product `ConfigurationWriteRequest` with:
+Its single request is the `ConfigurationWriteRequest` struct with:
 
 1. ordinary socket path
 2. ordinary socket mode
@@ -292,14 +267,14 @@ Its single request is the curly positional product `ConfigurationWriteRequest` w
 4. owner socket mode
 5. state directory
 6. store path
-7. daemon host
+7. Nexus host
 8. test-default choice
 9. output path
 
 Exact tested form:
 
 ```text
-ConfigurationWriteRequest.{/run/fixture-lojix/ordinary.sock 432 /run/fixture-lojix/owner.sock 384 /var/lib/fixture-lojix /var/lib/fixture-lojix/configured-lojix-store.db fixture-daemon NoTestDefaults /tmp/startup.rkyv}
+ConfigurationWriteRequest.{ /run/fixture-lojix/ordinary.sock 432 /run/fixture-lojix/owner.sock 384 /var/lib/fixture-lojix /var/lib/fixture-lojix/configured-lojix-store.db fixture-nexus NoTestDefaults /tmp/startup.rkyv }
 ```
 
 Production uses bare `NoTestDefaults`.
@@ -317,7 +292,7 @@ The nested development form is `TestDefaults` with, in order:
 Success prints:
 
 ```text
-(ConfigurationWritten [path])
+ConfigurationWritten.[ path ]
 ```
 
 ## Store inspection and reset
@@ -325,7 +300,7 @@ Success prints:
 Inspect a store read-only with exactly:
 
 ```sh
-lojix-inspect-store '(InspectStore /tmp/lojix.sema)'
+lojix-inspect-store 'InspectStore.{ /tmp/lojix.sema }'
 ```
 
 Inspection does not create or register missing tables.
@@ -333,29 +308,29 @@ Inspection does not create or register missing tables.
 Reset accepts only:
 
 ```sh
-lojix-reset-store '(ResetStore)'
+lojix-reset-store 'ResetStore'
 ```
 
 It takes no path. Store selection comes from the service-owned `LOJIX_CONFIGURATION` archive.
 
-Stop the daemon before reset.
+Stop the Nexus before reset.
 
-The daemon accepts schema v4 and refuses earlier schemas. Reset removes and recreates recognized v2/v3 stores as v4. An existing v4 store is left intact.
+The Nexus accepts schema v5 and refuses earlier schemas. Reset removes and recreates recognized v2/v3/v4 stores as v5. An existing v5 store is left intact.
 
 Successful reset replies are:
 
 ```text
-(LojixStoreReset path=path schema=4 removed_sidecars=count)
-(LojixStoreAlreadyCurrent path=path schema=4)
+LojixStoreReset.{ path 5 count }
+LojixStoreAlreadyCurrent.{ path 5 }
 ```
 
-Reset is destructive for a recognized v2/v3 store.
+Reset is destructive for a recognized v2/v3/v4 store.
 
 ## Bootstrap
 
-`lojix-bootstrap` is a separate daemon-free ingress. It accepts exactly one inline `BootstrapRun` object and does not read daemon sockets, configuration, or store state.
+`lojix-bootstrap` is a separate Nexus-free ingress. It accepts exactly one inline `BootstrapRun` value and does not read Nexus sockets, configuration, or store state.
 
-`BootstrapRun` is a curly positional product with:
+`BootstrapRun` is a struct with:
 
 1. request identifier
 2. bootstrap mode
@@ -397,12 +372,12 @@ Bootstrap immutable flakes use:
 github:owner/repository/40-lowercase-hex-revision
 ```
 
-This differs from daemon deployment flake syntax.
+This differs from Nexus deployment flake syntax.
 
-Terminal output is bare `(BootstrapTerminal.Succeeded)` or `(BootstrapTerminal.Failed)`. Parse or validation failure prints a redacted `(BootstrapRejected [...])`.
+Terminal output is bare `BootstrapTerminal.Succeeded` or `BootstrapTerminal.Failed`. Parse or validation failure prints a redacted `BootstrapRejected.[ … ]`.
 
 ## Placement
 
 Keep Lojix configuration in the operating-system source. Do not add setup-specific deployment scripts to the user environment.
 
-The supported deployment and observation interface is `lojix` and `meta-lojix`; setup-specific wrapper scripts are not an alternative interface.
+The supported deployment and observation interface is `lojix` and `lojix-meta`; setup-specific wrapper scripts are not an alternative interface.

@@ -55,12 +55,13 @@ Target-specific text in a flat source uses `{% if claude %}`, `{% if codex %}`, 
 A skill's kind says who stands behind it.
 A gold skill carries no prefix. It is the living's vision of the desired result, approved by the living, and changes only on the living's word.
 An `operation-` skill is deployed when the living describes what he wants a skill to do or to change; the primary Mind seat reviews and interprets it, and no glance from the living is needed.
-A `test-` or `compensation-` skill is written by flows.
+A `compensation-` skill is written by flows; it compensates for what the system does not yet do, so that the system runs.
+A `trial-` skill is written by flows: it is being tried for how useful it can become as a compensation skill.
 
-`user-only: true` — the skill enters only through the user's
-typed prompt; the flow cannot load it. It deploys as
-`disable-model-invocation: true` in Claude Code and as
-$-name-only injection in Codex.
+`user-only: true` — the skill enters only through the user prompt or a
+launcher's first turn; the flow cannot load it. It deploys as
+`disable-model-invocation: true` in Claude Code, and in Codex as a policy
+sidecar beside the skill that withholds it from the skills catalog.
 
 A role skill carries an aspect's identity and names its
 dependencies. Mark role skills user-only.
