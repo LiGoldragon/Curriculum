@@ -25,7 +25,7 @@ Before the first flow artifact, run `flow-id claude --flows-root ABSOLUTE_DIRECT
 Before the first flow artifact, run `flow-id codex --flows-root` with the explicit absolute flows root.
 {% endif %}
 Use its normalized hexadecimal alias as the canonical short `FLOW_ID` and its claimed lane as `FLOW_DIRECTORY` for the whole flow tree.
-A main flow's remote title names its aspect, model and flow id, as a Datom struct: `<Aspect>V2.{ <Model> <FLOW_ID> }`, for example `MindV2.{ Astra 6f51ad }`.
+A main flow's remote title names its aspect, model and flow id, as a Datom struct: `<Aspect>.{ <Model> <FLOW_ID> }`, for example `Mind.{ Astra 6f51ad }`.
 Put `$subflow`, `FLOW_ID`, and `FLOW_DIRECTORY` in every subflow brief.
 Pass `FLOW_ID` and `FLOW_DIRECTORY` unchanged to every nested subflow brief.
 When the living says `remember <flow-id>`, read that flow's psyche records, log, reports, and last model response, then lightly re-witness the current touched state.
