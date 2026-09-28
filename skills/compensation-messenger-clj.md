@@ -12,3 +12,5 @@ Write the recipient-facing body only.
 Report the printed receipt as it is. `Transported` is Herdr's acceptance for the checked binding. `Presented` includes the observed reaction of the target. Neither proves a read. `Held` means nothing was typed and the whole body is pending; its printed reason names the refusal. `RepairRequired` means the recorded candidates must be judged and the route repaired with `hm-repair`. `Uncertain` means the envelope may have arrived: inspect the target and never retry blindly.
 
 A refused send is reported and its route is mended.
+
+Busy exact-seat registration persists as pending without a probe or invented binding. On a later send, only Herdr-confirmed readiness of that exact identity promotes it and permits delivery; otherwise Messenger holds the message. Changed or ambiguous identity never promotes.
