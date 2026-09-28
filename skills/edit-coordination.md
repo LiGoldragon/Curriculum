@@ -7,6 +7,6 @@ A flow's own directory is never locked: only the flow that has its id ever write
 
 Reserve the complete write set with `Lock` before editing.
 
-Edit only after receiving `Locked`. On `LockRejected` or a client failure, report the failure and do not edit.
+Edit only after receiving `Locked`. When the lock is held by another living flow, tell that flow what you want the lock for: it may make the change itself, or tell you when the lock is free. Do not edit until you hold the lock. On a client failure, report the failure and do not edit.
 
 Release the returned integer ID with `Release` when editing ends. Read the typed reply.
