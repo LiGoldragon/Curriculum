@@ -9,4 +9,6 @@ Before debugging installed software, update it to its latest release.
 
 Use `lojix` and `meta-lojix` for deployment and observation; their exact typed contract and terminal verification are defined by the `lojix` instructions.
 
+Use existing deployment authorization once concrete artifact and execution prerequisites are satisfied; require separate release approval only if the living explicitly imposed it.
+
 Require explicit psyche approval before a reboot or emergency runtime mutation.
