@@ -43,6 +43,8 @@ the skill file and writes its body into the first prompt.
 A subflow receives no startup prompt of its own. It cannot see or load a
 withheld skill; what it must carry belongs in its brief.
 
+A request to update spawned models does not authorize changing the main-flow model.
+
 The machine reads its system prompt; the living cannot, through
 any channel the harness offers: debug logs, session transcripts,
 JSON output, and verbose mode all omit it. The living witnesses
