@@ -13,6 +13,10 @@ Thread: one running model session and its context. A `THREAD_ID` identifies one 
 
 Transcript: the file the harness writes holding one thread from beginning to end.
 
+Book: what is made for the living to read. A booklet is a short book. When the living says page, the living means a book.
+
+Illustrated book: a book to which a model has added illustrations, deciding where each goes. Flashbook, picture book and photo book name the same thing.
+
 Witness: an observation of the thing itself — a test run, a probe,
 the code read. What someone says about the thing is a claim.
 
