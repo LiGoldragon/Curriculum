@@ -15,4 +15,6 @@ Cream ground, warm ink, one accent, both themes, Fraunces display, Source Serif 
 
 The book shell is laid out with CSS Grid, never flexbox, and adapts with container queries.
 
+Take no screenshots of a book. Commit no images or other binary files to the repository.
+
 One private artifact per flashbook, titled by its title; a republish keeps its URL. Report titles and URLs to the requester in one message. Load trial-flashbook-illustration for every illustration.
