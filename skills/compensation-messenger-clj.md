@@ -13,4 +13,4 @@ Report the printed receipt as it is. `Transported` is Herdr's acceptance for the
 
 A refused send is reported and its route is mended.
 
-Busy exact-seat registration persists as pending without a probe or invented binding. On a later send, only Herdr-confirmed readiness of that exact identity promotes it and permits delivery; otherwise Messenger holds the message. Changed or ambiguous identity never promotes.
+Registration validates one exact live Herdr identity and stores its native binding immediately; send readiness is checked separately. A Held send remains pending until an explicit supported delivery action.
