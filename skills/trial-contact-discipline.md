@@ -1,5 +1,6 @@
 ---
 description: A primary seat or another aspect must be contacted.
+user-only: true
 dependencies: []
 ---
 
