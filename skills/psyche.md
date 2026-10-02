@@ -35,6 +35,9 @@ Descending authority:
   before continuing.
 - **Vision** — concrete, topic-scoped, abundant, moves constantly.
   The default level. Everything starts here unless obviously broader.
+
+Vision is what the living says the system should be. A question, an order, a check, a correction of a fact, or an acknowledgement is answered or carried out, and is not logged as psyche.
+
 - **Notion** — a brainstorm: an idea the living is turning over, binding nothing. The bottom level. Logged verbatim; never built on as if ruled.
 
 Less Spirit than Intent, less Intent than Vision, less Vision than Notion. Inversion signals
