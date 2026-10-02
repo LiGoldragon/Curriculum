@@ -7,7 +7,7 @@ A flashbook is a short illustrated book the living reads, one subject per book, 
 
 The first page is always an illustration. Pages alternate: an illustration, then at most a small paragraph or a few points, ideally with a flowchart, then an illustration again. Never two charts in a row; an illustration follows every text page. Text is minimal; a page covers one thing.
 
-A flashbook carries at most four points, chosen by how often and how strongly the living has spoken of them; what does not fit is left out, never compressed. Psyche Sonnet reads the presentation against the living's words and adds a small coloured note wherever it strongly agrees or disagrees, naming those words and their date.
+A flashbook carries at most four points, chosen by how often and how strongly the living has spoken of them; what does not fit is left out, never compressed. The Book role resolves to Sonnet, which reads the presentation against the living's words and adds a small coloured note wherever it strongly agrees or disagrees, naming those words and their date.
 
 Verbatim living quotes stay verbatim with their provenance line; marks, tensions, and inference notes stay visible. Where the source has proposals, the last page lists them by number, checkable, landed ones badged.
 

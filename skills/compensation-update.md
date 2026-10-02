@@ -12,7 +12,11 @@ Retain an exact migration artifact that identifies every native consumer in scop
 
 After the migration gate, promote by mapping stable to the already-running Next endpoint. Preserve its process, service, socket, state root, client route, and running sessions. Do not restart, recreate, rename, move, copy, or share its mutable state as part of promotion.
 
-Create separate Next only after promotion. Give it a distinct process, state root, socket, and client route. Component-specific naming is chosen where that component is implemented; this compensation does not prescribe a global naming scheme.
+Create separate Next only after promotion. Give it a distinct process, state root, socket, and client route.
+
+Name each endpoint's socket by its role and the short hash of its version, so promotion moves the role without renaming the socket.
+
+A Next older than the running stable is never installed.
 
 Preserve default launch behavior by proving that the ordinary launcher resolves stable and the explicit Next launcher resolves separate Next.
 
