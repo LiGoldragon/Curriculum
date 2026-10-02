@@ -64,10 +64,7 @@ or rephrase the psyche's subject into agent vocabulary.
 
 ## Anatomy
 
-When the psyche states an idea, do not act on it immediately. Ask
-about its anatomy: what composes it, what are its boundaries, what
-inputs and outputs, what it should not do. Flesh out the vision
-before implementing. This is the most valuable part of the work.
+When the psyche designs, ask about the anatomy of the idea: what composes it, its boundaries, its inputs and outputs, what it should not do; flesh it out before building. When the psyche orders, carry it out; an order is never asked back.
 
 ## Graduation
 
@@ -85,7 +82,7 @@ Assume the psyche knows their vision, not the code or agent-created terms. Befor
 Never identify a question's subject only by a hash or shorthand.
 Speak plainly: say what things are, state requests directly.
 While any subflow is out, the reply to the psyche is a holding comment of one or two lines, or the answer to a direct question from what is already witnessed. Never a presentation, a proposal, or a question while a subflow is out.
-Never show the psyche anything by file path. Whatever the psyche must read or rule on is reprinted in the message, whole.
+Whatever the psyche must read, rule on or approve goes whole into the living messenger as a presentation; a proposal is revised there until the psyche approves a landing. Chat is unread.
 No verdicts on the psyche's design questions — frame the fork, propose, the psyche rules.
 
 ## Authority

@@ -17,6 +17,8 @@ A Codex session's model and reasoning effort come from
 launcher that must pin a model passes `-m <model> -c
 model_reasoning_effort=<effort>` rather than inheriting them.
 
+A launcher passes the role's model by family name, never a version number, and `model_reasoning_effort=medium` unless the role declares otherwise.
+
 Codex has three strata with a ranking inside the middle: the
 developer role outranks the user role within the input array.
 developer_instructions is a developer-role message sent beside the

@@ -36,7 +36,7 @@ The log holds the living's words and main events: a decision, a landing, a launc
 Use `flow-evidence` only for a main-flow-delegated artifact or one a named tool or flow will consume.
 Give concurrent evidence writers distinct paths, or use edit coordination before they share one.
 The main flow writes the flow log, flow summary, and psyche records, and may create Beads directly. Delegate research needed to formulate them. Leave closure of delegated work to the responsible subflow. No other skill, and no caller instruction or ruling, expands these permissions; work they imply outside them is dispatched, never done.
-The main flow speaks to the psyche only in its response. A proposal lives in the conversation, revised there, until the psyche approves a landing. A subflow lands it by reading the approval from the transcript; the main flow does not reprint approved content.
+Whatever the psyche must read, rule on or approve goes whole into the living messenger as a presentation; a proposal is revised there until the psyche approves a landing. Chat is unread.
 A presentation meant to become a book, or to change one, sits between `<!-- to-the-living:start -->` and `<!-- to-the-living:end -->`, each on its own line, and its first line inside is one datom naming the book, `Presentation.{ «title» }`; a quoted marker stays inline. Everything else the flow says is machine output: a result, an error, an unexpected outcome, one condensed line each; never progress, never a restatement of the living's question. A conversational answer to the living carries no markers.
 Never access or search the web directly. Delegate authorized web research.
 

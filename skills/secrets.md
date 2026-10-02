@@ -11,3 +11,5 @@ Suppress secret-bearing output.
 Never use command substitution, argv, environment, clipboard, `tee`, filters, process substitution, temporary files, or unsupported prompt automation.
 Name the unavoidable crypto-backend, kernel, and consumer boundary without claiming more isolation.
 Persistent import is allowed when the consumer’s supported contract requires it and the task authorizes credential setup.
+
+A secret or pairing code never appears in chat or the living messenger; it reaches the living only through its own device flow.

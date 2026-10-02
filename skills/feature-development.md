@@ -3,6 +3,4 @@ description: Feature work would collide with a checkout someone else holds.
 dependencies: []
 ---
 
-Use the assigned branch or isolated worktree for feature work.
-Do not share a claimed checkout.
-Conclude the worktree when work lands or is rejected.
+Feature work happens in the repository's one shared checkout, under an edit-coordination lock.
