@@ -19,7 +19,7 @@ On the living's word ("I'll trust your judgment on the skill cleanup"), the main
 - stale-lock, less "and one hm-send to it comes back Held" (probes wake seats).
 - compensation-nix and compensation-nix-rationale, whole.
 - compensation-messenger-clj, trimmed to how a send is made and what its receipts mean, with no probe and no way around a refusal.
-- trial-flashbook, trial-flashbook-illustration and trial-generated-projection, renamed from `testing-`; the one reference between the flashbook pair followed.
+- operation-flashbook, operation-flashbook-illustration and trial-generated-projection, renamed from `testing-`; the one reference between the flashbook pair followed.
 - nexus: the CLI and Nexus Signal boundary (fd99d0e), and nix-workflow: Nix-built tests and Rust-only repositories (21672ff, as corrected), restored on the living's word of 2026-09-28 with his own additions.
 
 The review files keep the text as it stood on main before the recovery.

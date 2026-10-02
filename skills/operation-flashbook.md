@@ -1,6 +1,6 @@
 ---
 description: A flashbook must be made from a source written in a flow's transcript, or an existing flashbook is judged.
-dependencies: [trial-flashbook-illustration, behavior, vocabulary]
+dependencies: [operation-flashbook-illustration, behavior, vocabulary]
 ---
 
 A flashbook is a short illustrated book the living reads, one subject per book, made from Markdown a higher psyche seat wrote in its transcript under an exact title. Find the source by title in that transcript, take the text from its heading to the next rule, and never edit it.
@@ -17,4 +17,4 @@ The book shell is laid out with CSS Grid, never flexbox, and adapts with contain
 
 Take no screenshots of a book. Commit no images or other binary files to the repository.
 
-One private artifact per flashbook, titled by its title; a republish keeps its URL. Report titles and URLs to the requester in one message. Load trial-flashbook-illustration for every illustration. Commit and push the book's Markdown source as it is published; never the HTML or an image.
+One private artifact per flashbook, titled by its title; a republish keeps its URL. Report titles and URLs to the requester in one message. Load operation-flashbook-illustration for every illustration. Commit and push the book's Markdown source as it is published; never the HTML or an image.
