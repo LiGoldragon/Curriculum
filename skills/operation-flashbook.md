@@ -7,6 +7,8 @@ A flashbook is a short illustrated book the living reads, one subject per book, 
 
 Use a vertically scrolling document with stacked sections. Text is minimal; each section covers one thing. Give every section and chart its own visible heading for comment anchoring.
 
+Never use horizontal swipe or paging. Use no checkbox, button, copy control, form, or other interactive book control. The book receives answers only by comment; number choices for the living to name in a comment.
+
 A flashbook carries at most four points, chosen by how often and how strongly the living has spoken of them; what does not fit is left out, never compressed. The Book role resolves to Sonnet, which reads the presentation against the living's words and adds a small coloured note wherever it strongly agrees or disagrees, naming those words and their date.
 
 Verbatim living quotes stay verbatim with their provenance line; marks, tensions, and inference notes stay visible. Where the source has proposals, list them by number, checkable, landed ones badged.
