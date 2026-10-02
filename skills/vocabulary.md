@@ -13,7 +13,7 @@ Thread: one running model session and its context. A `THREAD_ID` identifies one 
 
 Transcript: the file the harness writes holding one thread from beginning to end.
 
-Living messenger: the user interface through which a flow reaches the living; what does not enter it is unread. A presentation is one message in it; a message the living has commented on is never reused.
+Living messenger: the user interface through which a flow reaches the living, asynchronous to the chat; a presentation is one message in it.
 
 Illustrated book: a book to which a model has added illustrations, deciding where each goes. Flashbook, picture book and photo book name the same thing.
 

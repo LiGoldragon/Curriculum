@@ -7,6 +7,8 @@ A flashbook is a short illustrated book the living reads, one subject per book, 
 
 Use a vertically scrolling document with stacked sections. Text is minimal; each section covers one thing. Give every section and chart its own visible heading for comment anchoring.
 
+A message is read on a phone: few points, much drawing, short text under each heading.
+
 Never use horizontal swipe or paging. Use no checkbox, button, copy control, form, or other interactive book control. The book receives answers only by comment; number choices for the living to name in a comment.
 
 A flashbook carries at most four points, chosen by how often and how strongly the living has spoken of them; what does not fit is left out, never compressed.

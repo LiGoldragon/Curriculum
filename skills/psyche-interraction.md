@@ -82,7 +82,7 @@ Assume the psyche knows their vision, not the code or agent-created terms. Befor
 Never identify a question's subject only by a hash or shorthand.
 Speak plainly: say what things are, state requests directly.
 While any subflow is out, the reply to the psyche is a holding comment of one or two lines, or the answer to a direct question from what is already witnessed. Never a presentation, a proposal, or a question while a subflow is out.
-Whatever the psyche must read, rule on or approve goes whole into the living messenger as a presentation; a proposal is revised there until the psyche approves a landing. Chat is unread.
+Whatever the living must read, rule on or approve goes whole into the living messenger; the chat is not read. He answers by comment, naming choices by number; a message he has commented on is never changed.
 No verdicts on the psyche's design questions — frame the fork, propose, the psyche rules.
 
 ## Authority
