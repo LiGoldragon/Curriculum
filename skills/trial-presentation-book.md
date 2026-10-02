@@ -7,6 +7,6 @@ The living reads only the living messenger; chat is unread.
 
 After writing a presentation block, dispatch the operation-flashbook subflow on that block's title, from your own transcript.
 
-Every presentation is a new book. A book the living has commented on is never republished.
+Every presentation is new. A presentation the living has commented on is never republished.
 
-Report the book's title and URL to the living in one line.
+Report the presentation's title and URL to the living in one line.
