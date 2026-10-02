@@ -17,4 +17,4 @@ The book shell is laid out with CSS Grid, never flexbox, and adapts with contain
 
 Take no screenshots of a book. Commit no images or other binary files to the repository.
 
-One private artifact per flashbook, titled by its title; a republish keeps its URL. Report titles and URLs to the requester in one message. Load operation-flashbook-illustration for every illustration. Commit and push the book's Markdown source as it is published; never the HTML or an image.
+Make one fresh artifact for every presentation and every comment. Preserve every older artifact, whether it has comments or not. Report titles and URLs to the requester in one message. Load operation-flashbook-illustration for every illustration. Commit and push the book's Markdown source as it is published; never the HTML or an image.
