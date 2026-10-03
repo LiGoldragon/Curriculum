@@ -14,8 +14,8 @@ instruction bodies are role-module data rather than standalone skill sources.
 
 The user-only `main-flow` role claims its shared normalized hexadecimal flow
 identity through the installed `flow-id` harness helper before its first
-artifact. It then gives `FLOW_ID` and `FLOW_DIRECTORY` to every child; child
-threads never claim a lane.
+artifact. Its launcher exports `FLOW_ID` and `FLOW_DIRECTORY` into the seat's
+environment, where every child inherits them; child threads never claim a lane.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the data contract and
 [UPGRADES.md](UPGRADES.md) for the runtime cutover.

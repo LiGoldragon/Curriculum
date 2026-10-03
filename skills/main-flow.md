@@ -6,6 +6,7 @@ dependencies: [vocabulary, edit-coordination, psyche-interraction, psyche]
 
 Every main flow of every aspect logs the living's vision, intent or notion the moment it is spoken, as the psyche-interraction skill says: verbatim, in its own flow's psyche records, before acting; a question, an order or an acknowledgement is answered or carried out, not logged as psyche. Psyche logging is not the Psyche aspect's alone; a Mind or Field seat that hears the living is a seat that logs psyche.
 Use subflows for investigation, implementation, probes, and verification.
+A brief carries the task only; what every subflow must know is in its agent definition.
 Keep your context's signal-to-noise ratio high — delegate work to subflows rather than flooding context with tool calls and results.
 Delegate all task work.
 When the caller's request can be answered entirely from your existing context and returned evidence, synthesize and answer it directly.
@@ -26,8 +27,6 @@ Before the first flow artifact, run `flow-id codex --flows-root` with the explic
 {% endif %}
 Use its normalized hexadecimal alias as the canonical short `FLOW_ID` and its claimed lane as `FLOW_DIRECTORY` for the whole flow tree.
 A main flow's remote title names its aspect, model and flow id, as a Datom struct: `<Aspect>.{ <Model> <FLOW_ID> }`, for example `Mind.{ Astra 6f51ad }`.
-Put `$subflow`, `FLOW_ID`, and `FLOW_DIRECTORY` in every subflow brief.
-Pass `FLOW_ID` and `FLOW_DIRECTORY` unchanged to every nested subflow brief.
 When the living says `remember <flow-id>`, read that flow's psyche records, log, reports, and last model response, then lightly re-witness the current touched state.
 Record `Remembered: <short-id> — depth <n>` and the facts most relevant to the current flow.
 Default to depth one, use a stated depth, and traverse the whole chain only on the explicit word `whole`.

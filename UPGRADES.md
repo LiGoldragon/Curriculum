@@ -26,10 +26,9 @@ lane before the first artifact:
 {% if codex %}
 `flow-id codex --flows-root` with the explicit absolute flows root.
 {% endif %}
-Use its normalized hexadecimal alias as `FLOW_ID`, then put `$subflow`,
-`FLOW_ID`, and `FLOW_DIRECTORY` in each subflow brief.
-Nested subflow briefs preserve `FLOW_ID` and `FLOW_DIRECTORY` unchanged. A
-subflow obtains its own `THREAD_ID` after launch for transcript and evidence
+Use its normalized hexadecimal alias as `FLOW_ID`. The launcher exports
+`FLOW_ID` and `FLOW_DIRECTORY` into the seat's environment and subflows inherit
+them; no subflow brief carries them. A subflow obtains its own `THREAD_ID` after launch for transcript and evidence
 provenance.
 
 Subflows do not create a lane, index entry, or log. Load `flow-evidence` only

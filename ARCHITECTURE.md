@@ -19,10 +19,10 @@ describe independently invocable skills.
 
 `main-flow` is a user-only role. Before its first artifact it claims one shared
 normalized hexadecimal flow identity and directory through the harness
-`flow-id` CLI, passes both through every subflow brief, and alone makes a rare
-flow log.
-`subflow` is model-loadable through that explicit brief and returns delegated
-work without creating a lane, index, or log. `flow-evidence` is loaded only
+`flow-id` CLI, and alone makes a rare flow log. Its launcher exports both into
+the seat's environment, which every subagent inherits.
+The `subflow-role` module, in every generated subagent definition, reads them
+there and returns delegated work without creating a lane, index, or log. `flow-evidence` is loaded only
 when an artifact is delegated or will be consumed; concurrent writers use
 separate paths or the standard edit coordination contract.
 
@@ -38,10 +38,9 @@ trees. Those belong to the runtime and consuming workspaces. This repository
 does not maintain a parallel legacy-DOTOS representation or a generated-output
 inventory.
 
-The current harness deployment interface carries a subflow brief but has no
-owned automatic main-flow-identity injection. The main flow explicitly claims
-its identity with the installed `flow-id` CLI, then passes `FLOW_ID` and
-`FLOW_DIRECTORY` explicitly. A subflow obtains its own `THREAD_ID` after launch.
+The launcher claims the main flow's identity with the installed `flow-id` CLI
+and exports `FLOW_ID` and `FLOW_DIRECTORY` into the seat's environment; no
+subflow brief carries them. A subflow obtains its own `THREAD_ID` after launch.
 No vendor injection or subflow lane-claim path is part of this contract.
 
 ## See also
