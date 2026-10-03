@@ -3,7 +3,7 @@ description: One of our own terms is used, or a term is being defined.
 dependencies: []
 ---
 
-Flow: one main-flow thread and every subflow it starts.
+Flow: one run of a voice, from launch to end: its main thread and every subflow it starts; also the Nexus that manages flows.
 
 Flow identity: the canonical short `FLOW_ID` shared by that whole flow.
 
