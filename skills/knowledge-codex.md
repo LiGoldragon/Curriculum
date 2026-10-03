@@ -4,7 +4,7 @@ description: Read the version-pinned Codex app-server control surface without tu
 
 Record the installed Codex version with a source-verification receipt before relying on its protocol.
 The model-facing account names the source artifact, states match or mismatch, and gives the receipt handle; deterministic code retains the raw revision.
-Until a source-verification receipt exists, report that missing helper rather than copying a raw revision into model context.
+Until source-verification receipt evidence exists, report that unavailable evidence rather than copying a raw revision into model context.
 
 Initialize the app-server connection before requests.
 
