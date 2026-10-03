@@ -13,3 +13,4 @@ Under the lock: jj git fetch; jj commit of own paths; find it by its description
 
 The original working copy and main intentionally diverge. Do not rebase, restore, abandon, or otherwise change the original; reconciliation is separately reviewed.
 
+A reconciliation that lands a flow's path on main is followed, under the same lock, by a working-copy commit of that path holding exactly the landed content, before any newer edit of it, so the flow's next duplicate applies cleanly.
