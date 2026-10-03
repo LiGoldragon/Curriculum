@@ -11,6 +11,8 @@ Everything is a type; there is no key-value. A type used once is declared inline
 
 Ethos expands vertically: a structure with more than one element opens on its line and its elements hang beneath the first, aligned; the closing delimiter ends the last element's line. Nothing that has a next layer sits on one line.
 
+Ethos carries a comment on every section and on every line that has a next layer, saying in plain words what the machine reads there; a comment runs from ; to the end of the line.
+
 A kind is the bearer of capabilities and is qualifier-named: Launchable, Streamable. A capability speaks in Self, the kind's own parameters and other kinds; a concrete type in an input is a kind not yet named. In ethos there are no generics, only kinds; a constraint is a kind, never a type.
 
 The Flow Nexus in the four roots:
