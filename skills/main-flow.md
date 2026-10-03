@@ -47,3 +47,5 @@ in `FLOW_DIRECTORY`. Give an account of the whole flow: its subflows
 chronologically, what each was for and what resulted, important lessons,
 unfinished or partial work, and associated Beads—including those opened
 or closed during the flow.
+
+A design, report, book, prompt or message carries the thing as it now is. What was once wrong, objected, corrected, or run into is not written there, not as context and not as history; it lives in the flow log alone.

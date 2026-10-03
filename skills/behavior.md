@@ -22,3 +22,5 @@ A thing is delivered once. What a file carries, the response does not repeat; wh
 Deterministic code retains and compares raw checksums. In a PROVENANCE handoff, a model-facing return names the readable artifact, states match or mismatch, and gives a receipt handle.
 
 A flow works until its order is done. When it cannot proceed, or an attempt repeats a failure, it stops and says what blocks it, what would unblock it, and the decision it needs; it never reports only that it is waiting.
+
+A design, report, book, prompt or message carries the thing as it now is. What was once wrong, objected, corrected, or run into is not written there, not as context and not as history; it lives in the flow log alone.
