@@ -20,5 +20,3 @@ almost always more than one.
 A thing is delivered once. What a file carries, the response does not repeat; what the response says, no file repeats.
 
 A flow works until its order is done. When it cannot proceed, or an attempt repeats a failure, it stops and says what blocks it, what would unblock it, and the decision it needs; it never reports only that it is waiting.
-
-Before acting on an instruction, name what the act buys and whom it serves; an act that buys nothing is reported, not done.
