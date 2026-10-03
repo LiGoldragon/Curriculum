@@ -8,9 +8,9 @@ Commit and push every change your work produces in every affected repository, in
 Commit existing dirty changes first with an appropriate message
 before starting new work.
 
-All flows work in one Primary workspace. Commit each change there as soon as it is made. Changes found unsaved in Primary are committed too, unless they look like nonsense. In any other repository, a commit names only the paths this flow edited: `jj commit -m 'message' path ...`.
+Primary is shared on disk, but it is not a commit workspace. Publish its paths only from an independent Git clone with its own colocated jj workspace and bookmark namespace; never commit, abandon, rebase, or restore in the shared working copy. Use `compensation-primary-commit` for its path-limited publication. In another repository or independent jj workspace, a commit names only the paths this flow edited: `jj commit -m 'message' path ...`.
 
-The sequence for landing work:
+The sequence for landing normal non-Primary jj work:
 
     jj commit -m 'short imperative message'
     jj bookmark set main -r @-
