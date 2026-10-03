@@ -1,5 +1,5 @@
 ---
-description: What exists today for launching, naming and reaching flows is read, before Flow the Nexus exists.
+description: A flow must be launched, named, claimed or reached, or a hook or sandbox seat run, with what is deployed today rather than with Flow as designed.
 dependencies: [vision-flow]
 ---
 
