@@ -13,6 +13,8 @@ TARGET is the recipient's six-character flow id.
 
 Write the recipient-facing body only.
 
+Send only messages that require the recipient's action, deliver a result it awaits, or report an error or blocker affecting its work; keep routine receipts in durable records for requested status reports.
+
 The typed reply is what hm-send itself prints; a flow never waits on or watches the target for an answer.
 
 Report the printed receipt as it is. `Transported` is Herdr's acceptance for the checked binding. `Presented` includes the observed reaction of the target. Neither proves a read. `Held` means nothing was typed and the whole body is pending; its printed reason names the refusal. `RepairRequired` means the recorded candidates must be judged and the route repaired with `hm-repair`. `Uncertain` means the envelope may have arrived: inspect the target and never retry blindly.
