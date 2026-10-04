@@ -19,4 +19,6 @@ Report the printed receipt as it is. `Transported` is Herdr's acceptance for the
 
 A refused send is reported and its route is mended.
 
+`FLOW_ID=<self> hm-retire FLOW` takes only the flow id: it reads the route and live Herdr identity itself, writes the evidence file, and prints its path. A refusal prints `RetireRefused.{ FLOW Reason }` and changes nothing.
+
 Registration validates one exact live Herdr identity and stores its native binding immediately; send readiness is checked separately. A Held send remains pending until an explicit supported delivery action.
