@@ -52,11 +52,13 @@ Target-specific text in a flat source uses `{% if claude %}`, `{% if codex %}`, 
 
 ## Skill types
 
-A skill's kind says who stands behind it.
-A gold skill carries no prefix. It is the living's vision of the desired result, approved by the living, and changes only on the living's word.
+A skill's kind says who stands behind it, and is its prefix: `vision-`, `intent-`, `knowledge-`, `operation-`, `trial-` or `compensation-`.
+A `vision-` or `intent-` skill is gold: the living's approved words, changed only on the living's word.
+A `knowledge-` skill states what is deployed and true today, written by flows from what they have read and verified.
 An `operation-` skill is deployed when the living describes what he wants a skill to do or to change; the primary Mind seat reviews and interprets it, and no glance from the living is needed.
 A `compensation-` skill is written by flows; it compensates for what the system does not yet do, so that the system runs.
 A `trial-` skill is written by flows: it is being tried for how useful it can become as a compensation skill.
+Compensation and trial skills are machine-authored without the living in the loop, refined as they are used and reviewed, and upgraded into operation, knowledge, vision or intent skills.
 
 `user-only: true` — the skill enters only through the user prompt or a
 launcher's first turn; the flow cannot load it. It deploys as

@@ -6,7 +6,7 @@ dependencies: [psyche]
 ## Logging
 
 Log psyche in the flow's own `vision/<topic>.md`: what the psyche envisions, in the psyche's words. Never a ruling or an instruction.
-A statement enters `Vision/` only as a distillation the living
+A statement enters a vision- skill only as a distillation the living
 has explicitly approved. Intent and spirit enter only on the
 living's explicit word. Never edit the spirit skill without explicit psyche approval of exact wording.
 

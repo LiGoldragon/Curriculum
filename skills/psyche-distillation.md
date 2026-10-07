@@ -17,7 +17,7 @@ is composed only in the main flow. A subflow only gathers records that
 could qualify as candidates for distilling together.
 
 A proposal re-articulates; it never quotes. A distilled
-statement stands on its own words. Every distillation refers to the raw psyche it was distilled from: the references sit in the topic's sources file, `Vision/sources/<topic>.md`, one line per reference — the originating flow's short id and the record file's topic, `e06e4c07 nexus` (`vision-raw <topic>` for a vision-raw record) — appended after every distillation, so the original words are easily found. The path is reconstructed from the line; since distillation moves the record into the archive, the line resolves to the `archive-` file. The archived
+statement stands on its own words. Every distillation refers to the raw psyche it was distilled from: the references sit in the skill's Sources section, one line per reference — the originating flow's short id and the record file's topic, `e06e4c07 nexus` (`vision-raw <topic>` for a vision-raw record) — appended after every distillation, so the original words are easily found. The path is reconstructed from the line; since distillation moves the record into the archive, the line resolves to the `archive-` file. The archived
 originals keep every original word. A proposed change to a raw
 record — correction included — is proposed as a distillation of
 its subject, never as an append to the raw file.
@@ -26,11 +26,11 @@ A distilled statement carries what the psyche said and nothing beyond it; a smal
 A distilled statement carries no undefined term. Define the term first, or leave the statement raw.
 A statement about code carries the code: a distilled statement on a syntax, a type, a kind, or a wire form shows example code, because machines think in code and the next machine to read it must understand.
 
-A distilled statement lands in `Vision/<topic>.md` on the
-living's explicit approval, and never before. A ruling a
-distillation lands in Vision is not also logged as raw vision;
-the landing is the record. Intent enters
-`Intent/` only on the living's explicit word. The raw records a
+A distilled statement lands as lines in a vision-, intent- or
+other skill's authored source on the living's explicit approval,
+and never before. A ruling a distillation lands in a skill is not
+also logged as raw vision; the landing is the record. Intent enters
+an intent- skill only on the living's explicit word. The raw records a
 distillation replaces move into an `archive-` prefixed file
 beside their source file.
 
@@ -45,5 +45,5 @@ What the living says fresh while a distillation is being composed is logged as a
 A vision impurity encountered in distillation is destroyed, not archived.
 Impurities are never hunted: they fall only through distillation, and
 a proposal points out the impurities it discards. A proposal names,
-for every statement, the Vision topic it lands in; a statement in the
+for every statement, the skill it lands in; a statement in the
 wrong topic cannot be approved.
