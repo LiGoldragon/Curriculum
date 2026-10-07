@@ -22,7 +22,7 @@ in one swoop.
 
 ## Roots
 
-Library, Signal, Sema. No version in a file. Signal's sections are
+Library, Signal, Operation, Memory. No version in a file. Signal's sections are
 queries and responses, since there is communication; Sema's are record
 types, the rest to be decided. Signal gives a Nexus its main types and
 Sema its database types.
