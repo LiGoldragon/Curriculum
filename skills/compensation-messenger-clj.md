@@ -21,6 +21,17 @@ Report the printed receipt as it is. `Transported` is Herdr's acceptance for the
 
 A refused send is reported and its route is mended.
 
+Before sending, establish that the recipient holds the work and is live.
+Relay the living's words verbatim through the supported psyche command
+when the recipient needs them. Do not send probes, routine receipts, or
+lock notices. Use `hm-send` for flow-to-flow messages, never a shell
+script, paste, or another intercom.
+
+Before relying on a Codex delivery, establish its supported authenticated
+binding and Presented receipt.
+Report an undelivered message to the sender's flow; do not infer that a
+receipt proves the message was read.
+
 `FLOW_ID=<self> hm-retire FLOW` takes only the flow id: it reads the route and live Herdr identity itself, writes the evidence file, and prints its path. A refusal prints `RetireRefused.{ FLOW Reason }` and changes nothing.
 
 Registration validates one exact live Herdr identity and stores its native binding immediately; send readiness is checked separately. A Held send remains pending until an explicit supported delivery action.

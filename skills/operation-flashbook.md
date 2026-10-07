@@ -11,9 +11,11 @@ A message is read on a phone: few points, much drawing, short text under each he
 
 Never use horizontal swipe or paging. Use no checkbox, button, copy control, form, or other interactive book control. The book receives answers only by comment; number choices for the living to name in a comment.
 
-A flashbook carries at most four points, chosen by how often and how strongly the living has spoken of them; what does not fit is left out, never compressed.
+A flashbook keeps every point in its source and gives each point
+full-size drawn imagery. Restyled text and one image are not a flashbook.
 
-Verbatim living quotes stay verbatim with their provenance line; marks, tensions, and inference notes stay visible. Where the source has proposals, list them by number, checkable, landed ones badged.
+Do not quote the living back to him. Where the source has proposals,
+show the named file, lines removed, lines added, and the ruling sought.
 
 Cream ground, warm ink, one accent, both themes, Fraunces display, Source Serif 4 body, JetBrains Mono for code, prose at most 68 characters wide, nothing scrolling sideways.
 
