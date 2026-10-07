@@ -9,7 +9,7 @@ Psyche-grasp measures the psyche's understanding OF the code. Code-seniority mea
 Levels, lowest to highest: `unseen`, `glimpsed`, `slightly-reviewed`, `understood`, `authored`.
 
 Mark form — Rust: `// psyche-grasp: <level> (YYYY-MM-DD)`
-Mark form — Ethos/Dotos: `;; psyche-grasp: <level> (YYYY-MM-DD)`
+Mark form — Ethos/datom: `;; psyche-grasp: <level> (YYYY-MM-DD)`
 
 Mark when a psyche-relevant design lands at a site.
 Upgrade a mark only on real psyche contact with that site; never write a level that was not earned.
