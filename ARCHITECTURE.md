@@ -1,50 +1,66 @@
-# Curriculum — architecture
+# Curriculum architecture
 
-Curriculum is a pure data repository. Its canonical surface is 38 described
-skill sources and one complete Datom role record. A runtime outside this
-repository reads these sources and produces any harness-specific output.
+Curriculum owns the skill registry implementation and its CLI/Nexus boundary.
+Skill bodies remain authored Markdown in three repositories:
 
-## Canonical data
+- Psyche: `psyche-skills/skills/*.md`
+- Mind: `mind-skills/skills/*.md`
+- Field: `field-skills/skills/*.md`
 
-`skills/<name>.md` is an independently described skill source. The file's
-frontmatter owns its description and its body owns its instructions.
+Each filename is the skill name. Frontmatter `dependencies` names other skills.
+The registry is keyed by canonical source path, reads the current file bodies,
+and validates unique names and complete acyclic dependency graphs. Source data
+is not compiled into the Rust binary.
 
-`roles.datom` is a `Roles` record with these positional fields: role modules,
-models, permissions, depths, descriptions, aliases, universal module
-identifiers, and target module insertions.
+## Requests
 
-A role module is `{identifier body}`. The general instruction and Codex
-skill-loading bodies are role modules because they compose roles rather than
-describe independently invocable skills.
+`curriculum 'ResolveSkills.[ roots ]'` parses one Datom query at the CLI
+boundary, sends the typed query to the local Nexus, and prints one Datom
+response. A successful resolution returns a dependency-first list with each
+skill once. Launcher callers put `operation-main-flow` first after resolution.
 
-`main-flow` is a user-only role. Before its first artifact it claims one shared
-normalized hexadecimal flow identity and directory through the harness
-`flow-id` CLI, and alone makes a rare flow log. Its launcher exports both into
-the seat's environment, which every subagent inherits.
-The `subflow-role` module, in every generated subagent definition, reads them
-there and returns delegated work without creating a lane, index, or log. `flow-evidence` is loaded only
-when an artifact is delegated or will be consumed; concurrent writers use
-separate paths or the standard edit coordination contract.
+An `EditSkills` signal carries three vectors of source paths: new, edited, and
+deleted, plus a typed role packet plan parsed by the CLI from `roles.datom`.
+The Nexus rereads the current skill files, validates the resulting registry,
+computes changed/new/deleted skill names, and regenerates the workspace. Skill
+bodies do not travel in the signal. The role plan carries standing names and
+role module metadata; the Nexus resolves each selected name through the live
+registry and appends every body in dependency-first order, once. A rejected
+projection keeps the previous registry active and reports its reason on CLI
+stderr.
 
-The record keeps every role decision together: model availability, permission
-policy, effort choices, role descriptions, aliases, and ordered module
-composition. Its data is positional because Datom is schema-driven.
+`RebuildSkills` projects the loaded registry and role plan without changing
+their source data. `CheckSkills` rereads all three authored repositories and
+compares the current sources, five generated skill trees, role packet files,
+role manifest, and standing selection without writing. It rejects when a
+skill source changed without an `EditSkills` signal or when any projection is
+stale.
 
-## Boundary
+The Nexus handles only typed archived signals. It does not parse Datom. The
+CLI reads `roles.datom`, parses the previous generated-role manifest, and
+passes the resulting plan to the Nexus as typed fields.
 
-Curriculum does not contain a CLI, Rust code, Cargo or Nix configuration,
-request fixtures, assembly manifests, templates, tests, or generated consumer
-trees. Those belong to the runtime and consuming workspaces. This repository
-does not maintain a parallel legacy-DOTOS representation or a generated-output
-inventory.
+## Projections
 
-The launcher claims the main flow's identity with the installed `flow-id` CLI
-and exports `FLOW_ID` and `FLOW_DIRECTORY` into the seat's environment; no
-subflow brief carries them. A subflow obtains its own `THREAD_ID` after launch.
-No vendor injection or subflow lane-claim path is part of this contract.
+The workspace receives the registry in five generated trees:
 
-## See also
+- `.agents/skills`
+- `.claude/skills`
+- `.codex/skills`
+- `.pi/skills`
+- `.opencode/skills`
 
-`README.md` describes the repository surface.
+Projection renders harness-specific frontmatter and user-only invocation
+policy. It stages the complete output before replacing the five skill trees
+and role output files. The regular immutable check compares generated files
+and names with current authored sources.
 
-`UPGRADES.md` records the data-root cutover for runtime maintainers.
+## Role data
+
+`roles.datom` remains the role configuration record. Its positional fields are
+role modules, models, permissions, depths, descriptions, aliases, universal
+module identifiers, target module insertions, and standing skill names. The
+CLI converts that record to a typed role plan. The Nexus validates generated
+role paths, composes each packet, and replaces stale files listed by the prior
+manifest. The authored `subagents/book.md` procedure is copied without
+reflowing its contents.

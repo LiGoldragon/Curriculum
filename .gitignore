@@ -2,3 +2,4 @@
 .dolt/
 *.db
 .beads-credential-key
+target/

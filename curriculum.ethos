@@ -1,0 +1,41 @@
+; Typed Curriculum registry protocol. Datom lives at the CLI boundary.
+
+Library
+[]
+[ SkillPathEdits.{ Vector<String> Vector<String> Vector<String> }
+  SkillEdits.{ SkillPathEdits RolePlan }
+  SkillChange.{ Vector<String> Vector<String> Vector<String> }
+  RolePacketPlan.{ Surface String String String String Effort Permission String String }
+  RolePlan.{ Vector<RolePacketPlan> Vector<String> Vector<String> String }
+  CliRequest.[ ResolveSkills.Vector<String>
+               EditSkills.SkillPathEdits
+               CheckSkills
+               RebuildSkills ]
+  Query.[ ResolveSkills.Vector<String>
+          EditSkills.SkillEdits
+          CheckSkills.RolePlan
+          RebuildSkills.RolePlan ]
+  Outcome.[ ResolvedSkills.Vector<String>
+            SkillsChanged.SkillChange
+            SkillsChecked.Vector<String>
+            SkillsRebuilt.Vector<String>
+            Rejected.String ]
+  RoleManifest.{ Vector<String> }
+  RoleManifestDocument.[ GeneratedRoleOutputs.RoleManifest ]
+  Provider.[ Claude ChatGpt ]
+  Permission.[ Restricted Unrestricted ]
+  Effort.[ Low Medium High Xhigh ]
+  Surface.[ ClaudeAgent CodexAgent PiAgent ]
+  ModelChoice.{ String Option<Effort> }
+  RoleModule.{ String String }
+  Model.{ String Provider Vector<Effort> }
+  RolePermission.{ String String Permission }
+  RoleDepth.{ String ModelChoice ModelChoice }
+  RoleDescription.{ String String String }
+  RoleAlias.{ String String String String Vector<Surface> }
+  TargetInsertion.{ String Surface Vector<String> }
+  Roles.{ Vector<RoleModule> Vector<Model> Vector<RolePermission> Vector<RoleDepth> Vector<RoleDescription> Vector<RoleAlias> Vector<String> Vector<TargetInsertion> Vector<String> }
+  RolesDocument.[ Roles.Roles ] ]
+
+[]
+[]
