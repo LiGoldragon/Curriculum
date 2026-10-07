@@ -1,0 +1,44 @@
+[package]
+name = "curriculum"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/LiGoldragon/Curriculum"
+description = "Curriculum skill registry and Nexus."
+publish = false
+
+[features]
+default = []
+datom = ["dep:datom-codec", "dep:protos"]
+
+[[bin]]
+name = "curriculum"
+path = "src/main.rs"
+required-features = ["datom"]
+
+[[bin]]
+name = "curriculum-nexus"
+path = "src/nexus_main.rs"
+
+[dependencies]
+datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "4dff16b4f7412febc3b71aac8b49680cd20988cb", features = ["rkyv"], optional = true }
+nexus = { git = "https://github.com/LiGoldragon/nexus", rev = "ec097e315a3b0b99bc215a72f6c3f6d8b2b060cf" }
+protos = { git = "https://github.com/LiGoldragon/protos", rev = "15b41da8f2579e73ead59bc0c2b97529b8ac32d3", optional = true }
+rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
+thiserror = "2"
+tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "signal"] }
+
+[dev-dependencies]
+ethos-zero = { git = "https://github.com/LiGoldragon/ethos-zero", rev = "c2653dd82adbdb1f1f2f654405c6620e0d06fd58" }
+tempfile = "3"
+
+[[test]]
+name = "nexus_roundtrip"
+path = "tests/nexus_roundtrip.rs"
+required-features = ["datom"]
+
+[lints.rust]
+unsafe_code = "forbid"
+unused = { level = "warn", priority = -1 }
+dead_code = "warn"

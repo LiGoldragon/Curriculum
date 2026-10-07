@@ -1,21 +1,22 @@
 # Curriculum
 
-Curriculum is the canonical data root for reusable agent instruction sources
-and role definitions. It is consumed by an external runtime; it contains no
-runtime, generator, deployment configuration, or generated consumer output.
+Curriculum provides the typed skill registry used by the Flow client and the
+native harness launchers. The authored skill sources live in the Psyche, Mind,
+and Field skill repositories, under each repository's `skills/` directory.
 
-`skills/*.md` holds the 38 independently described skill sources. Each source
-owns its frontmatter description and instruction body.
+The `curriculum-nexus` process loads those source paths, validates skill names
+and dependencies, resolves dependency closures, and regenerates the consumer
+workspace through typed signals. The `curriculum` CLI parses one Datom request
+and sends the typed request to the Nexus. The Nexus protocol itself contains
+no Datom parsing. The CLI also parses `roles.datom` and sends the role packet
+plan as typed data. The Nexus assembles each packet with the current standing
+skill dependency closure. `CheckSkills` is read-only; `RebuildSkills` projects
+the skill trees and role packets from current inputs.
 
-`roles.datom` is the complete canonical role record. Its positional fields are
-role modules, models, permissions, depths, descriptions, aliases, universal
-role-module identifiers, and target module insertions. The two universal
-instruction bodies are role-module data rather than standalone skill sources.
+The generated workspace includes all five skill trees, role packet files,
+`skills/generated-role-outputs.datom`, and
+`tools/standing-skill-selection.mjs`. Book's authored procedure is carried
+byte-for-byte after the role and standing skill bodies.
 
-The user-only `main-flow` role claims its shared normalized hexadecimal flow
-identity through the installed `flow-id` harness helper before its first
-artifact. Its launcher exports `FLOW_ID` and `FLOW_DIRECTORY` into the seat's
-environment, where every child inherits them; child threads never claim a lane.
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the data contract and
-[UPGRADES.md](UPGRADES.md) for the runtime cutover.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the source, signal, and projection
+contracts.
