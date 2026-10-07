@@ -49,16 +49,16 @@ A notion may be drawn upon for suggestions. A flow told explicitly to implement 
 
 - The spirit skill — spirit's current home; entry files will
   carry it.
-- `Vision/<topic>.md` — distilled vision: self-standing
+- The vision-<topic> skill — distilled vision: self-standing
   statements, each reviewed by the living before it stands.
-- `Intent/<topic>.md` — distilled intent: entered only on the
+- The intent-<topic> skill — distilled intent: entered only on the
   living's explicit word.
 - `flows/<short-id>/vision/<topic>.md` — raw records, in the flow
   that heard them. Finding raw psyche means searching
   `flows/*/vision/`.
 - `flows/<short-id>/notion/<topic>.md` — raw notions, in the flow that heard them.
 - `vision-raw/<topic>.md` — legacy: the undistilled vision corpus
-  heard before flows, draining into `Vision/` as distillation
+  heard before flows, draining into vision skills as distillation
   touches it; phased out, gone when empty. Nothing new lands
   there — a raw record lives in the flow that heard it.
 
