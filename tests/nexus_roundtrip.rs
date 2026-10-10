@@ -503,8 +503,8 @@ fn rebuild_projects_every_role_with_each_standing_skill_and_keeps_book_verbatim(
     let packet_plan =
         curriculum::roles::PlansRoles::role_plan(&roles, &workspace).expect("role packet plan");
     assert_eq!(packet_plan.role_packet_plan_vector.len(), 24);
-    assert_eq!(packet_plan.first_string_vector.len(), 10);
-    assert_eq!(markers.len(), 13);
+    assert_eq!(packet_plan.first_string_vector.len(), 11);
+    assert_eq!(markers.len(), 14);
     for packet in &packet_plan.role_packet_plan_vector {
         let projected = fs::read_to_string(workspace.join(&packet.first_string))
             .expect("projected role packet");
