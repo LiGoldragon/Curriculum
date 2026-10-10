@@ -155,8 +155,12 @@ impl ReadsSkillRepositories for SkillRegistry {
         for path in markdown_files(&psyche_repository_root.join("vision"), true)? {
             registry.insert_source(&path)?;
         }
-        for root in [&registry.mind_skills_root, &registry.field_skills_root] {
-            for path in markdown_files(root, false)? {
+        let skill_roots = [
+            registry.mind_skills_root.clone(),
+            registry.field_skills_root.clone(),
+        ];
+        for root in skill_roots {
+            for path in markdown_files(&root, false)? {
                 registry.insert_source(&path)?;
             }
         }
