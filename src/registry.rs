@@ -582,8 +582,8 @@ mod tests {
         let mind = root.join("mind-skills");
         let field = root.join("field-skills");
         fs::create_dir_all(psyche.join("skills")).expect("Psyche skills directory");
-        fs::create_dir_all(mind).expect("Mind skills directory");
-        fs::create_dir_all(field).expect("Field skills directory");
+        fs::create_dir_all(&mind).expect("Mind skills directory");
+        fs::create_dir_all(&field).expect("Field skills directory");
         (psyche, mind, field)
     }
 
