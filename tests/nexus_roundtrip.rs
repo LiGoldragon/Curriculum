@@ -305,9 +305,9 @@ fn reopening_with_a_distinct_psyche_root_preserves_skill_and_role_projections() 
         if name == "vision-ethos" {
             continue;
         }
-        let root = match index % 3 {
-            0 => &old_skill_sources,
-            1 => &mind,
+        // Keep role roots stable while this test changes the Psyche root.
+        let root = match index % 2 {
+            0 => &mind,
             _ => &field,
         };
         let dependencies = if name == "spirit" {
