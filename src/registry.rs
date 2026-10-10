@@ -27,7 +27,9 @@ pub struct ResolvedSkill {
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct SkillRegistry {
     entries: BTreeMap<PathBuf, SkillEntry>,
-    source_roots: Vec<PathBuf>,
+    psyche_repository_root: PathBuf,
+    mind_skills_root: PathBuf,
+    field_skills_root: PathBuf,
 }
 
 #[derive(Debug, Error)]
@@ -64,6 +66,12 @@ pub trait ReadsSkillSource {
 
 impl ReadsSkillSource for SkillEntry {
     fn read(path: &Path) -> Result<SkillEntry, RegistryError> {
+        Self::read_named(path, None)
+    }
+}
+
+impl SkillEntry {
+    fn read_named(path: &Path, name: Option<String>) -> Result<SkillEntry, RegistryError> {
         let path = fs::canonicalize(path).map_err(|source| RegistryError::Read {
             path: path.to_path_buf(),
             source,
@@ -74,15 +82,29 @@ impl ReadsSkillSource for SkillEntry {
                 message: "skill sources must end in .md".into(),
             });
         }
-        let name = path
+        let stem = path
             .file_stem()
             .and_then(|value| value.to_str())
-            .filter(|value| valid_name(value))
-            .ok_or_else(|| RegistryError::InvalidSource {
-                path: path.clone(),
-                message: "filename must be a lower-case skill name".into(),
-            })?
+            .unwrap_or_default()
             .to_owned();
+        let name = name.unwrap_or_else(|| {
+            if path
+                .parent()
+                .and_then(Path::file_name)
+                .and_then(|value| value.to_str())
+                == Some("vision")
+            {
+                format!("vision-{stem}")
+            } else {
+                stem
+            }
+        });
+        if !valid_name(&name) {
+            return Err(RegistryError::InvalidSource {
+                path,
+                message: "filename must be a lower-case skill name".into(),
+            });
+        }
         let body = fs::read_to_string(&path).map_err(|source| RegistryError::Read {
             path: path.clone(),
             source,
@@ -104,45 +126,79 @@ impl ReadsSkillSource for SkillEntry {
 }
 
 pub trait ReadsSkillRepositories {
-    fn from_repositories(roots: &[PathBuf]) -> Result<SkillRegistry, RegistryError>;
+    fn from_repositories(
+        psyche_repository: &Path,
+        mind_skills: &Path,
+        field_skills: &Path,
+    ) -> Result<SkillRegistry, RegistryError>;
 }
 
 impl ReadsSkillRepositories for SkillRegistry {
-    fn from_repositories(roots: &[PathBuf]) -> Result<SkillRegistry, RegistryError> {
-        let mut canonical_roots = Vec::with_capacity(roots.len());
-        let mut entries = BTreeMap::new();
-        for root in roots {
-            let canonical_root = fs::canonicalize(root).map_err(|source| RegistryError::Read {
-                path: root.clone(),
-                source,
-            })?;
-            canonical_roots.push(canonical_root.clone());
-            for item in fs::read_dir(&canonical_root).map_err(|source| RegistryError::Read {
-                path: canonical_root.clone(),
-                source,
-            })? {
-                let item = item.map_err(|source| RegistryError::Read {
-                    path: canonical_root.clone(),
-                    source,
-                })?;
-                let path = item.path();
-                if path.extension().is_none_or(|extension| extension != "md") {
-                    continue;
-                }
-                let entry = SkillEntry::read(&path)?;
-                if !entry.path.starts_with(&canonical_root) {
-                    return Err(RegistryError::OutsideSource(entry.path));
-                }
-                entries.insert(entry.path.clone(), entry);
+    fn from_repositories(
+        psyche_repository: &Path,
+        mind_skills: &Path,
+        field_skills: &Path,
+    ) -> Result<SkillRegistry, RegistryError> {
+        let psyche_repository_root = canonical_root(psyche_repository)?;
+        let mind_skills_root = canonical_root(mind_skills)?;
+        let field_skills_root = canonical_root(field_skills)?;
+        let mut registry = SkillRegistry {
+            entries: BTreeMap::new(),
+            psyche_repository_root: psyche_repository_root.clone(),
+            mind_skills_root,
+            field_skills_root,
+        };
+
+        for path in markdown_files(&psyche_repository_root.join("skills"), false)? {
+            registry.insert_source(&path)?;
+        }
+        for path in markdown_files(&psyche_repository_root.join("vision"), true)? {
+            registry.insert_source(&path)?;
+        }
+        for root in [&mind_skills_root, &field_skills_root] {
+            for path in markdown_files(root, false)? {
+                registry.insert_source(&path)?;
             }
         }
-        let registry = SkillRegistry {
-            entries,
-            source_roots: canonical_roots,
-        };
+
         registry.validate()?;
         Ok(registry)
     }
+}
+
+fn canonical_root(root: &Path) -> Result<PathBuf, RegistryError> {
+    fs::canonicalize(root).map_err(|source| RegistryError::Read {
+        path: root.to_path_buf(),
+        source,
+    })
+}
+
+fn markdown_files(directory: &Path, missing_is_empty: bool) -> Result<Vec<PathBuf>, RegistryError> {
+    let items = match fs::read_dir(directory) {
+        Ok(items) => items,
+        Err(source) if missing_is_empty && source.kind() == io::ErrorKind::NotFound => {
+            return Ok(Vec::new());
+        }
+        Err(source) => {
+            return Err(RegistryError::Read {
+                path: directory.to_path_buf(),
+                source,
+            });
+        }
+    };
+    let mut paths = Vec::new();
+    for item in items {
+        let item = item.map_err(|source| RegistryError::Read {
+            path: directory.to_path_buf(),
+            source,
+        })?;
+        let path = item.path();
+        if path.extension().is_some_and(|extension| extension == "md") {
+            paths.push(path);
+        }
+    }
+    paths.sort();
+    Ok(paths)
 }
 
 pub trait ExpandsSkills {
@@ -212,7 +268,7 @@ impl AppliesSkillPathEdits for SkillRegistry {
             next.entries.remove(path);
         }
         for path in &updated_paths {
-            let entry = SkillEntry::read(path)?;
+            let entry = next.read_source(path)?;
             next.entries.insert(entry.path.clone(), entry);
         }
         next.validate()?;
@@ -357,10 +413,60 @@ trait ChecksSourceBoundary {
 
 impl ChecksSourceBoundary for SkillRegistry {
     fn check_source(&self, path: &Path) -> Result<(), RegistryError> {
-        if path.extension().is_some_and(|extension| extension == "md")
-            && self.source_roots.iter().any(|root| path.starts_with(root))
+        self.skill_name(path).map(|_| ())
+    }
+}
+
+impl SkillRegistry {
+    fn insert_source(&mut self, path: &Path) -> Result<(), RegistryError> {
+        let entry = self.read_source(path)?;
+        self.entries.insert(entry.path.clone(), entry);
+        Ok(())
+    }
+
+    fn read_source(&self, path: &Path) -> Result<SkillEntry, RegistryError> {
+        let canonical = fs::canonicalize(path).map_err(|source| RegistryError::Read {
+            path: path.to_path_buf(),
+            source,
+        })?;
+        let name = self.skill_name(&canonical)?;
+        SkillEntry::read_named(&canonical, Some(name))
+    }
+
+    fn skill_name(&self, path: &Path) -> Result<String, RegistryError> {
+        if path.extension().is_none_or(|extension| extension != "md") {
+            return Err(RegistryError::OutsideSource(path.to_path_buf()));
+        }
+        let stem = || {
+            path.file_stem()
+                .and_then(|value| value.to_str())
+                .filter(|value| valid_name(value))
+                .map(str::to_owned)
+                .ok_or_else(|| RegistryError::InvalidSource {
+                    path: path.to_path_buf(),
+                    message: "filename must be a lower-case skill name".into(),
+                })
+        };
+        if let Ok(relative) = path.strip_prefix(&self.psyche_repository_root) {
+            match relative.parent() {
+                Some(parent) if parent == Path::new("skills") => stem(),
+                Some(parent) if parent == Path::new("vision") => {
+                    let name = format!("vision-{}", stem()?);
+                    if valid_name(&name) {
+                        Ok(name)
+                    } else {
+                        Err(RegistryError::InvalidSource {
+                            path: path.to_path_buf(),
+                            message: "vision filename must be a lower-case skill name".into(),
+                        })
+                    }
+                }
+                _ => Err(RegistryError::OutsideSource(path.to_path_buf())),
+            }
+        } else if path.parent() == Some(self.mind_skills_root.as_path())
+            || path.parent() == Some(self.field_skills_root.as_path())
         {
-            Ok(())
+            stem()
         } else {
             Err(RegistryError::OutsideSource(path.to_path_buf()))
         }
@@ -457,4 +563,90 @@ fn canonical_deleted_path(path: &Path) -> Result<PathBuf, RegistryError> {
         source,
     })?;
     Ok(parent.join(file))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        AppliesSkillPathEdits, ExpandsSkills, ReadsSkillRepositories, RegistryError, SkillRegistry,
+    };
+    use std::{fs, path::Path};
+    use tempfile::tempdir;
+
+    fn repositories(root: &Path) -> (std::path::PathBuf, std::path::PathBuf, std::path::PathBuf) {
+        let psyche = root.join("psyche-skills");
+        let mind = root.join("mind-skills");
+        let field = root.join("field-skills");
+        fs::create_dir_all(psyche.join("skills")).expect("Psyche skills directory");
+        fs::create_dir_all(mind).expect("Mind skills directory");
+        fs::create_dir_all(field).expect("Field skills directory");
+        (psyche, mind, field)
+    }
+
+    #[test]
+    fn vision_category_maps_to_logical_name_and_repository_docs_are_excluded() {
+        let temporary = tempdir().expect("temporary root");
+        let (psyche, mind, field) = repositories(temporary.path());
+        fs::write(psyche.join("README.md"), "Repository notes.\n").expect("repository README");
+        fs::write(
+            psyche.join("skills/knowledge-vocabulary.md"),
+            "Vocabulary instructions.\n",
+        )
+        .expect("direct skill source");
+        fs::create_dir_all(psyche.join("vision")).expect("Vision category");
+        fs::write(psyche.join("vision/ethos.md"), "Ethos instructions.\n")
+            .expect("Vision category source");
+
+        let registry = SkillRegistry::from_repositories(&psyche, &mind, &field)
+            .expect("registry reads declared source locations");
+
+        assert_eq!(
+            registry.skill_names().expect("skill names"),
+            vec!["knowledge-vocabulary".to_owned(), "vision-ethos".to_owned()]
+        );
+        let resolved = registry
+            .expand_skills(&["vision-ethos".into()])
+            .expect("logical category name resolves");
+        assert_eq!(resolved[0].name, "vision-ethos");
+        assert_eq!(
+            resolved[0].path,
+            fs::canonicalize(psyche.join("vision/ethos.md")).expect("canonical source path")
+        );
+    }
+
+    #[test]
+    fn category_and_direct_sources_with_one_logical_name_are_refused() {
+        let temporary = tempdir().expect("temporary root");
+        let (psyche, mind, field) = repositories(temporary.path());
+        fs::write(
+            psyche.join("skills/vision-ethos.md"),
+            "Legacy Vision source.\n",
+        )
+        .expect("direct source");
+        fs::create_dir_all(psyche.join("vision")).expect("Vision category");
+        fs::write(psyche.join("vision/ethos.md"), "Category Vision source.\n")
+            .expect("category source");
+
+        let result = SkillRegistry::from_repositories(&psyche, &mind, &field);
+
+        assert!(matches!(
+            result,
+            Err(RegistryError::DuplicateName { name, .. }) if name == "vision-ethos"
+        ));
+    }
+
+    #[test]
+    fn edits_reject_markdown_outside_the_configured_source_locations() {
+        let temporary = tempdir().expect("temporary root");
+        let (psyche, mind, field) = repositories(temporary.path());
+        let outside = temporary.path().join("outside/rogue.md");
+        fs::create_dir_all(outside.parent().expect("outside parent")).expect("outside directory");
+        fs::write(&outside, "Outside source.\n").expect("outside source");
+        let mut registry =
+            SkillRegistry::from_repositories(&psyche, &mind, &field).expect("empty registry");
+
+        let result = registry.apply_paths(&[outside.display().to_string()], &[], &[]);
+
+        assert!(matches!(result, Err(RegistryError::OutsideSource(_))));
+    }
 }
