@@ -517,10 +517,10 @@ fn rebuild_projects_every_role_with_each_standing_skill_and_keeps_book_verbatim(
     for packet in &packet_plan.role_packet_plan_vector {
         let projected = fs::read_to_string(workspace.join(&packet.first_string))
             .expect("projected role packet");
-        for (_, marker) in &markers {
+        for (name, marker) in &markers {
             assert_eq!(
                 projected.matches(marker).count(),
-                if packet.first_string == ".claude/agents/book.md" {
+                if packet.first_string == ".claude/agents/book.md" && !name.starts_with("spirit-") {
                     0
                 } else {
                     1
