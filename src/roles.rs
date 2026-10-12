@@ -194,21 +194,36 @@ pub trait RendersRolePacketPlan {
 
 impl RendersRolePacketPlan for RolePacketPlan {
     fn render(&self, standing_bodies: &[String]) -> String {
-        let mut body = self.fifth_string.clone();
-        body.push('\n');
-        for standing in standing_bodies {
-            body.push_str("\n\n");
-            body.push_str(standing);
+        let renderer = self.second_string == "book" && matches!(self.surface, Surface::ClaudeAgent);
+        let mut body = if renderer {
+            String::new()
+        } else {
+            self.fifth_string.clone()
+        };
+        if !renderer {
             body.push('\n');
+            for standing in standing_bodies {
+                body.push_str("\n\n");
+                body.push_str(standing);
+                body.push('\n');
+            }
         }
         if !self.sixth_string.is_empty() {
             body.push('\n');
             body.push_str(&self.sixth_string);
         }
+        let tools = match self.second_string.as_str() {
+            "book" => "Read, Bash, Agent, Artifact",
+            "book-page" => "Read, Bash, Agent, ToolSearch, ArtifactData, ArtifactComments",
+            _ if matches!(self.permission, Permission::Restricted) => {
+                "Read, Grep, Glob, Bash, WebFetch, WebSearch, LSP"
+            }
+            _ => "Read, Grep, Glob, Bash, Edit, Write, WebFetch, WebSearch, LSP",
+        };
         let effort = effort_text(&self.effort);
         match self.surface {
             Surface::ClaudeAgent => format!(
-                "---\nname: {}\ndescription: '{}'\nmodel: '{}'\neffort: {effort}\n---\n\n{body}",
+                "---\nname: {}\ndescription: '{}'\nmodel: '{}'\neffort: {effort}\ntools: {tools}\n---\n\n{body}",
                 self.second_string,
                 self.third_string.replace('\'', "''"),
                 self.fourth_string

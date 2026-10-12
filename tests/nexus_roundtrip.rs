@@ -290,16 +290,11 @@ fn reopening_with_a_distinct_psyche_root_preserves_skill_and_role_projections() 
             "knowledge-vocabulary".to_owned(),
             "TRANSITIVE_BODY<knowledge-vocabulary>".to_owned(),
         ),
-        (
-            "vision-ethos".to_owned(),
-            "VISION_ETHOS_BODY".to_owned(),
-        ),
+        ("vision-ethos".to_owned(), "VISION_ETHOS_BODY".to_owned()),
     ]);
     let ethos = "---\ndependencies: [ compensation-behavior ]\n---\n\nVISION_ETHOS_BODY\n";
-    fs::write(old_skill_sources.join("vision-ethos.md"), ethos)
-        .expect("old flat Psyche source");
-    fs::write(new_vision_sources.join("ethos.md"), ethos)
-        .expect("new categorized Psyche source");
+    fs::write(old_skill_sources.join("vision-ethos.md"), ethos).expect("old flat Psyche source");
+    fs::write(new_vision_sources.join("ethos.md"), ethos).expect("new categorized Psyche source");
 
     for (index, (name, marker)) in markers.iter().enumerate() {
         if name == "vision-ethos" {
@@ -347,7 +342,9 @@ fn reopening_with_a_distinct_psyche_root_preserves_skill_and_role_projections() 
 
     let resolved_before = invoke(&runtime, "ResolveSkills.[ spirit ]");
     assert!(
-        resolved_before.split_whitespace().any(|name| name == "vision-ethos"),
+        resolved_before
+            .split_whitespace()
+            .any(|name| name == "vision-ethos"),
         "{resolved_before}"
     );
     let names_before = resolved_before
@@ -371,27 +368,39 @@ fn reopening_with_a_distinct_psyche_root_preserves_skill_and_role_projections() 
         bodies
     };
     let skills_before = capture_skills(&names_before);
-    for (surface, body) in surfaces()
-        .iter()
-        .map(|surface| (*surface, fs::read_to_string(workspace.join(surface).join("vision-ethos/SKILL.md")).expect("projected ethos body")))
-    {
+    for (surface, body) in surfaces().iter().map(|surface| {
+        (
+            *surface,
+            fs::read_to_string(workspace.join(surface).join("vision-ethos/SKILL.md"))
+                .expect("projected ethos body"),
+        )
+    }) {
         assert!(body.contains("VISION_ETHOS_BODY"), "{surface}: {body}");
     }
     let capture_packets = || {
-        let plan = curriculum::roles::PlansRoles::role_plan(&roles, &workspace)
-            .expect("role packet plan");
+        let plan =
+            curriculum::roles::PlansRoles::role_plan(&roles, &workspace).expect("role packet plan");
         plan.role_packet_plan_vector
             .iter()
             .map(|packet| {
                 let name = packet.first_string.clone();
-                let body = fs::read_to_string(workspace.join(&name)).expect("projected role packet");
-                assert_eq!(body.matches("VISION_ETHOS_BODY").count(), 1, "{name}");
+                let body =
+                    fs::read_to_string(workspace.join(&name)).expect("projected role packet");
+                assert_eq!(
+                    body.matches("VISION_ETHOS_BODY").count(),
+                    if name == ".claude/agents/book.md" {
+                        0
+                    } else {
+                        1
+                    },
+                    "{name}"
+                );
                 (name, body)
             })
             .collect::<Vec<_>>()
     };
     let packets_before = capture_packets();
-    assert_eq!(packets_before.len(), 24);
+    assert_eq!(packets_before.len(), 25);
 
     drop(first_nexus);
     fs::remove_file(&socket).expect("remove stopped Nexus socket before restart");
@@ -502,7 +511,7 @@ fn rebuild_projects_every_role_with_each_standing_skill_and_keeps_book_verbatim(
 
     let packet_plan =
         curriculum::roles::PlansRoles::role_plan(&roles, &workspace).expect("role packet plan");
-    assert_eq!(packet_plan.role_packet_plan_vector.len(), 24);
+    assert_eq!(packet_plan.role_packet_plan_vector.len(), 25);
     assert_eq!(packet_plan.first_string_vector.len(), 12);
     assert_eq!(markers.len(), 15);
     for packet in &packet_plan.role_packet_plan_vector {
@@ -511,7 +520,11 @@ fn rebuild_projects_every_role_with_each_standing_skill_and_keeps_book_verbatim(
         for (_, marker) in &markers {
             assert_eq!(
                 projected.matches(marker).count(),
-                1,
+                if packet.first_string == ".claude/agents/book.md" {
+                    0
+                } else {
+                    1
+                },
                 "{}",
                 packet.first_string
             );
