@@ -200,13 +200,11 @@ impl RendersRolePacketPlan for RolePacketPlan {
         } else {
             self.fifth_string.clone()
         };
-        if !renderer {
+        body.push('\n');
+        for standing in standing_bodies {
+            body.push_str("\n\n");
+            body.push_str(standing);
             body.push('\n');
-            for standing in standing_bodies {
-                body.push_str("\n\n");
-                body.push_str(standing);
-                body.push('\n');
-            }
         }
         if !self.sixth_string.is_empty() {
             body.push('\n');
