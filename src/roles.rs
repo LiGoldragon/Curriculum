@@ -34,6 +34,30 @@ impl PlansRoles for Roles {
                 )?);
             }
         }
+        let mut main_roles = std::collections::BTreeSet::new();
+        // Named main-seat modules are emitted separately from subagent definitions.
+        for module in &self.role_module_vector {
+            let Some(identifier) = module.first_string.strip_prefix("main-system-") else {
+                continue;
+            };
+            if identifier.is_empty()
+                || !identifier.bytes().all(|b| b.is_ascii_lowercase() || b == b'-')
+                || module.second_string.trim().is_empty()
+            {
+                return Err("invalid main-seat role module".into());
+            }
+            if !main_roles.insert(identifier.to_owned()) {
+                return Err("duplicate main-seat role module".into());
+            }
+            let mut packet = self.packet(
+                identifier, "write", "ordinary", "Main-seat role instruction module",
+                &Surface::ClaudeAgent, workspace,
+            )?;
+            packet.first_string = format!("tools/main-seat-roles/{identifier}.md");
+            packet.fifth_string = module.second_string.clone();
+            packet.sixth_string.clear();
+            packets.push(packet);
+        }
         Ok(RolePlan {
             role_packet_plan_vector: packets,
             first_string_vector: standing,
