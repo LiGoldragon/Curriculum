@@ -388,7 +388,9 @@ fn reopening_with_a_distinct_psyche_root_preserves_skill_and_role_projections() 
                     fs::read_to_string(workspace.join(&name)).expect("projected role packet");
                 assert_eq!(
                     body.matches("VISION_ETHOS_BODY").count(),
-                    if name == ".claude/agents/book.md" {
+                    if name == ".claude/agents/book.md"
+                        || name.starts_with("tools/main-seat-roles/")
+                    {
                         0
                     } else {
                         1
@@ -400,7 +402,7 @@ fn reopening_with_a_distinct_psyche_root_preserves_skill_and_role_projections() 
             .collect::<Vec<_>>()
     };
     let packets_before = capture_packets();
-    assert_eq!(packets_before.len(), 25);
+    assert_eq!(packets_before.len(), 26);
 
     drop(first_nexus);
     fs::remove_file(&socket).expect("remove stopped Nexus socket before restart");
@@ -511,7 +513,7 @@ fn rebuild_projects_every_role_with_each_standing_skill_and_keeps_book_verbatim(
 
     let packet_plan =
         curriculum::roles::PlansRoles::role_plan(&roles, &workspace).expect("role packet plan");
-    assert_eq!(packet_plan.role_packet_plan_vector.len(), 25);
+    assert_eq!(packet_plan.role_packet_plan_vector.len(), 26);
     assert_eq!(packet_plan.first_string_vector.len(), 12);
     assert_eq!(markers.len(), 15);
     for packet in &packet_plan.role_packet_plan_vector {
@@ -520,7 +522,9 @@ fn rebuild_projects_every_role_with_each_standing_skill_and_keeps_book_verbatim(
         for (name, marker) in &markers {
             assert_eq!(
                 projected.matches(marker).count(),
-                if packet.first_string == ".claude/agents/book.md" && !name.starts_with("spirit-") {
+                if packet.first_string.starts_with("tools/main-seat-roles/")
+                    || (packet.first_string == ".claude/agents/book.md" && !name.starts_with("spirit-"))
+                {
                     0
                 } else {
                     1
