@@ -435,11 +435,20 @@ fn outputs(
             Ok(body.to_owned())
         })
         .collect::<Result<Vec<_>, ProjectionError>>()?;
+    let spirit_bodies = skills
+        .iter()
+        .filter(|skill| skill.name.starts_with("spirit-"))
+        .map(|skill| skill.body.split_once("\n---\n").map(|(_, body)| body).unwrap_or(&skill.body).trim().to_owned())
+        .collect::<Vec<_>>();
     for packet in &role_plan.role_packet_plan_vector {
         validate_role_path(&packet.first_string)?;
+        let mut agent_packet = packet.clone();
+        if packet.second_string == "book" && matches!(packet.surface, crate::generated::Surface::ClaudeAgent) {
+            agent_packet.sixth_string = format!("{}\n\n{}", spirit_bodies.join("\n\n"), packet.sixth_string);
+        }
         outputs.insert(
             PathBuf::from(&packet.first_string),
-            packet.render(&standing_bodies),
+            agent_packet.render(&standing_bodies),
         );
     }
     validate_role_path("skills/generated-role-outputs.datom")?;
