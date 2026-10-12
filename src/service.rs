@@ -325,8 +325,8 @@ mod tests {
         let encoded = rkyv::to_bytes::<rkyv::rancor::Error>(&query).expect("archive query");
         assert_eq!(CurriculumSignal.decode(&encoded), Some(query));
         assert_eq!(
-            CurriculumSignal.answer(Outcome::ResolvedSkills(vec!["spirit".into()])),
-            Outcome::ResolvedSkills(vec!["spirit".into()])
+            CurriculumSignal.answer(Outcome::ResolvedSkills(vec!["spirit-core".into()])),
+            Outcome::ResolvedSkills(vec!["spirit-core".into()])
         );
     }
 }

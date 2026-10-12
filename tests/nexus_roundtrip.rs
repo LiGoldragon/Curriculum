@@ -305,7 +305,7 @@ fn reopening_with_a_distinct_psyche_root_preserves_skill_and_role_projections() 
             0 => &mind,
             _ => &field,
         };
-        let dependencies = if name == "spirit" {
+        let dependencies = if name == "spirit-core" {
             "dependencies: [ compensation-behavior, compensation-correction, knowledge-vocabulary, compensation-book-distillation, vision-ethos ]\n"
         } else {
             ""
@@ -340,7 +340,7 @@ fn reopening_with_a_distinct_psyche_root_preserves_skill_and_role_projections() 
     assert!(invoke(&runtime, "RebuildSkills").starts_with("SkillsRebuilt.["));
     assert!(invoke(&runtime, "CheckSkills").starts_with("SkillsChecked.["));
 
-    let resolved_before = invoke(&runtime, "ResolveSkills.[ spirit ]");
+    let resolved_before = invoke(&runtime, "ResolveSkills.[ spirit-core ]");
     assert!(
         resolved_before
             .split_whitespace()
@@ -419,7 +419,7 @@ fn reopening_with_a_distinct_psyche_root_preserves_skill_and_role_projections() 
     assert!(invoke(&runtime, "RebuildSkills").starts_with("SkillsRebuilt.["));
     assert!(invoke(&runtime, "CheckSkills").starts_with("SkillsChecked.["));
 
-    let resolved_after = invoke(&runtime, "ResolveSkills.[ spirit ]");
+    let resolved_after = invoke(&runtime, "ResolveSkills.[ spirit-core ]");
     assert_eq!(resolved_after, resolved_before);
     let skills_after = capture_skills(&names_before);
     assert_eq!(skills_after, skills_before);
@@ -477,7 +477,7 @@ fn rebuild_projects_every_role_with_each_standing_skill_and_keeps_book_verbatim(
             1 => &mind,
             _ => &field,
         };
-        let dependencies = if name == "spirit" {
+        let dependencies = if name == "spirit-core" {
             "dependencies: [ compensation-behavior, compensation-correction, knowledge-vocabulary, compensation-book-distillation ]\n"
         } else {
             ""

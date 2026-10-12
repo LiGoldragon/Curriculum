@@ -405,7 +405,19 @@ fn outputs(
             }
         }
     }
-    let standing_bodies = standing_closure(skills, &role_plan.first_string_vector)?
+    let mut standing_roots = role_plan.first_string_vector.clone();
+    let mut spirit_names = skills
+        .iter()
+        .filter(|skill| skill.name.starts_with("spirit-"))
+        .map(|skill| skill.name.clone())
+        .collect::<Vec<_>>();
+    spirit_names.sort();
+    for name in spirit_names {
+        if !standing_roots.contains(&name) {
+            standing_roots.push(name);
+        }
+    }
+    let standing_bodies = standing_closure(skills, &standing_roots)?
         .iter()
         .map(|skill| {
             let body = skill
@@ -438,7 +450,7 @@ fn outputs(
     );
     outputs.insert(
         PathBuf::from("tools/standing-skill-selection.mjs"),
-        standing_skill_selection_module(&role_plan.first_string_vector),
+        standing_skill_selection_module(&standing_roots),
     );
     for previous in &role_plan.second_string_vector {
         validate_role_path(previous)?;
@@ -570,6 +582,31 @@ mod tests {
     use super::{ConstructsSkillProjector, ProjectionError, ProjectsSkills, SkillProjector};
     use crate::generated::RolePlan;
     use crate::registry::ResolvedSkill;
+
+    #[test]
+    fn future_spirit_modules_join_system_standing_selection_without_manifest_edits() {
+        let skills = ["spirit-core", "spirit-future"]
+            .into_iter()
+            .map(|name| ResolvedSkill {
+                name: name.into(),
+                path: PathBuf::from(format!("source/{name}.md")),
+                body: format!("{name} body"),
+                dependencies: vec![],
+            })
+            .collect::<Vec<_>>();
+        let plan = RolePlan {
+            role_packet_plan_vector: vec![],
+            first_string_vector: vec!["spirit-core".into()],
+            second_string_vector: vec![],
+            string: "GeneratedRoleOutputs.{ [] }".into(),
+        };
+        let outputs = super::outputs(&skills, &plan).expect("spirit projection");
+        let selection = outputs
+            .get(&PathBuf::from("tools/standing-skill-selection.mjs"))
+            .expect("selection");
+        assert_eq!(selection.matches("spirit-core").count(), 1);
+        assert_eq!(selection.matches("spirit-future").count(), 1);
+    }
 
     #[test]
     fn all_five_harness_trees_follow_changed_added_and_deleted_skills() {
