@@ -349,7 +349,7 @@ fn validate_role_path(path: &str) -> Result<(), ProjectionError> {
     let normal = parsed
         .components()
         .all(|component| matches!(component, std::path::Component::Normal(_)));
-    let allowed = [".claude/agents/", ".codex/agents/", ".pi/agents/"]
+    let allowed = [".claude/agents/", ".codex/agents/", ".pi/agents/", "tools/main-seat-roles/"]
         .iter()
         .any(|prefix| path.starts_with(prefix) && path.len() > prefix.len())
         || path == "skills/generated-role-outputs.datom"
@@ -441,6 +441,11 @@ fn outputs(
         .map(|skill| skill.body.split_once("\n---\n").map(|(_, body)| body).unwrap_or(&skill.body).trim().to_owned())
         .collect::<Vec<_>>();
     for packet in &role_plan.role_packet_plan_vector {
+        if packet.first_string.starts_with("tools/main-seat-roles/") {
+            validate_role_path(&packet.first_string)?;
+            outputs.insert(PathBuf::from(&packet.first_string), packet.render(&[]));
+            continue;
+        }
         validate_role_path(&packet.first_string)?;
         let mut agent_packet = packet.clone();
         if packet.second_string == "book" && matches!(packet.surface, crate::generated::Surface::ClaudeAgent) {
