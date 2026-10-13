@@ -306,7 +306,7 @@ fn reopening_with_a_distinct_psyche_root_preserves_skill_and_role_projections() 
             _ => &field,
         };
         let dependencies = if name == "spirit-core" {
-            "dependencies: [ compensation-behavior, compensation-correction, knowledge-vocabulary, compensation-book-distillation, vision-ethos ]\n"
+            "dependencies: [ compensation-behavior, compensation-correction, knowledge-vocabulary, compensation-book-crystallization, vision-ethos ]\n"
         } else {
             ""
         };
@@ -480,7 +480,7 @@ fn rebuild_projects_every_role_with_each_standing_skill_and_keeps_book_verbatim(
             _ => &field,
         };
         let dependencies = if name == "spirit-core" {
-            "dependencies: [ compensation-behavior, compensation-correction, knowledge-vocabulary, compensation-book-distillation ]\n"
+            "dependencies: [ compensation-behavior, compensation-correction, knowledge-vocabulary, compensation-book-crystallization ]\n"
         } else {
             ""
         };
