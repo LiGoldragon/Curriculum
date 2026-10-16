@@ -1,6 +1,8 @@
 use std::{fs, path::Path};
 
 use crate::generated::{Effort, Permission, Provider, RolePacketPlan, RolePlan, Roles, Surface};
+use crate::generated::{RoleContext, RoleTools};
+use crate::role_policy::{PlansRolePolicies, ValidatesRolePolicy};
 
 pub trait PlansRoles {
     fn role_plan(&self, workspace: &Path) -> Result<RolePlan, String>;
@@ -8,6 +10,7 @@ pub trait PlansRoles {
 
 impl PlansRoles for Roles {
     fn role_plan(&self, workspace: &Path) -> Result<RolePlan, String> {
+        self.validate_policies()?;
         let standing = standing_skills(&self.second_string_vector)?;
         let mut packets = Vec::new();
         for description in &self.role_description_vector {
@@ -58,6 +61,7 @@ impl PlansRoles for Roles {
             packet.sixth_string.clear();
             packets.push(packet);
         }
+        self.validate_policy_targets(&packets)?;
         Ok(RolePlan {
             role_packet_plan_vector: packets,
             first_string_vector: standing,
@@ -106,7 +110,17 @@ impl Roles {
         {
             return Err(format!("invalid model choice {}", choice.string));
         }
+        let policy = self.role_policy_vector.iter().find(|policy| policy.string == identifier).cloned();
+        if let Some(policy) = &policy {
+            policy.validate_for(identifier, surface)?;
+        }
+        let explicit = policy.as_ref().is_some_and(|policy| matches!(&policy.role_context, RoleContext::Explicit(_)));
         let mut modules = Vec::<String>::new();
+        if let Some(crate::generated::RolePolicy { role_context: RoleContext::Explicit(names), .. }) = &policy {
+            for name in names {
+                modules.push(self.module(name)?);
+            }
+        } else {
         if restricted(&permission.permission) {
             modules.push(permission.second_string.clone());
         }
@@ -121,12 +135,13 @@ impl Roles {
                 modules.push(self.module(module_id)?);
             }
         }
+        }
         let path = match surface {
             Surface::ClaudeAgent => format!(".claude/agents/{identifier}.md"),
             Surface::CodexAgent => format!(".codex/agents/{identifier}.toml"),
             Surface::PiAgent => format!(".pi/agents/{identifier}.md"),
         };
-        let procedure = path
+        let procedure = if explicit { String::new() } else { path
             .strip_prefix(".claude/agents/")
             .and_then(|rest| rest.strip_suffix(".md"))
             .map(|name| workspace.join("subagents").join(format!("{name}.md")))
@@ -136,7 +151,7 @@ impl Roles {
                     .map_err(|error| format!("read {}: {error}", path.display()))
             })
             .transpose()?
-            .unwrap_or_default();
+            .unwrap_or_default() };
         Ok(RolePacketPlan {
             surface: surface.clone(),
             first_string: path,
@@ -147,6 +162,7 @@ impl Roles {
             permission: permission.permission.clone(),
             fifth_string: modules.join("\n\n"),
             sixth_string: procedure,
+            role_policy_option: policy,
         })
     }
 
@@ -218,13 +234,14 @@ pub trait RendersRolePacketPlan {
 
 impl RendersRolePacketPlan for RolePacketPlan {
     fn render(&self, standing_bodies: &[String]) -> String {
-        let renderer = self.second_string == "book" && matches!(self.surface, Surface::ClaudeAgent);
+        let explicit = self.role_policy_option.as_ref().is_some_and(|policy| matches!(&policy.role_context, RoleContext::Explicit(_)));
+        let renderer = !explicit && self.second_string == "book" && matches!(self.surface, Surface::ClaudeAgent);
         let mut body = if renderer {
             String::new()
         } else {
             self.fifth_string.clone()
         };
-        if !renderer {
+        if !renderer && !explicit {
             body.push('\n');
             for standing in standing_bodies {
                 body.push_str("\n\n");
@@ -232,7 +249,7 @@ impl RendersRolePacketPlan for RolePacketPlan {
                 body.push('\n');
             }
         }
-        if !self.sixth_string.is_empty() {
+        if !explicit && !self.sixth_string.is_empty() {
             body.push('\n');
             body.push_str(&self.sixth_string);
         }
@@ -243,6 +260,13 @@ impl RendersRolePacketPlan for RolePacketPlan {
                 "Read, Grep, Glob, Bash, WebFetch, WebSearch, LSP"
             }
             _ => "Read, Grep, Glob, Bash, Edit, Write, WebFetch, WebSearch, LSP",
+        };
+        let tools = match self.role_policy_option.as_ref().map(|policy| &policy.role_tools) {
+            Some(RoleTools::Explicit(names)) => {
+                // JSON arrays are valid YAML, including an explicit empty tool set.
+                crate::role_policy::string_array(names)
+            }
+            _ => tools.to_owned(),
         };
         let effort = effort_text(&self.effort);
         match self.surface {

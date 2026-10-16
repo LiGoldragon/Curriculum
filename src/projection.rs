@@ -341,6 +341,7 @@ fn managed_role_paths(plan: &RolePlan) -> BTreeSet<PathBuf> {
         .collect::<BTreeSet<_>>();
     paths.insert(PathBuf::from("skills/generated-role-outputs.datom"));
     paths.insert(PathBuf::from("tools/standing-skill-selection.mjs"));
+    paths.insert(PathBuf::from(crate::role_policy::DISPATCH_POLICY_PATH));
     paths
 }
 
@@ -353,7 +354,8 @@ fn validate_role_path(path: &str) -> Result<(), ProjectionError> {
         .iter()
         .any(|prefix| path.starts_with(prefix) && path.len() > prefix.len())
         || path == "skills/generated-role-outputs.datom"
-        || path == "tools/standing-skill-selection.mjs";
+        || path == "tools/standing-skill-selection.mjs"
+        || path == crate::role_policy::DISPATCH_POLICY_PATH;
     if normal && allowed {
         Ok(())
     } else {
@@ -448,7 +450,7 @@ fn outputs(
         }
         validate_role_path(&packet.first_string)?;
         let mut agent_packet = packet.clone();
-        if packet.second_string == "book" && matches!(packet.surface, crate::generated::Surface::ClaudeAgent) {
+        if !crate::role_policy::explicit_context(packet) && packet.second_string == "book" && matches!(packet.surface, crate::generated::Surface::ClaudeAgent) {
             agent_packet.sixth_string = format!("{}\n\n{}", spirit_bodies.join("\n\n"), packet.sixth_string);
         }
         outputs.insert(
@@ -466,6 +468,9 @@ fn outputs(
         PathBuf::from("tools/standing-skill-selection.mjs"),
         standing_skill_selection_module(&standing_roots),
     );
+    let policy = crate::role_policy::dispatch_policy(&role_plan.role_packet_plan_vector)
+        .map_err(|_| ProjectionError::Different(PathBuf::from(crate::role_policy::DISPATCH_POLICY_PATH)))?;
+    outputs.insert(PathBuf::from(crate::role_policy::DISPATCH_POLICY_PATH), policy);
     for previous in &role_plan.second_string_vector {
         validate_role_path(previous)?;
     }

@@ -10,7 +10,7 @@ fn every_agent_including_slim_book_carries_every_spirit_body() {
     let mut packets = Vec::new();
     for name in ["read-ordinary", "write-ordinary", "tester", "book", "book-page"] {
         for (surface, path) in [(Surface::ClaudeAgent, format!(".claude/agents/{name}.md")), (Surface::CodexAgent, format!(".codex/agents/{name}.toml")), (Surface::PiAgent, format!(".pi/agents/{name}.md"))] {
-            packets.push(RolePacketPlan {surface, first_string: path, second_string: name.into(), third_string: "fixture".into(), fourth_string: "fixture-model".into(), effort: Effort::Medium, permission: Permission::Unrestricted, fifth_string: "ROLE_BASE".into(), sixth_string: "OWNED_APPENDIX".into()});
+            packets.push(RolePacketPlan {role_policy_option: None, surface, first_string: path, second_string: name.into(), third_string: "fixture".into(), fourth_string: "fixture-model".into(), effort: Effort::Medium, permission: Permission::Unrestricted, fifth_string: "ROLE_BASE".into(), sixth_string: "OWNED_APPENDIX".into()});
         }
     }
     let plan = RolePlan {role_packet_plan_vector: packets, first_string_vector: vec!["compensation-example".into()], second_string_vector: vec![], string: String::new()};

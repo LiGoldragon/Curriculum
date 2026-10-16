@@ -165,6 +165,7 @@ fn current_role_plan() -> Result<RolePlan, ClientError> {
         .role_packet_plan_vector
         .iter()
         .map(|packet| packet.first_string.clone())
+        .chain(std::iter::once(crate::role_policy::DISPATCH_POLICY_PATH.to_owned()))
         .collect();
     plan.string = datom_text(&RoleManifestDocument::GeneratedRoleOutputs(RoleManifest {
         string_vector: paths,

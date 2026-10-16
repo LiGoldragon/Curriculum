@@ -3,6 +3,7 @@ use curriculum::roles::RendersRolePacketPlan;
 
 fn packet(name: &str, permission: Permission) -> RolePacketPlan {
     RolePacketPlan {
+        role_policy_option: None,
         surface: Surface::ClaudeAgent,
         first_string: format!(".claude/agents/{name}.md"),
         second_string: name.into(),
