@@ -5,7 +5,7 @@ Library
 [ SkillPathEdits.{ Vector<String> Vector<String> Vector<String> }
   SkillEdits.{ SkillPathEdits RolePlan }
   SkillChange.{ Vector<String> Vector<String> Vector<String> }
-  RolePacketPlan.{ Surface String String String String Effort Permission String String }
+  RolePacketPlan.{ Surface String String String String Effort Permission String String Option<RolePolicy> }
   RolePlan.{ Vector<RolePacketPlan> Vector<String> Vector<String> String }
   CliRequest.[ ResolveSkills.Vector<String>
                EditSkills.SkillPathEdits
@@ -34,7 +34,12 @@ Library
   RoleDescription.{ String String String }
   RoleAlias.{ String String String String Vector<Surface> }
   TargetInsertion.{ String Surface Vector<String> }
-  Roles.{ Vector<RoleModule> Vector<Model> Vector<RolePermission> Vector<RoleDepth> Vector<RoleDescription> Vector<RoleAlias> Vector<String> Vector<TargetInsertion> Vector<String> }
+  RoleContext.[ Inherit Explicit.Vector<String> ]
+  RoleTools.[ Inherit Explicit.Vector<String> ]
+  CallerMetaflow.{ String String String }
+  RoleCallers.[ Any Only.Vector<CallerMetaflow> ]
+  RolePolicy.{ String RoleContext RoleTools RoleCallers }
+  Roles.{ Vector<RoleModule> Vector<Model> Vector<RolePermission> Vector<RoleDepth> Vector<RoleDescription> Vector<RoleAlias> Vector<String> Vector<TargetInsertion> Vector<String> Vector<RolePolicy> }
   RolesDocument.[ Roles.Roles ] ]
 
 []
