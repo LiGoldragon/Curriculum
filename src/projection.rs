@@ -256,11 +256,7 @@ impl ProjectsSkills for SkillProjector {
             } else {
                 BTreeSet::new()
             };
-            let mut expected_names = names.clone();
-            if surface.harness == Harness::Claude {
-                expected_names.extend(role_plan.startup_bundle_vector.iter().map(|bundle| bundle.startup_bundle_name.clone()));
-            }
-            if actual_names != expected_names {
+            if actual_names != names {
                 return Err(ProjectionError::Different(directory));
             }
             for skill in skills {
@@ -350,6 +346,7 @@ fn managed_role_paths(plan: &RolePlan) -> BTreeSet<PathBuf> {
     paths.insert(PathBuf::from(crate::role_policy::DISPATCH_POLICY_PATH));
     for bundle in &plan.startup_bundle_vector {
         paths.insert(crate::startup::manifest_path(bundle));
+        paths.insert(crate::startup::payload_path(bundle));
     }
     paths
 }
@@ -365,8 +362,7 @@ fn validate_role_path(path: &str) -> Result<(), ProjectionError> {
         || path == "skills/generated-role-outputs.datom"
         || path == "tools/standing-skill-selection.mjs"
         || path == crate::role_policy::DISPATCH_POLICY_PATH
-        || (path.starts_with("tools/startup-bundles/startup-") && path.ends_with(".json") && parsed.components().count() == 3)
-        || (path.starts_with(".claude/skills/startup-") && path.ends_with("/SKILL.md") && parsed.components().count() == 4);
+        || (path.starts_with("tools/startup-bundles/startup-") && (path.ends_with(".json") || path.ends_with(".md")) && parsed.components().count() == 3);
     if normal && allowed {
         Ok(())
     } else {

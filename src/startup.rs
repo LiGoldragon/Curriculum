@@ -2,8 +2,8 @@
 use std::{collections::{BTreeMap, BTreeSet}, path::{Component, Path, PathBuf}};
 use crate::{generated::{StartupBundle, StartupMode, StartupPlacement}, registry::{ResolvedSkill, expand_resolved_skills}, startup_metadata::{instructions, quote, sha256}};
 
-pub fn skill_path(bundle: &StartupBundle) -> PathBuf {
-    PathBuf::from(format!(".claude/skills/{}/SKILL.md", bundle.startup_bundle_name))
+pub fn payload_path(bundle: &StartupBundle) -> PathBuf {
+    PathBuf::from(format!("tools/startup-bundles/{}.md", bundle.startup_bundle_name))
 }
 
 pub fn manifest_path(bundle: &StartupBundle) -> PathBuf {
@@ -20,7 +20,7 @@ pub fn outputs(skills: &[ResolvedSkill], bundles: &[StartupBundle]) -> Result<BT
             return Err("invalid, duplicate or source-colliding startup bundle name".into());
         }
         let (body, manifest) = compose(skills, bundle)?;
-        result.insert(skill_path(bundle), body);
+        result.insert(payload_path(bundle), body);
         result.insert(manifest_path(bundle), manifest);
     }
     Ok(result)
@@ -60,7 +60,8 @@ fn compose(skills: &[ResolvedSkill], bundle: &StartupBundle) -> Result<(String, 
             witness.startup_loaded_vector.as_slice()
         }
     };
-    let mut body = format!("---\nname: {}\ndescription: Explicit main-seat USER startup bundle.\ndisable-model-invocation: true\nuser-invocable: true\n---\n", bundle.startup_bundle_name);
+    let mut body = String::new();
+    let mut emitted_ids = Vec::new();
     let mut rows = Vec::new();
     let mut user_index = 0usize;
     let mut emitted = 0usize;
@@ -98,6 +99,7 @@ fn compose(skills: &[ResolvedSkill], bundle: &StartupBundle) -> Result<(String, 
                 if skipped { ("user", "previously-loaded", "null".to_owned()) }
                 else {
                     let ordinal = emitted.to_string(); emitted += 1;
+                    emitted_ids.push(skill.name.clone());
                     body.push_str(&format!("\n<!-- module: {} -->\n", skill.name));
                     body.push_str(text);
                     body.push_str(&format!("\n<!-- end-module: {} -->\n", skill.name));
@@ -108,11 +110,12 @@ fn compose(skills: &[ResolvedSkill], bundle: &StartupBundle) -> Result<(String, 
         rows.push(format!("{{\"id\":{},\"repository\":{},\"revision\":{},\"sourceRoot\":{},\"relativePath\":{},\"sourceSha256\":{},\"bodySha256\":{},\"placement\":{},\"disposition\":{},\"ordinal\":{}}}", quote(&skill.name), quote(&source.repository_name), quote(&source.source_revision), quote(&root.to_string_lossy()), quote(&source.source_relative_path), quote(&source.source_sha256), quote(&source.body_sha256), quote(placement), quote(disposition), ordinal));
     }
     if loaded.len() > user_index || emitted == 0 { return Err("recovery prefix exceeds USER closure or nothing remains".into()); }
+    body = format!("These are your skills, given here; do not reload them.\n\nModule IDs: {}\n{}", emitted_ids.join(", "), body);
     let mode = match &bundle.startup_mode {
         StartupMode::Initial => "{\"kind\":\"initial\"}".into(),
         StartupMode::Recovery(witness) => format!("{{\"kind\":\"recovery\",\"session\":{},\"promptId\":{},\"evidenceStatus\":\"supplied-witness-matched-not-native-reverified\"}}", quote(&witness.native_session), quote(&witness.prompt_identity)),
     };
-    let manifest = format!("{{\"schemaVersion\":1,\"bundle\":{},\"metaflow\":{{\"aspect\":{},\"topic\":{},\"layer\":{}}},\"cohort\":{},\"userRoots\":{},\"mode\":{},\"systemCompositionStatus\":\"declared-by-cohort-not-native-reverified\",\"userCount\":{},\"emittedCount\":{},\"skillSha256\":{},\"modules\":[{}]}}\n", quote(&bundle.startup_bundle_name), quote(&tuple.first_string), quote(&tuple.second_string), quote(&tuple.third_string), quote(&bundle.startup_cohort), crate::role_policy::string_array(&bundle.module_identity_vector), mode, user_index, emitted, quote(&sha256(body.as_bytes())), rows.join(","));
+    let manifest = format!("{{\"schemaVersion\":2,\"delivery\":\"direct-user-prompt\",\"bundle\":{},\"metaflow\":{{\"aspect\":{},\"topic\":{},\"layer\":{}}},\"cohort\":{},\"userRoots\":{},\"mode\":{},\"systemCompositionStatus\":\"declared-by-cohort-not-native-reverified\",\"userCount\":{},\"emittedCount\":{},\"payloadSha256\":{},\"modules\":[{}]}}\n", quote(&bundle.startup_bundle_name), quote(&tuple.first_string), quote(&tuple.second_string), quote(&tuple.third_string), quote(&bundle.startup_cohort), crate::role_policy::string_array(&bundle.module_identity_vector), mode, user_index, emitted, quote(&sha256(body.as_bytes())), rows.join(","));
     Ok((body, manifest))
 }
 

@@ -40,17 +40,21 @@ fn recovery(bundle: &mut StartupBundle) {
 }
 
 #[test]
-fn one_native_skill_contains_all_twenty_two_user_bodies_once() {
+fn direct_prompt_contains_all_twenty_two_user_bodies_once() {
     let root = tempfile::tempdir().unwrap();
     let (skills, bundle) = fixture(root.path());
     let output = startup::outputs(&skills, &[bundle.clone()]).unwrap();
     assert_eq!(output.len(), 2);
-    let body = &output[&startup::skill_path(&bundle)];
+    let body = &output[&startup::payload_path(&bundle)];
     for index in 0..22 { assert_eq!(body.matches(&format!("BODY_{index:02}_EXACT\n")).count(), 1); }
     assert!(!body.contains("SYSTEM_ONLY"));
-    assert!(body.contains("disable-model-invocation: true\nuser-invocable: true"));
+    assert!(body.starts_with("These are your skills, given here; do not reload them.\n"));
+    assert!(!body.starts_with("---"));
+    for index in 0..22 { assert!(body.contains(&format!("knowledge-user{index:02}"))); }
     let manifest = &output[&startup::manifest_path(&bundle)];
     assert!(manifest.contains("\"userCount\":22,\"emittedCount\":22"));
+    assert!(manifest.contains("\"schemaVersion\":2,\"delivery\":\"direct-user-prompt\""));
+    assert!(manifest.contains(&format!("\"payloadSha256\":\"{}\"", digest(body))));
     assert_eq!(manifest.matches("\"sourceSha256\":").count(), 23);
     assert!(manifest.contains("\"placement\":\"system\",\"disposition\":\"already-composed-system\",\"ordinal\":null"));
 }
@@ -60,7 +64,7 @@ fn recovery_emits_remaining_sixteen_and_preserves_historical_status() {
     let root = tempfile::tempdir().unwrap();
     let (skills, mut bundle) = fixture(root.path()); recovery(&mut bundle);
     let output = startup::outputs(&skills, &[bundle.clone()]).unwrap();
-    let body = &output[&startup::skill_path(&bundle)];
+    let body = &output[&startup::payload_path(&bundle)];
     for index in 0..22 { assert_eq!(body.matches(&format!("BODY_{index:02}_EXACT\n")).count(), usize::from(index >= 6)); }
     let manifest = &output[&startup::manifest_path(&bundle)];
     assert!(manifest.contains("\"userCount\":22,\"emittedCount\":16"));
@@ -107,15 +111,17 @@ fn existing_projector_manages_composite_and_detects_sidecar_drift() {
     let plan = RolePlan { role_packet_plan_vector: vec![], first_string_vector: vec![], second_string_vector: vec![], string: String::new(), startup_bundle_vector: vec![bundle.clone()] };
     let projector = SkillProjector::at(workspace.path().into());
     projector.write(&skills, &plan).unwrap(); projector.check(&skills, &plan).unwrap();
-    assert!(workspace.path().join(startup::skill_path(&bundle)).exists());
-    assert!(!workspace.path().join(format!(".codex/skills/{}/SKILL.md", bundle.startup_bundle_name)).exists());
+    assert!(workspace.path().join(startup::payload_path(&bundle)).exists());
+    for harness in [".claude", ".codex", ".agents", ".pi", ".opencode"] {
+        assert!(!workspace.path().join(format!("{harness}/skills/{}/SKILL.md", bundle.startup_bundle_name)).exists());
+    }
     fs::write(workspace.path().join(startup::manifest_path(&bundle)), "{}").unwrap();
     assert!(projector.check(&skills, &plan).is_err());
     let mut removed = plan.clone(); removed.startup_bundle_vector.clear();
-    removed.second_string_vector = vec![startup::skill_path(&bundle).to_string_lossy().into_owned(), startup::manifest_path(&bundle).to_string_lossy().into_owned()];
+    removed.second_string_vector = vec![startup::payload_path(&bundle).to_string_lossy().into_owned(), startup::manifest_path(&bundle).to_string_lossy().into_owned()];
     projector.write(&skills, &removed).unwrap(); projector.check(&skills, &removed).unwrap();
     assert!(!workspace.path().join(startup::manifest_path(&bundle)).exists());
-    assert!(!workspace.path().join(startup::skill_path(&bundle)).exists());
+    assert!(!workspace.path().join(startup::payload_path(&bundle)).exists());
     let bytes = rkyv::to_bytes::<rkyv::rancor::Error>(&plan).unwrap();
     assert_eq!(rkyv::from_bytes::<RolePlan, rkyv::rancor::Error>(&bytes).unwrap(), plan);
 }

@@ -173,7 +173,7 @@ fn current_role_plan() -> Result<RolePlan, ClientError> {
         .iter()
         .map(|packet| packet.first_string.clone())
         .chain(std::iter::once(crate::role_policy::DISPATCH_POLICY_PATH.to_owned()))
-        .chain(plan.startup_bundle_vector.iter().flat_map(|bundle| [crate::startup::skill_path(bundle), crate::startup::manifest_path(bundle)]).map(|path| path.to_string_lossy().into_owned()))
+        .chain(plan.startup_bundle_vector.iter().flat_map(|bundle| [crate::startup::payload_path(bundle), crate::startup::manifest_path(bundle)]).map(|path| path.to_string_lossy().into_owned()))
         .collect();
     plan.string = datom_text(&RoleManifestDocument::GeneratedRoleOutputs(RoleManifest {
         string_vector: paths,
