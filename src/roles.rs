@@ -1,305 +1,61 @@
-use std::{fs, path::Path};
+//! Role metadata contains IDs only. Authored text is resolved by the same registry.
+use crate::{generated::{ContextProvenance, RoleComposition, RoleDefinition, RoleSelection, Roles, RoleCallers, RoleTools, StartupPlacement}, registry::{SkillRegistry, valid_id}, startup_metadata::sha256};
 
-use crate::generated::{Effort, Permission, Provider, RolePacketPlan, RolePlan, Roles, Surface};
-use crate::generated::{RoleContext, RoleTools};
-use crate::role_policy::{PlansRolePolicies, ValidatesRolePolicy};
-
-pub trait PlansRoles {
-    fn role_plan(&self, workspace: &Path) -> Result<RolePlan, String>;
-}
-
-impl PlansRoles for Roles {
-    fn role_plan(&self, workspace: &Path) -> Result<RolePlan, String> {
-        self.validate_policies()?;
-        let standing = standing_skills(&self.second_string_vector)?;
-        let mut packets = Vec::new();
-        for description in &self.role_description_vector {
-            for surface in [Surface::ClaudeAgent, Surface::CodexAgent, Surface::PiAgent] {
-                packets.push(self.packet(
-                    &format!("{}-{}", description.first_string, description.second_string),
-                    &description.first_string,
-                    &description.second_string,
-                    &description.third_string,
-                    &surface,
-                    workspace,
-                )?);
+pub fn validate(roles: &Roles) -> Result<(), String> {
+    let mut seen = std::collections::BTreeSet::new();
+    for role in &roles.role_definition_vector {
+        let surface = format!("{:?}", role.surface);
+        if !valid_id(&role.role_name) || !seen.insert((role.role_name.clone(), surface)) || role.model_id.is_empty() || !role.model_id.bytes().all(|b| b.is_ascii_alphanumeric() || b".-_".contains(&b)) {
+            return Err("invalid or duplicate role metadata".into());
+        }
+        let mut ids = std::collections::BTreeSet::new();
+        for id in std::iter::once(&role.description_module).chain(&role.context_modules) {
+            if !valid_id(id) || !ids.insert(id) { return Err("invalid or duplicate role module ID".into()); }
+        }
+        if role.context_modules.is_empty() { return Err("role context must not be empty".into()); }
+        if let RoleTools::Explicit(tools) = &role.role_tools {
+            let mut seen = std::collections::BTreeSet::new();
+            for tool in tools {
+                if !matches!(tool.as_str(), "Read" | "Grep" | "Glob" | "Bash" | "Edit" | "Write" | "WebFetch" | "WebSearch" | "LSP" | "Agent" | "Artifact" | "ToolSearch" | "ArtifactData" | "ArtifactComments") || !seen.insert(tool) { return Err("invalid or duplicate role tool".into()); }
             }
         }
-        for alias in &self.role_alias_vector {
-            for surface in &alias.surface_vector {
-                packets.push(self.packet(
-                    &alias.first_string,
-                    &alias.second_string,
-                    &alias.third_string,
-                    &alias.fourth_string,
-                    surface,
-                    workspace,
-                )?);
-            }
-        }
-        let mut main_roles = std::collections::BTreeSet::new();
-        // Named main-seat modules are emitted separately from subagent definitions.
-        for module in &self.role_module_vector {
-            let Some(identifier) = module.first_string.strip_prefix("main-system-") else {
-                continue;
-            };
-            if identifier.is_empty()
-                || !identifier.bytes().all(|b| b.is_ascii_lowercase() || b == b'-')
-                || module.second_string.trim().is_empty()
-            {
-                return Err("invalid main-seat role module".into());
-            }
-            if !main_roles.insert(identifier.to_owned()) {
-                return Err("duplicate main-seat role module".into());
-            }
-            let mut packet = self.packet(
-                identifier, "write", "ordinary", "Main-seat role instruction module",
-                &Surface::ClaudeAgent, workspace,
-            )?;
-            packet.first_string = format!("tools/main-seat-roles/{identifier}.md");
-            packet.fifth_string = module.second_string.clone();
-            packet.sixth_string.clear();
-            packets.push(packet);
-        }
-        self.validate_policy_targets(&packets)?;
-        Ok(RolePlan {
-            startup_bundle_vector: Vec::new(),
-            role_packet_plan_vector: packets,
-            first_string_vector: standing,
-            second_string_vector: Vec::new(),
-            string: String::new(),
-        })
-    }
-}
-
-impl Roles {
-    fn packet(
-        &self,
-        identifier: &str,
-        discipline: &str,
-        depth: &str,
-        description: &str,
-        surface: &Surface,
-        workspace: &Path,
-    ) -> Result<RolePacketPlan, String> {
-        let permission = self
-            .role_permission_vector
-            .iter()
-            .find(|entry| entry.first_string == discipline)
-            .ok_or_else(|| format!("missing permission {discipline}"))?;
-        let depth_entry = self
-            .role_depth_vector
-            .iter()
-            .find(|entry| entry.string == depth)
-            .ok_or_else(|| format!("missing depth {depth}"))?;
-        let choice = match surface {
-            Surface::ClaudeAgent => &depth_entry.first_model_choice,
-            Surface::CodexAgent | Surface::PiAgent => &depth_entry.second_model_choice,
-        };
-        let model = self
-            .model_vector
-            .iter()
-            .find(|entry| entry.string == choice.string)
-            .ok_or_else(|| format!("missing model {}", choice.string))?;
-        if !provider_matches(&model.provider, surface)
-            || choice.effort_option.as_ref().is_some_and(|effort| {
-                !model
-                    .effort_vector
-                    .iter()
-                    .any(|item| same_effort(item, effort))
-            })
-        {
-            return Err(format!("invalid model choice {}", choice.string));
-        }
-        let policy = self.role_policy_vector.iter().find(|policy| policy.string == identifier).cloned();
-        if let Some(policy) = &policy {
-            policy.validate_for(identifier, surface)?;
-        }
-        let explicit = policy.as_ref().is_some_and(|policy| matches!(&policy.role_context, RoleContext::Explicit(_)));
-        let mut modules = Vec::<String>::new();
-        if let Some(crate::generated::RolePolicy { role_context: RoleContext::Explicit(names), .. }) = &policy {
-            for name in names {
-                modules.push(self.module(name)?);
-            }
-        } else {
-        if restricted(&permission.permission) {
-            modules.push(permission.second_string.clone());
-        }
-        for module_id in &self.first_string_vector {
-            modules.push(self.module(module_id)?);
-        }
-        for insertion in self.target_insertion_vector.iter().filter(|entry| {
-            same_surface(&entry.surface, surface)
-                && self.first_string_vector.contains(&entry.string)
-        }) {
-            for module_id in &insertion.string_vector {
-                modules.push(self.module(module_id)?);
-            }
-        }
-        }
-        let path = match surface {
-            Surface::ClaudeAgent => format!(".claude/agents/{identifier}.md"),
-            Surface::CodexAgent => format!(".codex/agents/{identifier}.toml"),
-            Surface::PiAgent => format!(".pi/agents/{identifier}.md"),
-        };
-        let procedure = if explicit { String::new() } else { path
-            .strip_prefix(".claude/agents/")
-            .and_then(|rest| rest.strip_suffix(".md"))
-            .map(|name| workspace.join("subagents").join(format!("{name}.md")))
-            .filter(|path| path.is_file())
-            .map(|path| {
-                fs::read_to_string(&path)
-                    .map_err(|error| format!("read {}: {error}", path.display()))
-            })
-            .transpose()?
-            .unwrap_or_default() };
-        Ok(RolePacketPlan {
-            surface: surface.clone(),
-            first_string: path,
-            second_string: identifier.to_owned(),
-            third_string: description.to_owned(),
-            fourth_string: choice.string.clone(),
-            effort: choice.effort_option.clone().unwrap_or(Effort::Low),
-            permission: permission.permission.clone(),
-            fifth_string: modules.join("\n\n"),
-            sixth_string: procedure,
-            role_policy_option: policy,
-        })
-    }
-
-    fn module(&self, identifier: &str) -> Result<String, String> {
-        self.role_module_vector
-            .iter()
-            .find(|module| module.first_string == identifier)
-            .map(|module| module.second_string.clone())
-            .ok_or_else(|| format!("missing role module {identifier}"))
-    }
-}
-
-fn standing_skills(names: &[String]) -> Result<Vec<String>, String> {
-    let mut unique = std::collections::BTreeSet::new();
-    for name in names {
-        if name.is_empty() {
-            return Err("empty standing skill selection".into());
-        }
-        if !unique.insert(name) {
-            return Err(format!("duplicate standing skill {name}"));
-        }
-    }
-    Ok(names.to_vec())
-}
-
-fn provider_matches(provider: &Provider, surface: &Surface) -> bool {
-    matches!(
-        (provider, surface),
-        (Provider::Claude, Surface::ClaudeAgent)
-            | (Provider::ChatGpt, Surface::CodexAgent | Surface::PiAgent)
-    )
-}
-
-fn same_effort(left: &Effort, right: &Effort) -> bool {
-    matches!(
-        (left, right),
-        (Effort::Low, Effort::Low)
-            | (Effort::Medium, Effort::Medium)
-            | (Effort::High, Effort::High)
-            | (Effort::Xhigh, Effort::Xhigh)
-    )
-}
-
-fn restricted(permission: &Permission) -> bool {
-    matches!(permission, Permission::Restricted)
-}
-
-fn same_surface(left: &Surface, right: &Surface) -> bool {
-    matches!(
-        (left, right),
-        (Surface::ClaudeAgent, Surface::ClaudeAgent)
-            | (Surface::CodexAgent, Surface::CodexAgent)
-            | (Surface::PiAgent, Surface::PiAgent)
-    )
-}
-
-fn effort_text(effort: &Effort) -> &'static str {
-    match effort {
-        Effort::Low => "low",
-        Effort::Medium => "medium",
-        Effort::High => "high",
-        Effort::Xhigh => "xhigh",
-    }
-}
-
-pub trait RendersRolePacketPlan {
-    fn render(&self, standing_bodies: &[String]) -> String;
-}
-
-impl RendersRolePacketPlan for RolePacketPlan {
-    fn render(&self, standing_bodies: &[String]) -> String {
-        let explicit = self.role_policy_option.as_ref().is_some_and(|policy| matches!(&policy.role_context, RoleContext::Explicit(_)));
-        let renderer = !explicit && self.second_string == "book" && matches!(self.surface, Surface::ClaudeAgent);
-        let mut body = if renderer {
-            String::new()
-        } else {
-            self.fifth_string.clone()
-        };
-        if !renderer && !explicit {
-            body.push('\n');
-            for standing in standing_bodies {
-                body.push_str("\n\n");
-                body.push_str(standing);
-                body.push('\n');
-            }
-        }
-        if !explicit && !self.sixth_string.is_empty() {
-            body.push('\n');
-            body.push_str(&self.sixth_string);
-        }
-        let tools = match self.second_string.as_str() {
-            "book" => "Read, Bash, Agent, Artifact",
-            "book-page" => "Read, Bash, Agent, ToolSearch, ArtifactData, ArtifactComments",
-            _ if matches!(self.permission, Permission::Restricted) => {
-                "Read, Grep, Glob, Bash, WebFetch, WebSearch, LSP"
-            }
-            _ => "Read, Grep, Glob, Bash, Edit, Write, WebFetch, WebSearch, LSP",
-        };
-        let tools = match self.role_policy_option.as_ref().map(|policy| &policy.role_tools) {
-            Some(RoleTools::Explicit(names)) => {
-                // JSON arrays are valid YAML, including an explicit empty tool set.
-                crate::role_policy::string_array(names)
-            }
-            _ => tools.to_owned(),
-        };
-        let effort = effort_text(&self.effort);
-        match self.surface {
-            Surface::ClaudeAgent => format!(
-                "---\nname: {}\ndescription: '{}'\nmodel: '{}'\neffort: {effort}\ntools: {tools}\n---\n\n{body}",
-                self.second_string,
-                self.third_string.replace('\'', "''"),
-                self.fourth_string
-            ),
-            Surface::CodexAgent => format!(
-                "name = \"{}\"\ndescription = \"{}\"\nmodel = \"{}\"\nmodel_reasoning_effort = \"{effort}\"\ndeveloper_instructions = \"{}\"\n",
-                self.second_string,
-                self.third_string.replace('"', "\\\"").replace('\n', "\\n"),
-                self.fourth_string,
-                body.replace('\\', "\\\\")
-                    .replace('"', "\\\"")
-                    .replace('\n', "\\n")
-            ),
-            Surface::PiAgent => {
-                let restriction = if restricted(&self.permission) {
-                    "disallowed_tools: 'edit, write'\n"
-                } else {
-                    ""
-                };
-                format!(
-                    "---\nname: {}\ndescription: '{}'\nmodel: 'openai-codex/{}'\nthinking: {effort}\nprojectRoleIdentity: {}\nprojectRoleDispatchKind: leaf\n{restriction}---\n\n{body}",
-                    self.second_string,
-                    self.third_string.replace('\'', "''"),
-                    self.fourth_string,
-                    self.second_string
-                )
+        if let RoleCallers::Only(callers) = &role.role_callers {
+            let mut seen = std::collections::BTreeSet::new();
+            if callers.is_empty() { return Err("empty caller allowlist".into()); }
+            for caller in callers {
+                if !word(&caller.first_string) || !word(&caller.second_string) || !matches!(caller.third_string.as_str(), "Primary" | "Secondary" | "Tertiary" | "Quaternary") || !seen.insert((&caller.first_string,&caller.second_string,&caller.third_string)) { return Err("invalid or duplicate caller tuple".into()); }
             }
         }
     }
+    Ok(())
+}
+fn word(value: &str) -> bool { !value.is_empty() && value.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-') }
+
+pub fn compose(registry: &SkillRegistry, roles: &Roles, selection: &RoleSelection) -> Result<RoleComposition, String> {
+    validate(roles)?;
+    let role: &RoleDefinition = roles.role_definition_vector.iter().find(|r| r.role_name == selection.role_name && r.surface == selection.surface).ok_or("unknown role/surface")?;
+    let ids: Vec<_> = std::iter::once(&role.description_module).chain(&role.context_modules).cloned().collect();
+    // Deliberately exact: no dependency closure, universal module or ambient file.
+    let modules = registry.resolved_exact_sources(&ids).map_err(|e| e.to_string())?;
+    let target = match role.surface { crate::generated::Surface::ClaudeAgent => crate::generated::Target::Claude, crate::generated::Surface::CodexAgent => crate::generated::Target::Codex, crate::generated::Surface::PiAgent => crate::generated::Target::Pi };
+    let rendered: Vec<String> = modules.iter().map(|m| crate::context_render::render(&target,&m.string)).collect::<Result<_,_>>()?;
+    let description_text = rendered[0].clone();
+    let mut context_text = format!("These are your skills, given here; do not reload them.\n\nModule IDs: {}\n", role.context_modules.join(", "));
+    for (module,body) in modules.iter().zip(&rendered).skip(1) { context_text.push_str(&format!("\n<!-- module: {} -->\n{}\n<!-- end-module: {} -->\n", module.module_identity,body,module.module_identity)); }
+    let provenance = modules.into_iter().enumerate().map(|(ordinal,m)| ContextProvenance { module_identity:m.module_identity, repository_name:m.repository_name, source_revision:m.source_revision, source_relative_path:m.source_relative_path, source_sha256:m.source_sha256, body_sha256:m.body_sha256, rendered_sha256:sha256(rendered[ordinal].as_bytes()), startup_placement:StartupPlacement::System, integer:ordinal as i64 }).collect();
+    Ok(RoleComposition { role_name:role.role_name.clone(), surface:role.surface.clone(), model_id:role.model_id.clone(), effort:role.effort.clone(), permission:role.permission.clone(), description_payload_sha256:sha256(description_text.as_bytes()), context_payload_sha256:sha256(context_text.as_bytes()), description_text, context_text, role_tools:role.role_tools.clone(), role_callers:role.role_callers.clone(), context_provenance_vector:provenance })
+}
+
+#[cfg(feature = "datom")]
+pub fn read_declared() -> Result<Option<Roles>, String> {
+    use datom_codec::{Actualizing, Budget, Potential};
+    use protos::ReaderBudget;
+    let Some(path) = std::env::var_os("CURRICULUM_ROLES_FILE") else { return Ok(None) };
+    let text = std::fs::read_to_string(path).map_err(|e|e.to_string())?;
+    let crate::generated::RolesDocument::Roles(roles) = Potential::<crate::generated::RolesDocument>::from(text).actualize(&mut Budget { remaining:1_048_576, reader:ReaderBudget { remaining:1_048_576 }, depth:0, maximum_depth:1024 }).map_err(|_| "invalid ID-only roles declaration".to_owned())?;
+    validate(&roles)?; Ok(Some(roles))
+}
+#[cfg(not(feature = "datom"))]
+pub fn read_declared() -> Result<Option<Roles>, String> {
+    if std::env::var_os("CURRICULUM_ROLES_FILE").is_some() { Err("declared roles require the datom package feature".into()) } else { Ok(None) }
 }

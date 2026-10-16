@@ -1,75 +1,15 @@
-# Curriculum architecture
+# Curriculum: authored context registry and in-memory composition
 
-Curriculum owns the skill registry implementation and its CLI/Nexus boundary.
-Skill bodies remain authored Markdown in three repositories:
+Curriculum owns one registry over server-declared immutable psyche-context, mind-context and field-context roots. Layout version 2 admits type/subject.md and derives the stable type-subject logical ID. Supported types are vision, intent, spirit, knowledge, inquiry, compensation, role and raw. Legacy skills/ layouts, overlapping roots, symlinks, nested source directories, invalid names, duplicate IDs, missing dependencies and cycles refuse admission. There is no legacy fallback or caller path registry.
 
-- Psyche: `psyche-skills/skills/*.md` and `psyche-skills/vision/*.md`
-- Mind: `mind-skills/skills/*.md`
-- Field: `field-skills/skills/*.md`
+The declared environment names are CURRICULUM_CONTEXT_LAYOUT=2; CURRICULUM_PSYCHES_REPOSITORY_DIR, CURRICULUM_MIND_CONTEXT_DIR, CURRICULUM_FIELD_CONTEXT_DIR; and the corresponding CURRICULUM_PSYCHES_REVISION, CURRICULUM_MIND_REVISION, CURRICULUM_FIELD_REVISION. Revisions are immutable full Git identities supplied by the qualified deployment, not independently verified Git ancestry inside Curriculum. Source bytes and canonical addresses are rechecked before composition.
 
-Psyche `skills/*.md` filenames are skill names; Psyche `vision/*.md` filenames
-are prefixed with `vision-` to form their skill names. Mind and Field filenames
-are skill names. Frontmatter `dependencies` names other skills. The registry
-is keyed by canonical source path, reads the current file bodies, and validates
-unique names and complete acyclic dependency graphs. Source data is not
-compiled into the Rust binary.
+The socket is $XDG_RUNTIME_DIR/curriculum/curriculum.sock. The existing big-endian length-prefixed rkyv transport carries the types generated from curriculum.ethos. The Datom CLI accepts ResolveSkills, ResolveSources, ComposeStartup and ComposeRole only. The former edit/rebuild/check/file-projection protocol is removed. Restart with the new immutable cohort to update registry contents; a changed source under an admitted registry refuses rather than silently changing a prompt.
 
-## Requests
+ComposeStartup accepts a metaflow address, an explicit target harness and SYSTEM/USER module-ID vectors. It expands dependencies through this registry, deduplicates them, rejects contradictory or ambiguous placement and composes both texts in memory. Spirit and intent must be SYSTEM, and a startup requires both categories. This checks category placement, not an independent proof that the supplied intent is appropriate to a particular seat; Flow and its declared selection own that association. Source placement is explicit metadata, never inferred from model or title. An undeclared dependency reached from both placements refuses.
 
-`curriculum 'ResolveSkills.[ roots ]'` parses one Datom query at the CLI
-boundary, sends the typed query to the local Nexus, and prints one Datom
-response. A successful resolution returns a dependency-first list with each
-skill once. Launcher callers put `operation-main-flow` first after resolution.
+Target conditionals and raw blocks use the existing renderer syntax. Malformed or unknown directives and unresolved {{variables}} refuse; shell ${...} examples remain literal. No caller inline-variable map exists. SourceSha256 covers complete authored bytes, BodySha256 covers the original instruction slice, RenderedSha256 covers target-rendered instruction bytes, and each complete output text has its own SHA-256. No composed prompt, skill, manifest or subagent file is written by the service.
 
-An `EditSkills` signal carries three vectors of source paths: new, edited, and
-deleted, plus a typed role packet plan parsed by the CLI from `roles.datom`.
-The Nexus rereads the current skill files, validates the resulting registry,
-computes changed/new/deleted skill names, and regenerates the workspace. Skill
-bodies do not travel in the signal. The role plan carries standing names and
-role module metadata; the Nexus resolves each selected name through the live
-registry and appends every body in dependency-first order, once. A rejected
-projection keeps the previous registry active and reports its reason on CLI
-stderr.
+Role metadata is server-declared CURRICULUM_ROLES_FILE: Roles contains explicit RoleDefinition records with name, surface, model, effort, permission, description module ID, exact context module IDs, tools and caller policy. No prompt body or prose description is stored in that declaration. ComposeRole selects only by role name and surface and resolves every text from the same registry. It does not expand dependencies, standing context or workspace files. The reply returns text, policy and hashes, not a native subagent file. Native caller authentication and tool-dispatch enforcement remain the consumer's responsibility; returned caller policy does not authenticate a request. Role data requires a package built with the existing datom feature.
 
-`RebuildSkills` projects the loaded registry and role plan without changing
-their source data. `CheckSkills` rereads Psyche's configured repository root
-and the Mind and Field skill directories, then compares current sources, five
-generated skill trees, role packet files, the role manifest, and standing
-selection without writing. It rejects when a skill source changed without an
-`EditSkills` signal or when any projection is stale.
-
-`EditSkills` changes paths within the roots already loaded by the service. A
-different configured root takes effect when the service reopens: `SkillMemory`
-seeds its registry from the current settings at open. After changing the root
-configuration and restarting the service, `RebuildSkills` projects that newly
-loaded registry and role plan. `CheckSkills` then verifies the resulting
-sources and projections.
-
-The Nexus handles only typed archived signals. It does not parse Datom. The
-CLI reads `roles.datom`, parses the previous generated-role manifest, and
-passes the resulting plan to the Nexus as typed fields.
-
-## Projections
-
-The workspace receives the registry in five generated trees:
-
-- `.agents/skills`
-- `.claude/skills`
-- `.codex/skills`
-- `.pi/skills`
-- `.opencode/skills`
-
-Projection renders harness-specific frontmatter and user-only invocation
-policy. It stages the complete output before replacing the five skill trees
-and role output files. The regular immutable check compares generated files
-and names with current authored sources.
-
-## Role data
-
-`roles.datom` remains the role configuration record. Its positional fields are
-role modules, models, permissions, depths, descriptions, aliases, universal
-module identifiers, target module insertions, and standing skill names. The
-CLI converts that record to a typed role plan. The Nexus validates generated
-role paths, composes each packet, and replaces stale files listed by the prior
-manifest. The authored `subagents/book.md` procedure is copied without
-reflowing its contents.
+The canonical environment, role metadata and frozen source revisions are deployment authority. A metaflow tuple in a query is context addressing, not authenticated caller identity. This source does not claim an adversarial authorization boundary beyond refusing external prompt sources.

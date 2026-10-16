@@ -21,6 +21,7 @@ pub(crate) fn instructions(source: &str) -> Result<&str, String> {
         continuation = matches!(key, "description" | "dependencies");
         match key {
             "description" | "dependencies" => (),
+            "placement" if matches!(value.trim(), "system" | "user" | "on-demand") => (),
             "user-only" | "disable-model-invocation" if matches!(value.trim(), "true" | "false") => (),
             "user-invocable" if value.trim() == "true" => (),
             _ => return Err(format!("unsupported startup execution metadata: {key}")),
@@ -30,15 +31,9 @@ pub(crate) fn instructions(source: &str) -> Result<&str, String> {
     Ok(body)
 }
 
-pub(crate) fn quote(value: &str) -> String {
-    let mut out = String::from("\"");
-    for c in value.chars() {
-        match c {
-            '"' => out.push_str("\\\""),
-            '\\' => out.push_str("\\\\"),
-            c if c <= '\u{1f}' => out.push_str(&format!("\\u{:04x}", c as u32)),
-            c => out.push(c),
-        }
-    }
-    out.push('"'); out
+/// Empty means the source leaves placement to its explicit consumer contract.
+pub(crate) fn declared_placement(source: &str) -> &str {
+    source.strip_prefix("---\n").and_then(|s| s.split_once("\n---\n"))
+        .and_then(|(header, _)| header.lines().find_map(|line| line.strip_prefix("placement:").map(str::trim)))
+        .unwrap_or("")
 }

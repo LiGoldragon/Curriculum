@@ -1,5 +1,4 @@
 use std::{
-    fs,
     io::{self, Read, Write},
     os::unix::net::UnixStream,
     path::PathBuf,
@@ -9,13 +8,7 @@ use datom_codec::{Actualizing, Budget, Composing, Datomizable, Potential};
 use protos::{Protosizable, ReaderBudget, Textualizable};
 use thiserror::Error;
 
-use crate::{
-    generated::{
-        CliRequest, Outcome, Query, RoleManifest, RoleManifestDocument, RolePlan, RolesDocument,
-        SkillEdits,
-    },
-    roles::PlansRoles,
-};
+use crate::generated::{CliRequest, Outcome, Query};
 
 #[derive(Debug, Error)]
 pub enum ClientError {
@@ -23,8 +16,6 @@ pub enum ClientError {
     Arguments,
     #[error("request parsing failed: {0}")]
     Datom(String),
-    #[error("role configuration failed: {0}")]
-    Roles(String),
     #[error("cannot connect to Curriculum Nexus at {path}: {source}")]
     Connect {
         path: PathBuf,
@@ -127,62 +118,11 @@ fn actualize_request(text: &str) -> Result<CliRequest, ClientError> {
 
 fn prepare_query(request: CliRequest) -> Result<Query, ClientError> {
     Ok(match request {
-        CliRequest::ResolveSkills(roots) => Query::ResolveSkills(roots),
-        CliRequest::EditSkills(edits) => Query::EditSkills(SkillEdits {
-            skill_path_edits: edits,
-            role_plan: current_role_plan()?,
-        }),
-        CliRequest::CheckSkills => Query::CheckSkills(current_role_plan()?),
-        CliRequest::RebuildSkills => Query::RebuildSkills(current_role_plan()?),
+        CliRequest::ResolveSkills(ids) => Query::ResolveSkills(ids),
+        CliRequest::ResolveSources(ids) => Query::ResolveSources(ids),
+        CliRequest::ComposeStartup(selection) => Query::ComposeStartup(selection),
+        CliRequest::ComposeRole(selection) => Query::ComposeRole(selection),
     })
-}
-
-fn current_role_plan() -> Result<RolePlan, ClientError> {
-    let roles_path = std::env::var_os("CURRICULUM_ROLES_FILE")
-        .map(PathBuf::from)
-        .ok_or_else(|| ClientError::Roles("missing CURRICULUM_ROLES_FILE".into()))?;
-    let workspace = std::env::var_os("CURRICULUM_WORKSPACE")
-        .map(PathBuf::from)
-        .ok_or_else(|| ClientError::Roles("missing CURRICULUM_WORKSPACE".into()))?;
-    let source = fs::read_to_string(&roles_path)
-        .map_err(|error| ClientError::Roles(format!("read {}: {error}", roles_path.display())))?;
-    let RolesDocument::Roles(roles) = Potential::<RolesDocument>::from(source)
-        .actualize_with_limit(16_384)
-        .map_err(DatomFaulting::datom_fault)?;
-    let mut plan = roles.role_plan(&workspace).map_err(ClientError::Roles)?;
-    if let Some(path) = std::env::var_os("CURRICULUM_STARTUP_BUNDLES_FILE") {
-        let source = fs::read_to_string(PathBuf::from(path)).map_err(|error| ClientError::Roles(error.to_string()))?;
-        let crate::generated::StartupDocument::StartupBundles(bundles) = Potential::<crate::generated::StartupDocument>::from(source)
-            .actualize_with_limit(262_144)
-            .map_err(DatomFaulting::datom_fault)?;
-        plan.startup_bundle_vector = bundles;
-    }
-    let manifest_path = workspace.join("skills/generated-role-outputs.datom");
-    if manifest_path.exists() {
-        let text = fs::read_to_string(&manifest_path).map_err(|error| {
-            ClientError::Roles(format!("read {}: {error}", manifest_path.display()))
-        })?;
-        let RoleManifestDocument::GeneratedRoleOutputs(previous) =
-            Potential::<RoleManifestDocument>::from(text)
-                .actualize_with_limit(16_384)
-                .map_err(DatomFaulting::datom_fault)?;
-        plan.second_string_vector = previous.string_vector;
-    }
-    let paths = plan
-        .role_packet_plan_vector
-        .iter()
-        .map(|packet| packet.first_string.clone())
-        .chain(std::iter::once(crate::role_policy::DISPATCH_POLICY_PATH.to_owned()))
-        .chain(plan.startup_bundle_vector.iter().flat_map(|bundle| [crate::startup::payload_path(bundle), crate::startup::manifest_path(bundle)]).map(|path| path.to_string_lossy().into_owned()))
-        .collect();
-    plan.string = datom_text(&RoleManifestDocument::GeneratedRoleOutputs(RoleManifest {
-        string_vector: paths,
-    }));
-    Ok(plan)
-}
-
-fn datom_text<T: Datomizable>(value: &T) -> String {
-    value.datomize(vec![]).protosize().textualize()
 }
 
 fn socket_path() -> PathBuf {

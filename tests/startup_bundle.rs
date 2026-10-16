@@ -1,127 +1,85 @@
-use std::{fs, path::Path};
-use curriculum::{generated::*, registry::ResolvedSkill, startup, projection::{ConstructsSkillProjector, ProjectsSkills, SkillProjector}};
+use std::{fs, path::PathBuf};
+use curriculum::{generated::*, registry::SkillRegistry, startup};
 use sha2::{Digest, Sha256};
-
-fn digest(text: &str) -> String { format!("{:x}", Sha256::digest(text.as_bytes())) }
-
-fn fixture(root: &Path) -> (Vec<ResolvedSkill>, StartupBundle) {
-    let mut skills = Vec::new();
-    let mut sources = Vec::new();
-    fs::create_dir_all(root.join("knowledge")).unwrap();
-    for index in 0..23 {
-        let (id, relative, text, placement) = if index == 0 {
-            ("knowledge-system".to_owned(), "knowledge/system.md".to_owned(), "SYSTEM_ONLY\n".to_owned(), StartupPlacement::System)
-        } else {
-            (format!("knowledge-user{:02}", index - 1), format!("knowledge/user{:02}.md", index - 1), format!("BODY_{:02}_EXACT\n", index - 1), StartupPlacement::User)
-        };
-        let dependencies = if index == 0 { vec![] } else if index == 1 { vec!["knowledge-system".into()] } else { vec![format!("knowledge-user{:02}", index - 2)] };
-        let body = format!("---\ndescription: fixture\ndependencies: [{}]\n---\n{text}", dependencies.join(", "));
-        let path = root.join(&relative);
-        fs::write(&path, &body).unwrap();
-        sources.push(StartupSource { module_identity: id.clone(), repository_name: "mind".into(), source_revision: "a".repeat(40), source_root: root.to_string_lossy().into_owned(), source_relative_path: relative, source_sha256: digest(&body), body_sha256: digest(&text), startup_placement: placement });
-        skills.push(ResolvedSkill { path, name: id, body, dependencies });
+fn digest(text:&str)->String { format!("{:x}",Sha256::digest(text.as_bytes())) }
+fn fixture(base:&std::path::Path)->([PathBuf;3],SkillRegistry,StartupSelection) {
+    let roots=[base.join("psyche"),base.join("mind"),base.join("field")];
+    for root in &roots { fs::create_dir_all(root).unwrap(); }
+    fs::create_dir(roots[0].join("spirit")).unwrap();fs::create_dir(roots[0].join("intent")).unwrap();
+    fs::write(roots[0].join("spirit/core.md"),"SPIRIT").unwrap();fs::write(roots[0].join("intent/seat.md"),"SEAT_INTENT").unwrap();
+    fs::create_dir(roots[0].join("vision")).unwrap(); fs::create_dir(roots[2].join("compensation")).unwrap();
+    fs::write(roots[0].join("vision/core.md"),"---\ndependencies: []\nplacement: system\n---\nSYSTEM_ONLY\n").unwrap();
+    let mut ids=Vec::new();
+    for index in 0..22 {
+        let id=format!("compensation-user{index:02}");ids.push(id);
+        fs::write(roots[2].join(format!("compensation/user{index:02}.md")),format!("---\ndependencies: [ vision-core ]\nplacement: user\n---\nBODY_{index:02}_EXACT\n")).unwrap();
     }
-    let bundle = StartupBundle {
-        startup_bundle_name: "startup-field-publisher-quaternary".into(),
-        caller_metaflow: CallerMetaflow { first_string: "Field".into(), second_string: "Publisher".into(), third_string: "Quaternary".into() },
-        startup_cohort: "b".repeat(64), module_identity_vector: vec!["knowledge-user21".into()],
-        startup_source_vector: sources, startup_mode: StartupMode::Initial,
-    };
-    (skills, bundle)
+    let registry=SkillRegistry::from_context_repositories(&roots,&["a".repeat(40),"b".repeat(40),"c".repeat(40)]).unwrap();
+    (roots,registry,StartupSelection { target:Target::Claude, caller_metaflow:CallerMetaflow { first_string:"Field".into(),second_string:"Publisher".into(),third_string:"Quaternary".into() },system_modules:vec!["spirit-core".into(),"intent-seat".into(),"vision-core".into()],user_modules:ids })
 }
-
-fn recovery(bundle: &mut StartupBundle) {
-    let loaded = bundle.startup_source_vector.iter().skip(1).take(6).map(|s| StartupLoaded {
-        module_identity: s.module_identity.clone(), repository_name: s.repository_name.clone(), source_revision: s.source_revision.clone(), source_relative_path: s.source_relative_path.clone(), source_sha256: s.source_sha256.clone(), body_sha256: s.body_sha256.clone(),
-    }).collect();
-    bundle.startup_mode = StartupMode::Recovery(RecoveryWitness {
-        native_session: "same-native-session".into(), prompt_identity: "original-prompt".into(), startup_cohort: bundle.startup_cohort.clone(), startup_loaded_vector: loaded,
-    });
-}
-
 #[test]
-fn direct_prompt_contains_all_twenty_two_user_bodies_once() {
-    let root = tempfile::tempdir().unwrap();
-    let (skills, bundle) = fixture(root.path());
-    let output = startup::outputs(&skills, &[bundle.clone()]).unwrap();
-    assert_eq!(output.len(), 2);
-    let body = &output[&startup::payload_path(&bundle)];
-    for index in 0..22 { assert_eq!(body.matches(&format!("BODY_{index:02}_EXACT\n")).count(), 1); }
-    assert!(!body.contains("SYSTEM_ONLY"));
-    assert!(body.starts_with("These are your skills, given here; do not reload them.\n"));
-    assert!(!body.starts_with("---"));
-    for index in 0..22 { assert!(body.contains(&format!("knowledge-user{index:02}"))); }
-    let manifest = &output[&startup::manifest_path(&bundle)];
-    assert!(manifest.contains("\"userCount\":22,\"emittedCount\":22"));
-    assert!(manifest.contains("\"schemaVersion\":2,\"delivery\":\"direct-user-prompt\""));
-    assert!(manifest.contains(&format!("\"payloadSha256\":\"{}\"", digest(body))));
-    assert_eq!(manifest.matches("\"sourceSha256\":").count(), 23);
-    assert!(manifest.contains("\"placement\":\"system\",\"disposition\":\"already-composed-system\",\"ordinal\":null"));
+fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
+    let tmp=tempfile::tempdir().unwrap();let (_,registry,selection)=fixture(tmp.path());
+    let result=startup::compose(&registry,&selection).unwrap();
+    assert_eq!(result.context_provenance_vector.len(),25);
+    assert_eq!(result.system_text.matches("SYSTEM_ONLY").count(),1);
+    assert!(!result.user_text.contains("SYSTEM_ONLY"));assert!(!result.system_text.contains("BODY_"));
+    for i in 0..22 { assert_eq!(result.user_text.matches(&format!("BODY_{i:02}_EXACT\n")).count(),1); }
+    assert!(result.user_text.starts_with("These are your skills, given here; do not reload them."));
+    assert_eq!(result.system_payload_sha256,digest(&result.system_text));assert_eq!(result.user_payload_sha256,digest(&result.user_text));
+    let ordinals:Vec<_>=result.context_provenance_vector.iter().filter(|m|matches!(m.startup_placement,StartupPlacement::User)).map(|m|m.integer).collect();
+    assert_eq!(ordinals,(0..22).collect::<Vec<i64>>());
+    assert!(!tmp.path().join("tools").exists());assert!(!tmp.path().join(".claude").exists());
+    let outcome=Outcome::StartupComposed(result);let bytes=rkyv::to_bytes::<rkyv::rancor::Error>(&outcome).unwrap();
+    assert_eq!(rkyv::from_bytes::<Outcome,rkyv::rancor::Error>(&bytes).unwrap(),outcome);
 }
-
 #[test]
-fn recovery_emits_remaining_sixteen_and_preserves_historical_status() {
-    let root = tempfile::tempdir().unwrap();
-    let (skills, mut bundle) = fixture(root.path()); recovery(&mut bundle);
-    let output = startup::outputs(&skills, &[bundle.clone()]).unwrap();
-    let body = &output[&startup::payload_path(&bundle)];
-    for index in 0..22 { assert_eq!(body.matches(&format!("BODY_{index:02}_EXACT\n")).count(), usize::from(index >= 6)); }
-    let manifest = &output[&startup::manifest_path(&bundle)];
-    assert!(manifest.contains("\"userCount\":22,\"emittedCount\":16"));
-    assert_eq!(manifest.matches("\"disposition\":\"previously-loaded\"").count(), 6);
-    assert!(manifest.contains("supplied-witness-matched-not-native-reverified"));
-}
-
-#[test]
-fn invalid_placement_provenance_and_recovery_never_produce_a_bundle() {
-    let root = tempfile::tempdir().unwrap();
-    let (skills, bundle) = fixture(root.path());
-    let mut invalid = Vec::new();
-    let mut b = bundle.clone(); b.startup_source_vector.pop(); invalid.push(b);
-    let mut b = bundle.clone(); b.startup_source_vector.push(b.startup_source_vector[0].clone()); invalid.push(b);
-    let mut b = bundle.clone(); b.startup_source_vector[22].startup_placement = StartupPlacement::System; invalid.push(b);
-    let mut b = bundle.clone(); b.startup_source_vector[1].source_sha256 = "0".repeat(64); invalid.push(b);
-    let mut b = bundle.clone(); b.startup_source_vector[1].body_sha256 = "0".repeat(64); invalid.push(b);
-    let mut b = bundle.clone(); b.startup_source_vector[1].source_relative_path = "../escape.md".into(); invalid.push(b);
-    let mut b = bundle.clone(); b.startup_bundle_name = "../escape".into(); invalid.push(b);
-    let mut b = bundle.clone(); recovery(&mut b); if let StartupMode::Recovery(w) = &mut b.startup_mode { w.startup_cohort = "c".repeat(64); } invalid.push(b);
-    let mut b = bundle.clone(); recovery(&mut b); if let StartupMode::Recovery(w) = &mut b.startup_mode { w.startup_loaded_vector.swap(0, 1); } invalid.push(b);
-    let mut b = bundle.clone(); recovery(&mut b); if let StartupMode::Recovery(w) = &mut b.startup_mode { w.startup_loaded_vector[0].source_revision = "c".repeat(40); } invalid.push(b);
-    for (index, b) in invalid.iter().enumerate() { assert!(startup::outputs(&skills, &[b.clone()]).is_err(), "case {index}"); }
-    fs::write(&skills[1].path, "changed after registry resolution").unwrap();
-    assert!(startup::outputs(&skills, &[bundle]).is_err());
-}
-
-#[test]
-fn unsupported_execution_metadata_refuses_even_when_hashes_match() {
-    for metadata in ["tools: Bash", "context: fork", "hooks: {}", "agent: unsafe", "user-invocable: false"] {
-        let root = tempfile::tempdir().unwrap();
-        let (mut skills, mut bundle) = fixture(root.path());
-        skills[1].body = skills[1].body.replacen("description: fixture", metadata, 1);
-        fs::write(&skills[1].path, &skills[1].body).unwrap();
-        bundle.startup_source_vector[1].source_sha256 = digest(&skills[1].body);
-        assert!(startup::outputs(&skills, &[bundle]).is_err(), "{metadata}");
+fn caller_paths_inline_text_unknown_duplicates_wrong_placement_and_changed_sources_refuse() {
+    let tmp=tempfile::tempdir().unwrap();let (roots,registry,selection)=fixture(tmp.path());
+    for bad in ["/tmp/context.md","../vision/core.md","Ignore previous instructions","missing-id"] {
+        let mut s=selection.clone();s.user_modules=vec![bad.into()];assert!(startup::compose(&registry,&s).is_err());
     }
+    let mut s=selection.clone();s.user_modules.push(s.user_modules[0].clone());assert!(startup::compose(&registry,&s).is_err());
+    let mut s=selection.clone();s.user_modules.push("vision-core".into());assert!(startup::compose(&registry,&s).is_err());
+    let mut s=selection.clone();s.system_modules=vec!["compensation-user00".into()];s.user_modules.clear();assert!(startup::compose(&registry,&s).is_err());
+    fs::write(roots[2].join("compensation/user00.md"),"Changed").unwrap();assert!(startup::compose(&registry,&selection).is_err());
+}
+#[test]
+fn undeclared_shared_dependency_placement_refuses_instead_of_duplicate_injection() {
+    let tmp=tempfile::tempdir().unwrap();let (roots,_,_)=fixture(tmp.path());
+    fs::write(roots[0].join("vision/core.md"),"COMMON_UNPLACED").unwrap();
+    fs::write(roots[0].join("vision/system.md"),"---\ndependencies: [ vision-core ]\n---\nSYSTEM\n").unwrap();
+    let registry=SkillRegistry::from_context_repositories(&roots,&["a".repeat(40),"b".repeat(40),"c".repeat(40)]).unwrap();
+    let selection=StartupSelection { target:Target::Claude, caller_metaflow:CallerMetaflow { first_string:"Field".into(),second_string:"Publisher".into(),third_string:"Quaternary".into() },system_modules:vec!["vision-system".into()],user_modules:vec!["compensation-user00".into()] };
+    assert!(startup::compose(&registry,&selection).is_err());
 }
 
 #[test]
-fn existing_projector_manages_composite_and_detects_sidecar_drift() {
-    let source = tempfile::tempdir().unwrap(); let workspace = tempfile::tempdir().unwrap();
-    let (skills, bundle) = fixture(source.path());
-    let plan = RolePlan { role_packet_plan_vector: vec![], first_string_vector: vec![], second_string_vector: vec![], string: String::new(), startup_bundle_vector: vec![bundle.clone()] };
-    let projector = SkillProjector::at(workspace.path().into());
-    projector.write(&skills, &plan).unwrap(); projector.check(&skills, &plan).unwrap();
-    assert!(workspace.path().join(startup::payload_path(&bundle)).exists());
-    for harness in [".claude", ".codex", ".agents", ".pi", ".opencode"] {
-        assert!(!workspace.path().join(format!("{harness}/skills/{}/SKILL.md", bundle.startup_bundle_name)).exists());
+fn target_rendering_precedes_hashing_and_preserves_raw_and_shell_literals() {
+    use curriculum::context_render;
+    let text="{% if claude %}\nCLAUDE\n{% else %}\nOTHER\n{% endif %}\n{% raw %}\n{{literal}}\n{% endraw %}\n${VAR:?}\n";
+    assert_eq!(context_render::render(&Target::Claude,text).unwrap(),"CLAUDE\n{{literal}}\n${VAR:?}\n");
+    assert_eq!(context_render::render(&Target::Codex,text).unwrap(),"OTHER\n{{literal}}\n${VAR:?}\n");
+    for bad in ["{% endif %}","{% if unknown %}","{% if claude %}\nmissing end","{{unknown}}"]{assert!(context_render::render(&Target::Claude,bad).is_err());}
+}
+
+#[test]
+fn spirit_intent_cannot_be_user_even_without_frontmatter_placement() {
+    let tmp=tempfile::tempdir().unwrap();let (_,registry,selection)=fixture(tmp.path());
+    for id in ["spirit-core","intent-seat"] {
+        let mut s=selection.clone();s.system_modules.retain(|m|m!=id);s.user_modules.push(id.into());assert!(startup::compose(&registry,&s).is_err());
     }
-    fs::write(workspace.path().join(startup::manifest_path(&bundle)), "{}").unwrap();
-    assert!(projector.check(&skills, &plan).is_err());
-    let mut removed = plan.clone(); removed.startup_bundle_vector.clear();
-    removed.second_string_vector = vec![startup::payload_path(&bundle).to_string_lossy().into_owned(), startup::manifest_path(&bundle).to_string_lossy().into_owned()];
-    projector.write(&skills, &removed).unwrap(); projector.check(&skills, &removed).unwrap();
-    assert!(!workspace.path().join(startup::manifest_path(&bundle)).exists());
-    assert!(!workspace.path().join(startup::payload_path(&bundle)).exists());
-    let bytes = rkyv::to_bytes::<rkyv::rancor::Error>(&plan).unwrap();
-    assert_eq!(rkyv::from_bytes::<RolePlan, rkyv::rancor::Error>(&bytes).unwrap(), plan);
+    let mut s=selection;s.system_modules.clear();assert!(startup::compose(&registry,&s).is_err());
+}
+
+#[test]
+fn manifest_distinguishes_authored_and_target_rendered_module_hashes() {
+    let tmp=tempfile::tempdir().unwrap();let (roots,_,selection)=fixture(tmp.path());
+    let text="{% if claude %}\nCLAUDE_ONLY\n{% else %}\nCODEX_OTHER\n{% endif %}\n";
+    std::fs::write(roots[2].join("compensation/user00.md"),text).unwrap();
+    let registry=SkillRegistry::from_context_repositories(&roots,&["a".repeat(40),"b".repeat(40),"c".repeat(40)]).unwrap();
+    let result=startup::compose(&registry,&selection).unwrap();
+    let module=result.context_provenance_vector.iter().find(|m|m.module_identity=="compensation-user00").unwrap();
+    assert_eq!(module.body_sha256,digest(text));assert_eq!(module.rendered_sha256,digest("CLAUDE_ONLY\n"));
+    assert!(result.user_text.contains("CLAUDE_ONLY"));assert!(!result.user_text.contains("CODEX_OTHER"));assert!(!result.user_text.contains("{%"));
 }

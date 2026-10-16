@@ -1,130 +1,66 @@
-//! Main-seat USER composites from the existing resolved registry, not a source registry.
-use std::{collections::{BTreeMap, BTreeSet}, path::{Component, Path, PathBuf}};
-use crate::{generated::{StartupBundle, StartupMode, StartupPlacement}, registry::{ResolvedSkill, expand_resolved_skills}, startup_metadata::{instructions, quote, sha256}};
+//! In-memory startup composition from the server's three authored repositories.
+//! Callers supply module IDs and a metaflow address, never paths or text.
+use std::collections::{BTreeMap, BTreeSet};
+use crate::{generated::{ContextProvenance, StartupComposition, StartupPlacement, StartupSelection}, registry::{SkillRegistry, ExpandsSkills}, startup_metadata::{declared_placement, instructions, sha256}};
 
-pub fn payload_path(bundle: &StartupBundle) -> PathBuf {
-    PathBuf::from(format!("tools/startup-bundles/{}.md", bundle.startup_bundle_name))
-}
-
-pub fn manifest_path(bundle: &StartupBundle) -> PathBuf {
-    PathBuf::from(format!("tools/startup-bundles/{}.json", bundle.startup_bundle_name))
-}
-
-pub fn outputs(skills: &[ResolvedSkill], bundles: &[StartupBundle]) -> Result<BTreeMap<PathBuf, String>, String> {
-    let mut result = BTreeMap::new();
-    let mut names = BTreeSet::new();
-    for bundle in bundles {
-        let name = &bundle.startup_bundle_name;
-        if !name.starts_with("startup-") || !identifier(name) || !names.insert(name)
-            || skills.iter().any(|skill| &skill.name == name) {
-            return Err("invalid, duplicate or source-colliding startup bundle name".into());
-        }
-        let (body, manifest) = compose(skills, bundle)?;
-        result.insert(payload_path(bundle), body);
-        result.insert(manifest_path(bundle), manifest);
+pub fn compose(registry: &SkillRegistry, selection: &StartupSelection) -> Result<StartupComposition, String> {
+    let caller = &selection.caller_metaflow;
+    if !word(&caller.first_string) || !word(&caller.second_string) || !matches!(caller.third_string.as_str(), "Primary" | "Secondary" | "Tertiary" | "Quaternary") {
+        return Err("invalid metaflow address".into());
     }
-    Ok(result)
-}
-
-fn compose(skills: &[ResolvedSkill], bundle: &StartupBundle) -> Result<(String, String), String> {
-    let tuple = &bundle.caller_metaflow;
-    if !word(&tuple.first_string) || !word(&tuple.second_string)
-        || !matches!(tuple.third_string.as_str(), "Primary" | "Secondary" | "Tertiary" | "Quaternary")
-        || !hash(&bundle.startup_cohort, 64) {
-        return Err("invalid startup tuple or cohort digest".into());
-    }
-    let mut roots = BTreeSet::new();
-    if bundle.module_identity_vector.is_empty() || bundle.module_identity_vector.iter().any(|root| !identifier(root) || !roots.insert(root)) {
-        return Err("startup requires unique USER roots".into());
-    }
-    let closure = expand_resolved_skills(skills, &bundle.module_identity_vector).map_err(|error| error.to_string())?;
-    let mut sources = BTreeMap::new();
-    for source in &bundle.startup_source_vector {
-        if sources.insert(source.module_identity.as_str(), source).is_some() {
-            return Err("duplicate source/placement assignment".into());
-        }
-    }
-    if sources.len() != closure.len() { return Err("source assignments do not equal complete closure".into()); }
-    for root in &bundle.module_identity_vector {
-        if !matches!(sources.get(root.as_str()).map(|s| &s.startup_placement), Some(StartupPlacement::User)) {
-            return Err("startup root is not USER placed".into());
-        }
-    }
-    let loaded = match &bundle.startup_mode {
-        StartupMode::Initial => &[][..],
-        StartupMode::Recovery(witness) => {
-            if witness.native_session.trim().is_empty() || witness.prompt_identity.trim().is_empty()
-                || witness.startup_cohort != bundle.startup_cohort || witness.startup_loaded_vector.is_empty() {
-                return Err("recovery requires session, prompt and same-cohort loaded witness".into());
+    let mut explicit = BTreeMap::new();
+    for (names, system) in [(&selection.system_modules, true), (&selection.user_modules, false)] {
+        for name in names {
+            if !identifier(name) || explicit.insert(name.clone(), system).is_some() {
+                return Err("invalid, duplicate or cross-placement module ID".into());
             }
-            witness.startup_loaded_vector.as_slice()
         }
-    };
-    let mut body = String::new();
-    let mut emitted_ids = Vec::new();
-    let mut rows = Vec::new();
-    let mut user_index = 0usize;
-    let mut emitted = 0usize;
-    for skill in &closure {
-        let source = sources.get(skill.name.as_str()).ok_or("missing source/placement assignment")?;
-        let root = std::fs::canonicalize(&source.source_root).map_err(|error| error.to_string())?;
-        let relative = Path::new(&source.source_relative_path);
-        if relative.as_os_str().is_empty() || !relative.components().all(|component| matches!(component, Component::Normal(_)))
-            || !word(&source.repository_name) || !(hash(&source.source_revision, 40) || hash(&source.source_revision, 64)) {
-            return Err("invalid repository revision or relative source path".into());
-        }
-        let selected_path = std::fs::canonicalize(root.join(relative)).map_err(|error| error.to_string())?;
-        let resolved_path = std::fs::canonicalize(&skill.path).map_err(|error| error.to_string())?;
-        if !selected_path.starts_with(&root) || selected_path != resolved_path {
-            return Err("source provenance disagrees with registered path".into());
-        }
-        let actual_source = std::fs::read(&resolved_path).map_err(|error| error.to_string())?;
-        if actual_source != skill.body.as_bytes() || sha256(&actual_source) != source.source_sha256 {
-            return Err("source changed or source hash mismatch".into());
-        }
-        let text = instructions(&skill.body)?;
-        if sha256(text.as_bytes()) != source.body_sha256 { return Err("instruction body hash mismatch".into()); }
-        let (placement, disposition, ordinal) = match source.startup_placement {
-            StartupPlacement::System => ("system", "already-composed-system", "null".to_owned()),
-            StartupPlacement::User => {
-                let skipped = if let Some(witness) = loaded.get(user_index) {
-                    if witness.module_identity != skill.name || witness.repository_name != source.repository_name
-                        || witness.source_revision != source.source_revision || witness.source_relative_path != source.source_relative_path
-                        || witness.source_sha256 != source.source_sha256 || witness.body_sha256 != source.body_sha256 {
-                        return Err("loaded witness is not the exact same-source USER prefix".into());
-                    }
-                    true
-                } else { false };
-                user_index += 1;
-                if skipped { ("user", "previously-loaded", "null".to_owned()) }
-                else {
-                    let ordinal = emitted.to_string(); emitted += 1;
-                    emitted_ids.push(skill.name.clone());
-                    body.push_str(&format!("\n<!-- module: {} -->\n", skill.name));
-                    body.push_str(text);
-                    body.push_str(&format!("\n<!-- end-module: {} -->\n", skill.name));
-                    ("user", "emitted", ordinal)
-                }
-            }
+    }
+    if explicit.is_empty() { return Err("startup requires at least one authored module".into()); }
+    let system_closure = registry.expand_skills(&selection.system_modules).map_err(|e| e.to_string())?;
+    let user_closure = registry.expand_skills(&selection.user_modules).map_err(|e| e.to_string())?;
+    let systems: BTreeSet<_> = system_closure.iter().map(|s| s.name.as_str()).collect();
+    let users: BTreeSet<_> = user_closure.iter().map(|s| s.name.as_str()).collect();
+    let roots: Vec<_> = selection.system_modules.iter().chain(&selection.user_modules).cloned().collect();
+    let resolved = registry.resolved_sources(&roots).map_err(|e| e.to_string())?;
+    let snapshot = registry.expand_skills(&roots).map_err(|e| e.to_string())?;
+    let mut system = Vec::new(); let mut user = Vec::new(); let mut provenance = Vec::new();
+    for (module, source) in resolved.into_iter().zip(snapshot) {
+        let actual = std::fs::read(&source.path).map_err(|e| e.to_string())?;
+        if actual != source.body.as_bytes() { return Err(format!("source changed since registry admission: {}", source.name)); }
+        let body = instructions(&source.body)?;
+        let declared = match declared_placement(&source.body) {
+            "system" => Some(true), "user" => Some(false), "" => None,
+            _ => return Err(format!("module {} is not startup-placed", source.name)),
         };
-        rows.push(format!("{{\"id\":{},\"repository\":{},\"revision\":{},\"sourceRoot\":{},\"relativePath\":{},\"sourceSha256\":{},\"bodySha256\":{},\"placement\":{},\"disposition\":{},\"ordinal\":{}}}", quote(&skill.name), quote(&source.repository_name), quote(&source.source_revision), quote(&root.to_string_lossy()), quote(&source.source_relative_path), quote(&source.source_sha256), quote(&source.body_sha256), quote(placement), quote(disposition), ordinal));
+        let selected = explicit.get(&source.name).copied();
+        if selected.zip(declared).is_some_and(|(a,b)| a != b) { return Err(format!("placement conflicts with authored module {}", source.name)); }
+        let system_only = source.name.starts_with("spirit-") || source.name.starts_with("intent-");
+        if system_only && (selected == Some(false) || declared == Some(false)) { return Err(format!("spirit/intent must be SYSTEM: {}", source.name)); }
+        let is_system = match selected.or(declared).or(if system_only { Some(true) } else { None }) {
+            Some(value) => value,
+            None => match (systems.contains(source.name.as_str()), users.contains(source.name.as_str())) {
+                (true, false) => true, (false, true) => false,
+                _ => return Err(format!("dependency {} has ambiguous placement", source.name)),
+            },
+        };
+        let output = if is_system { &mut system } else { &mut user };
+        let ordinal = output.len() as i64;
+        let rendered = crate::context_render::render(&selection.target, body)?;
+        let rendered_sha256 = sha256(rendered.as_bytes());
+        output.push((source.name, rendered));
+        provenance.push(ContextProvenance { module_identity: module.module_identity, repository_name: module.repository_name, source_revision: module.source_revision, source_relative_path: module.source_relative_path, source_sha256: module.source_sha256, body_sha256: module.body_sha256, rendered_sha256, startup_placement: if is_system { StartupPlacement::System } else { StartupPlacement::User }, integer: ordinal });
     }
-    if loaded.len() > user_index || emitted == 0 { return Err("recovery prefix exceeds USER closure or nothing remains".into()); }
-    body = format!("These are your skills, given here; do not reload them.\n\nModule IDs: {}\n{}", emitted_ids.join(", "), body);
-    let mode = match &bundle.startup_mode {
-        StartupMode::Initial => "{\"kind\":\"initial\"}".into(),
-        StartupMode::Recovery(witness) => format!("{{\"kind\":\"recovery\",\"session\":{},\"promptId\":{},\"evidenceStatus\":\"supplied-witness-matched-not-native-reverified\"}}", quote(&witness.native_session), quote(&witness.prompt_identity)),
-    };
-    let manifest = format!("{{\"schemaVersion\":2,\"delivery\":\"direct-user-prompt\",\"bundle\":{},\"metaflow\":{{\"aspect\":{},\"topic\":{},\"layer\":{}}},\"cohort\":{},\"userRoots\":{},\"mode\":{},\"systemCompositionStatus\":\"declared-by-cohort-not-native-reverified\",\"userCount\":{},\"emittedCount\":{},\"payloadSha256\":{},\"modules\":[{}]}}\n", quote(&bundle.startup_bundle_name), quote(&tuple.first_string), quote(&tuple.second_string), quote(&tuple.third_string), quote(&bundle.startup_cohort), crate::role_policy::string_array(&bundle.module_identity_vector), mode, user_index, emitted, quote(&sha256(body.as_bytes())), rows.join(","));
-    Ok((body, manifest))
+    if !system.iter().any(|(id,_)|id.starts_with("spirit-")) || !system.iter().any(|(id,_)|id.starts_with("intent-")) { return Err("startup requires explicit Spirit and seat-intent SYSTEM context".into()); }
+    let system_text = render(&system); let user_text = render(&user);
+    Ok(StartupComposition { system_payload_sha256: sha256(system_text.as_bytes()), user_payload_sha256: sha256(user_text.as_bytes()), system_text, user_text, context_provenance_vector: provenance })
 }
 
-fn identifier(value: &str) -> bool {
-    !value.is_empty() && value.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+fn render(modules: &[(String, String)]) -> String {
+    if modules.is_empty() { return String::new(); }
+    let mut text = format!("These are your skills, given here; do not reload them.\n\nModule IDs: {}\n", modules.iter().map(|(id, _)| id.as_str()).collect::<Vec<_>>().join(", "));
+    for (id, body) in modules { text.push_str(&format!("\n<!-- module: {id} -->\n{body}\n<!-- end-module: {id} -->\n")); }
+    text
 }
-fn word(value: &str) -> bool {
-    !value.is_empty() && value.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
-}
-fn hash(value: &str, length: usize) -> bool {
-    value.len() == length && value.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
-}
+fn identifier(value: &str) -> bool { !value.is_empty() && value.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-') }
+fn word(value: &str) -> bool { !value.is_empty() && value.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-') }
