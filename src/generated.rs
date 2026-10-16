@@ -1,97 +1,128 @@
 #![allow(dead_code, non_camel_case_types, non_snake_case)]
 #[rustfmt::skip]
+pub type ModuleIdentity = String;
+#[rustfmt::skip]
+pub type RepositoryName = String;
+#[rustfmt::skip]
+pub type SourceRevision = String;
+#[rustfmt::skip]
+pub type SourceRoot = String;
+#[rustfmt::skip]
+pub type SourceRelativePath = String;
+#[rustfmt::skip]
+pub type ModuleType = String;
+#[rustfmt::skip]
+pub type ModuleSubject = String;
+#[rustfmt::skip]
+pub type DeclaredPlacement = String;
+#[rustfmt::skip]
+pub type SourceSha256 = String;
+#[rustfmt::skip]
+pub type BodySha256 = String;
+#[rustfmt::skip]
+pub type RenderedSha256 = String;
+#[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct SkillPathEdits {
-    pub first_string_vector: std::vec::Vec<String>,
-    pub second_string_vector: std::vec::Vec<String>,
-    pub third_string_vector: std::vec::Vec<String>,
+pub enum Target {
+    Claude,
+    Codex,
+    Pi,
+    OpenCode,
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct SkillEdits {
-    pub skill_path_edits: SkillPathEdits,
-    pub role_plan: RolePlan,
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct SkillChange {
-    pub first_string_vector: std::vec::Vec<String>,
-    pub second_string_vector: std::vec::Vec<String>,
-    pub third_string_vector: std::vec::Vec<String>,
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct RolePacketPlan {
-    pub surface: Surface,
+pub struct CallerMetaflow {
     pub first_string: String,
     pub second_string: String,
     pub third_string: String,
-    pub fourth_string: String,
-    pub effort: Effort,
-    pub permission: Permission,
-    pub fifth_string: String,
-    pub sixth_string: String,
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct RolePlan {
-    pub role_packet_plan_vector: std::vec::Vec<RolePacketPlan>,
-    pub first_string_vector: std::vec::Vec<String>,
-    pub second_string_vector: std::vec::Vec<String>,
+pub enum StartupPlacement {
+    System,
+    User,
+}
+#[rustfmt::skip]
+pub type SystemModules = std::vec::Vec<ModuleIdentity>;
+#[rustfmt::skip]
+pub type UserModules = std::vec::Vec<ModuleIdentity>;
+#[rustfmt::skip]
+pub type SystemText = String;
+#[rustfmt::skip]
+pub type UserText = String;
+#[rustfmt::skip]
+pub type SystemPayloadSha256 = String;
+#[rustfmt::skip]
+pub type UserPayloadSha256 = String;
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub struct StartupSelection {
+    pub caller_metaflow: CallerMetaflow,
+    pub target: Target,
+    pub system_modules: SystemModules,
+    pub user_modules: UserModules,
+}
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub struct ContextProvenance {
+    pub module_identity: ModuleIdentity,
+    pub repository_name: RepositoryName,
+    pub source_revision: SourceRevision,
+    pub source_relative_path: SourceRelativePath,
+    pub source_sha256: SourceSha256,
+    pub body_sha256: BodySha256,
+    pub rendered_sha256: RenderedSha256,
+    pub startup_placement: StartupPlacement,
+    pub integer: i64,
+}
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub struct StartupComposition {
+    pub system_text: SystemText,
+    pub user_text: UserText,
+    pub system_payload_sha256: SystemPayloadSha256,
+    pub user_payload_sha256: UserPayloadSha256,
+    pub context_provenance_vector: std::vec::Vec<ContextProvenance>,
+}
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub struct ResolvedModule {
+    pub module_identity: ModuleIdentity,
+    pub repository_name: RepositoryName,
+    pub source_revision: SourceRevision,
+    pub source_root: SourceRoot,
+    pub source_relative_path: SourceRelativePath,
+    pub module_type: ModuleType,
+    pub module_subject: ModuleSubject,
+    pub declared_placement: DeclaredPlacement,
+    pub source_sha256: SourceSha256,
+    pub body_sha256: BodySha256,
     pub string: String,
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub enum CliRequest {
-    ResolveSkills(std::vec::Vec<String>),
-    EditSkills(SkillPathEdits),
-    CheckSkills,
-    RebuildSkills,
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub enum Query {
-    ResolveSkills(std::vec::Vec<String>),
-    EditSkills(SkillEdits),
-    CheckSkills(RolePlan),
-    RebuildSkills(RolePlan),
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub enum Outcome {
-    ResolvedSkills(std::vec::Vec<String>),
-    SkillsChanged(SkillChange),
-    SkillsChecked(std::vec::Vec<String>),
-    SkillsRebuilt(std::vec::Vec<String>),
-    Rejected(String),
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct RoleManifest {
     pub string_vector: std::vec::Vec<String>,
 }
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub enum RoleManifestDocument {
-    GeneratedRoleOutputs(RoleManifest),
-}
+pub type RoleName = String;
 #[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub enum Provider {
-    Claude,
-    ChatGpt,
-}
+pub type ModelId = String;
+#[rustfmt::skip]
+pub type DescriptionModule = ModuleIdentity;
+#[rustfmt::skip]
+pub type ContextModules = std::vec::Vec<ModuleIdentity>;
+#[rustfmt::skip]
+pub type DescriptionText = String;
+#[rustfmt::skip]
+pub type ContextText = String;
+#[rustfmt::skip]
+pub type DescriptionPayloadSha256 = String;
+#[rustfmt::skip]
+pub type ContextPayloadSha256 = String;
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
@@ -119,84 +150,92 @@ pub enum Surface {
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct ModelChoice {
-    pub string: String,
-    pub effort_option: std::option::Option<Effort>,
+pub enum RoleTools {
+    Inherit,
+    Explicit(std::vec::Vec<String>),
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct RoleModule {
-    pub first_string: String,
-    pub second_string: String,
+pub enum RoleCallers {
+    Any,
+    Only(std::vec::Vec<CallerMetaflow>),
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct Model {
-    pub string: String,
-    pub provider: Provider,
-    pub effort_vector: std::vec::Vec<Effort>,
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct RolePermission {
-    pub first_string: String,
-    pub second_string: String,
-    pub permission: Permission,
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct RoleDepth {
-    pub string: String,
-    pub first_model_choice: ModelChoice,
-    pub second_model_choice: ModelChoice,
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct RoleDescription {
-    pub first_string: String,
-    pub second_string: String,
-    pub third_string: String,
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct RoleAlias {
-    pub first_string: String,
-    pub second_string: String,
-    pub third_string: String,
-    pub fourth_string: String,
-    pub surface_vector: std::vec::Vec<Surface>,
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct TargetInsertion {
-    pub string: String,
+pub struct RoleDefinition {
+    pub role_name: RoleName,
     pub surface: Surface,
-    pub string_vector: std::vec::Vec<String>,
+    pub model_id: ModelId,
+    pub effort: Effort,
+    pub permission: Permission,
+    pub description_module: DescriptionModule,
+    pub context_modules: ContextModules,
+    pub role_tools: RoleTools,
+    pub role_callers: RoleCallers,
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct Roles {
-    pub role_module_vector: std::vec::Vec<RoleModule>,
-    pub model_vector: std::vec::Vec<Model>,
-    pub role_permission_vector: std::vec::Vec<RolePermission>,
-    pub role_depth_vector: std::vec::Vec<RoleDepth>,
-    pub role_description_vector: std::vec::Vec<RoleDescription>,
-    pub role_alias_vector: std::vec::Vec<RoleAlias>,
-    pub first_string_vector: std::vec::Vec<String>,
-    pub target_insertion_vector: std::vec::Vec<TargetInsertion>,
-    pub second_string_vector: std::vec::Vec<String>,
+    pub role_definition_vector: std::vec::Vec<RoleDefinition>,
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub enum RolesDocument {
     Roles(Roles),
+}
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub struct RoleSelection {
+    pub role_name: RoleName,
+    pub surface: Surface,
+}
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub struct RoleComposition {
+    pub role_name: RoleName,
+    pub surface: Surface,
+    pub model_id: ModelId,
+    pub effort: Effort,
+    pub permission: Permission,
+    pub description_text: DescriptionText,
+    pub context_text: ContextText,
+    pub role_tools: RoleTools,
+    pub role_callers: RoleCallers,
+    pub context_provenance_vector: std::vec::Vec<ContextProvenance>,
+    pub description_payload_sha256: DescriptionPayloadSha256,
+    pub context_payload_sha256: ContextPayloadSha256,
+}
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub enum CliRequest {
+    ResolveSkills(std::vec::Vec<ModuleIdentity>),
+    ResolveSources(std::vec::Vec<ModuleIdentity>),
+    ComposeStartup(StartupSelection),
+    ComposeRole(RoleSelection),
+}
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub enum Query {
+    ResolveSkills(std::vec::Vec<ModuleIdentity>),
+    ResolveSources(std::vec::Vec<ModuleIdentity>),
+    ComposeStartup(StartupSelection),
+    ComposeRole(RoleSelection),
+}
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub enum Outcome {
+    ResolvedSkills(std::vec::Vec<ModuleIdentity>),
+    ResolvedSources(std::vec::Vec<ResolvedModule>),
+    StartupComposed(StartupComposition),
+    RoleComposed(RoleComposition),
+    Rejected(String),
 }
