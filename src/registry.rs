@@ -654,3 +654,15 @@ mod tests {
         assert!(matches!(result, Err(RegistryError::OutsideSource(_))));
     }
 }
+
+/// Reuse the registry's dependency traversal over its resolved projection snapshot.
+pub fn expand_resolved_skills(skills: &[ResolvedSkill], roots: &[String]) -> Result<Vec<ResolvedSkill>, RegistryError> {
+    let mut registry = SkillRegistry::default();
+    for skill in skills {
+        let entry = SkillEntry { path: skill.path.clone(), name: skill.name.clone(), body: skill.body.clone(), dependencies: skill.dependencies.clone() };
+        if registry.entries.insert(entry.path.clone(), entry).is_some() {
+            return Err(RegistryError::RepeatedEdit(skill.path.clone()));
+        }
+    }
+    registry.expand_skills(roots)
+}

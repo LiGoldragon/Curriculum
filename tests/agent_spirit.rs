@@ -13,7 +13,7 @@ fn every_agent_including_slim_book_carries_every_spirit_body() {
             packets.push(RolePacketPlan {role_policy_option: None, surface, first_string: path, second_string: name.into(), third_string: "fixture".into(), fourth_string: "fixture-model".into(), effort: Effort::Medium, permission: Permission::Unrestricted, fifth_string: "ROLE_BASE".into(), sixth_string: "OWNED_APPENDIX".into()});
         }
     }
-    let plan = RolePlan {role_packet_plan_vector: packets, first_string_vector: vec!["compensation-example".into()], second_string_vector: vec![], string: String::new()};
+    let plan = RolePlan { startup_bundle_vector: Vec::new(),role_packet_plan_vector: packets, first_string_vector: vec!["compensation-example".into()], second_string_vector: vec![], string: String::new()};
     let projector = SkillProjector::at(workspace.path().into());
     projector.write(&skills, &plan).unwrap();
     projector.check(&skills, &plan).unwrap();

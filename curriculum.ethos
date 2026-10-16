@@ -6,7 +6,7 @@ Library
   SkillEdits.{ SkillPathEdits RolePlan }
   SkillChange.{ Vector<String> Vector<String> Vector<String> }
   RolePacketPlan.{ Surface String String String String Effort Permission String String Option<RolePolicy> }
-  RolePlan.{ Vector<RolePacketPlan> Vector<String> Vector<String> String }
+  RolePlan.{ Vector<RolePacketPlan> Vector<String> Vector<String> String Vector<StartupBundle> }
   CliRequest.[ ResolveSkills.Vector<String>
                EditSkills.SkillPathEdits
                CheckSkills
@@ -40,7 +40,25 @@ Library
   RoleCallers.[ Any Only.Vector<CallerMetaflow> ]
   RolePolicy.{ String RoleContext RoleTools RoleCallers }
   Roles.{ Vector<RoleModule> Vector<Model> Vector<RolePermission> Vector<RoleDepth> Vector<RoleDescription> Vector<RoleAlias> Vector<String> Vector<TargetInsertion> Vector<String> Vector<RolePolicy> }
-  RolesDocument.[ Roles.Roles ] ]
+  RolesDocument.[ Roles.Roles ]
+  ModuleIdentity.String
+  RepositoryName.String
+  SourceRevision.String
+  SourceRoot.String
+  SourceRelativePath.String
+  SourceSha256.String
+  BodySha256.String
+  StartupCohort.String
+  StartupBundleName.String
+  NativeSession.String
+  PromptIdentity.String
+  StartupPlacement.[ System User ]
+  StartupSource.{ ModuleIdentity RepositoryName SourceRevision SourceRoot SourceRelativePath SourceSha256 BodySha256 StartupPlacement }
+  StartupLoaded.{ ModuleIdentity RepositoryName SourceRevision SourceRelativePath SourceSha256 BodySha256 }
+  RecoveryWitness.{ NativeSession PromptIdentity StartupCohort Vector<StartupLoaded> }
+  StartupMode.[ Initial Recovery.RecoveryWitness ]
+  StartupBundle.{ StartupBundleName CallerMetaflow StartupCohort Vector<ModuleIdentity> Vector<StartupSource> StartupMode }
+  StartupDocument.[ StartupBundles.Vector<StartupBundle> ] ]
 
 []
 []

@@ -68,6 +68,8 @@ pub enum ProjectionError {
     },
     #[error("generated skill projection differs at {0}")]
     Different(PathBuf),
+    #[error("invalid startup bundle: {0}")]
+    Startup(String),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -254,7 +256,11 @@ impl ProjectsSkills for SkillProjector {
             } else {
                 BTreeSet::new()
             };
-            if actual_names != names {
+            let mut expected_names = names.clone();
+            if surface.harness == Harness::Claude {
+                expected_names.extend(role_plan.startup_bundle_vector.iter().map(|bundle| bundle.startup_bundle_name.clone()));
+            }
+            if actual_names != expected_names {
                 return Err(ProjectionError::Different(directory));
             }
             for skill in skills {
@@ -342,6 +348,9 @@ fn managed_role_paths(plan: &RolePlan) -> BTreeSet<PathBuf> {
     paths.insert(PathBuf::from("skills/generated-role-outputs.datom"));
     paths.insert(PathBuf::from("tools/standing-skill-selection.mjs"));
     paths.insert(PathBuf::from(crate::role_policy::DISPATCH_POLICY_PATH));
+    for bundle in &plan.startup_bundle_vector {
+        paths.insert(crate::startup::manifest_path(bundle));
+    }
     paths
 }
 
@@ -355,7 +364,9 @@ fn validate_role_path(path: &str) -> Result<(), ProjectionError> {
         .any(|prefix| path.starts_with(prefix) && path.len() > prefix.len())
         || path == "skills/generated-role-outputs.datom"
         || path == "tools/standing-skill-selection.mjs"
-        || path == crate::role_policy::DISPATCH_POLICY_PATH;
+        || path == crate::role_policy::DISPATCH_POLICY_PATH
+        || (path.starts_with("tools/startup-bundles/startup-") && path.ends_with(".json") && parsed.components().count() == 3)
+        || (path.starts_with(".claude/skills/startup-") && path.ends_with("/SKILL.md") && parsed.components().count() == 4);
     if normal && allowed {
         Ok(())
     } else {
@@ -468,6 +479,13 @@ fn outputs(
         PathBuf::from("tools/standing-skill-selection.mjs"),
         standing_skill_selection_module(&standing_roots),
     );
+    let bundles = crate::startup::outputs(skills, &role_plan.startup_bundle_vector)
+        .map_err(ProjectionError::Startup)?;
+    for (path, body) in bundles {
+        if outputs.insert(path.clone(), body).is_some() {
+            return Err(ProjectionError::Different(path));
+        }
+    }
     let policy = crate::role_policy::dispatch_policy(&role_plan.role_packet_plan_vector)
         .map_err(|_| ProjectionError::Different(PathBuf::from(crate::role_policy::DISPATCH_POLICY_PATH)))?;
     outputs.insert(PathBuf::from(crate::role_policy::DISPATCH_POLICY_PATH), policy);
@@ -613,7 +631,7 @@ mod tests {
                 dependencies: vec![],
             })
             .collect::<Vec<_>>();
-        let plan = RolePlan {
+        let plan = RolePlan { startup_bundle_vector: Vec::new(),
             role_packet_plan_vector: vec![],
             first_string_vector: vec!["spirit-core".into()],
             second_string_vector: vec![],
@@ -631,7 +649,7 @@ mod tests {
     fn all_five_harness_trees_follow_changed_added_and_deleted_skills() {
         let workspace = tempdir().expect("workspace");
         let projector = SkillProjector::at(workspace.path().to_path_buf());
-        let role_plan = RolePlan {
+        let role_plan = RolePlan { startup_bundle_vector: Vec::new(),
             role_packet_plan_vector: Vec::new(),
             first_string_vector: Vec::new(),
             second_string_vector: Vec::new(),

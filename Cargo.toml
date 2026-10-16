@@ -22,6 +22,7 @@ name = "curriculum-nexus"
 path = "src/nexus_main.rs"
 
 [dependencies]
+sha2 = "=0.10.9"
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "4dff16b4f7412febc3b71aac8b49680cd20988cb", features = ["rkyv"], optional = true }
 nexus = { git = "https://github.com/LiGoldragon/nexus", rev = "ec097e315a3b0b99bc215a72f6c3f6d8b2b060cf" }
 protos = { git = "https://github.com/LiGoldragon/protos", rev = "15b41da8f2579e73ead59bc0c2b97529b8ac32d3", optional = true }

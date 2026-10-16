@@ -63,6 +63,7 @@ impl PlansRoles for Roles {
         }
         self.validate_policy_targets(&packets)?;
         Ok(RolePlan {
+            startup_bundle_vector: Vec::new(),
             role_packet_plan_vector: packets,
             first_string_vector: standing,
             second_string_vector: Vec::new(),

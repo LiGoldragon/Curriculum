@@ -150,6 +150,13 @@ fn current_role_plan() -> Result<RolePlan, ClientError> {
         .actualize_with_limit(16_384)
         .map_err(DatomFaulting::datom_fault)?;
     let mut plan = roles.role_plan(&workspace).map_err(ClientError::Roles)?;
+    if let Some(path) = std::env::var_os("CURRICULUM_STARTUP_BUNDLES_FILE") {
+        let source = fs::read_to_string(PathBuf::from(path)).map_err(|error| ClientError::Roles(error.to_string()))?;
+        let crate::generated::StartupDocument::StartupBundles(bundles) = Potential::<crate::generated::StartupDocument>::from(source)
+            .actualize_with_limit(262_144)
+            .map_err(DatomFaulting::datom_fault)?;
+        plan.startup_bundle_vector = bundles;
+    }
     let manifest_path = workspace.join("skills/generated-role-outputs.datom");
     if manifest_path.exists() {
         let text = fs::read_to_string(&manifest_path).map_err(|error| {
@@ -166,6 +173,7 @@ fn current_role_plan() -> Result<RolePlan, ClientError> {
         .iter()
         .map(|packet| packet.first_string.clone())
         .chain(std::iter::once(crate::role_policy::DISPATCH_POLICY_PATH.to_owned()))
+        .chain(plan.startup_bundle_vector.iter().flat_map(|bundle| [crate::startup::skill_path(bundle), crate::startup::manifest_path(bundle)]).map(|path| path.to_string_lossy().into_owned()))
         .collect();
     plan.string = datom_text(&RoleManifestDocument::GeneratedRoleOutputs(RoleManifest {
         string_vector: paths,
