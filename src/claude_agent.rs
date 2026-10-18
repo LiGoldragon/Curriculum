@@ -19,11 +19,17 @@ impl RendersClaudeBook for RoleComposition {
         if self.model_id != "sonnet"
             || self.effort != Effort::Medium
             || self.permission != Permission::Unrestricted
-            || self.role_tools != RoleTools::Explicit(vec![
-                "Read".into(), "Bash".into(), "Agent".into(), "Artifact".into(),
-            ])
+            || self.role_tools
+                != RoleTools::Explicit(vec![
+                    "Read".into(),
+                    "Bash".into(),
+                    "Agent".into(),
+                    "Artifact".into(),
+                ])
         {
-            return Err("unsupported native book metadata; qualify a changed contract first".into());
+            return Err(
+                "unsupported native book metadata; qualify a changed contract first".into(),
+            );
         }
         if sha256(self.description_text.as_bytes()) != self.description_payload_sha256
             || sha256(self.context_text.as_bytes()) != self.context_payload_sha256

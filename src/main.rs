@@ -8,7 +8,9 @@ use curriculum::{
 
 fn main() -> ExitCode {
     let mut arguments: Vec<String> = std::env::args().skip(1).collect();
-    let render_book = arguments.first().is_some_and(|a| a == "--claude-agent-markdown");
+    let render_book = arguments
+        .first()
+        .is_some_and(|a| a == "--claude-agent-markdown");
     if render_book {
         arguments.remove(0);
         if arguments.as_slice() != ["ComposeRole.{ book ClaudeAgent }"] {
@@ -21,18 +23,16 @@ fn main() -> ExitCode {
             eprintln!("{error}");
             ExitCode::FAILURE
         }
-        Ok(Outcome::RoleComposed(role)) if render_book => {
-            match role.claude_book_markdown() {
-                Ok(markdown) => {
-                    print!("{markdown}");
-                    ExitCode::SUCCESS
-                }
-                Err(error) => {
-                    eprintln!("{error}");
-                    ExitCode::FAILURE
-                }
+        Ok(Outcome::RoleComposed(role)) if render_book => match role.claude_book_markdown() {
+            Ok(markdown) => {
+                print!("{markdown}");
+                ExitCode::SUCCESS
             }
-        }
+            Err(error) => {
+                eprintln!("{error}");
+                ExitCode::FAILURE
+            }
+        },
         Ok(_) if render_book => {
             eprintln!("Curriculum Nexus did not return a composed book role");
             ExitCode::FAILURE
