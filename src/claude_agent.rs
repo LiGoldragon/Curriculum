@@ -4,43 +4,40 @@ use crate::{
     startup_metadata::sha256,
 };
 
-pub trait RendersClaudeBook {
-    fn claude_book_markdown(&self) -> Result<String, String>;
+pub trait RendersClaudeAgent {
+    fn claude_agent_markdown(&self) -> Result<String, String>;
 }
 
-impl RendersClaudeBook for RoleComposition {
-    fn claude_book_markdown(&self) -> Result<String, String> {
-        if self.role_name != "book"
-            || self.surface != Surface::ClaudeAgent
-            || self.role_callers != RoleCallers::Any
-        {
-            return Err("native rendering supports only the Any-caller Claude book role".into());
+impl RendersClaudeAgent for RoleComposition {
+    fn claude_agent_markdown(&self) -> Result<String, String> {
+        if self.surface != Surface::ClaudeAgent || self.role_callers != RoleCallers::Any {
+            return Err("native rendering requires an Any-caller Claude role".into());
         }
+        let (expected_tools, tools_header) = match self.role_name.as_str() {
+            "book" => (
+                vec!["Read".into(), "Bash".into(), "Agent".into(), "Artifact".into()],
+                "[Read, Bash, Agent, Artifact]",
+            ),
+            "illustrator" => (vec![], "[]"),
+            _ => return Err("unsupported native role".into()),
+        };
         if self.model_id != "sonnet"
             || self.effort != Effort::Medium
             || self.permission != Permission::Unrestricted
-            || self.role_tools
-                != RoleTools::Explicit(vec![
-                    "Read".into(),
-                    "Bash".into(),
-                    "Agent".into(),
-                    "Artifact".into(),
-                ])
+            || self.role_tools != RoleTools::Explicit(expected_tools)
         {
-            return Err(
-                "unsupported native book metadata; qualify a changed contract first".into(),
-            );
+            return Err("unsupported native role metadata; qualify a changed contract first".into());
         }
         if sha256(self.description_text.as_bytes()) != self.description_payload_sha256
             || sha256(self.context_text.as_bytes()) != self.context_payload_sha256
             || self.context_provenance_vector.is_empty()
         {
-            return Err("composed book payload verification failed".into());
+            return Err("composed role payload verification failed".into());
         }
         let description = self.description_text.yaml_string();
         Ok(format!(
-            "---\nname: book\ndescription: {description}\nmodel: sonnet\neffort: medium\ntools: [Read, Bash, Agent, Artifact]\n---\n\n{}",
-            self.context_text
+            "---\nname: {}\ndescription: {description}\nmodel: sonnet\neffort: medium\ntools: {tools_header}\n---\n\n{}",
+            self.role_name, self.context_text
         ))
     }
 }
