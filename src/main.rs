@@ -16,9 +16,13 @@ fn main() -> ExitCode {
         arguments.remove(0);
         requested_role = match arguments.as_slice() {
             [request] if request == "ComposeRole.{ book ClaudeAgent }" => Some("book"),
-            [request] if request == "ComposeRole.{ illustrator ClaudeAgent }" => Some("illustrator"),
+            [request] if request == "ComposeRole.{ illustrator ClaudeAgent }" => {
+                Some("illustrator")
+            }
             _ => {
-                eprintln!("expected --claude-agent-markdown with an exact book or illustrator ClaudeAgent ComposeRole request");
+                eprintln!(
+                    "expected --claude-agent-markdown with an exact book or illustrator ClaudeAgent ComposeRole request"
+                );
                 return ExitCode::FAILURE;
             }
         };
@@ -29,7 +33,9 @@ fn main() -> ExitCode {
             eprintln!("{error}");
             ExitCode::FAILURE
         }
-        Ok(Outcome::RoleComposed(role)) if render_agent && requested_role != Some(role.role_name.as_str()) => {
+        Ok(Outcome::RoleComposed(role))
+            if render_agent && requested_role != Some(role.role_name.as_str()) =>
+        {
             eprintln!("Curriculum Nexus returned a different role from the requested role");
             ExitCode::FAILURE
         }

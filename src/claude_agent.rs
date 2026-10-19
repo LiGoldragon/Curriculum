@@ -15,7 +15,12 @@ impl RendersClaudeAgent for RoleComposition {
         }
         let (expected_tools, tools_header) = match self.role_name.as_str() {
             "book" => (
-                vec!["Read".into(), "Bash".into(), "Agent".into(), "Artifact".into()],
+                vec![
+                    "Read".into(),
+                    "Bash".into(),
+                    "Agent".into(),
+                    "Artifact".into(),
+                ],
                 "[Read, Bash, Agent, Artifact]",
             ),
             "illustrator" => (vec![], "[]"),
@@ -26,7 +31,9 @@ impl RendersClaudeAgent for RoleComposition {
             || self.permission != Permission::Unrestricted
             || self.role_tools != RoleTools::Explicit(expected_tools)
         {
-            return Err("unsupported native role metadata; qualify a changed contract first".into());
+            return Err(
+                "unsupported native role metadata; qualify a changed contract first".into(),
+            );
         }
         if sha256(self.description_text.as_bytes()) != self.description_payload_sha256
             || sha256(self.context_text.as_bytes()) != self.context_payload_sha256

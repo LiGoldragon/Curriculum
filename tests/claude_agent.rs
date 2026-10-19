@@ -36,12 +36,16 @@ fn composition(role_name: &str) -> RoleComposition {
             permission: Permission::Unrestricted,
             description_module: "role-book-description".into(),
             context_modules: vec!["role-book-body".into()],
-            role_tools: if role_name == "illustrator" { RoleTools::Explicit(vec![]) } else { RoleTools::Explicit(vec![
-                "Read".into(),
-                "Bash".into(),
-                "Agent".into(),
-                "Artifact".into(),
-            ]) },
+            role_tools: if role_name == "illustrator" {
+                RoleTools::Explicit(vec![])
+            } else {
+                RoleTools::Explicit(vec![
+                    "Read".into(),
+                    "Bash".into(),
+                    "Agent".into(),
+                    "Artifact".into(),
+                ])
+            },
             role_callers: RoleCallers::Any,
         }],
     };
@@ -123,7 +127,10 @@ fn illustrator_keeps_empty_tools_and_exact_composed_body() {
     assert!(header.contains("name: illustrator\n"));
     assert!(header.contains("model: sonnet\neffort: medium\ntools: []"));
     assert!(!header.contains("Agent"));
-    assert_eq!(header.lines().filter(|l| l.starts_with("tools:")).count(), 1);
+    assert_eq!(
+        header.lines().filter(|l| l.starts_with("tools:")).count(),
+        1
+    );
     let mut variants = Vec::new();
     let mut r = role.clone();
     r.role_tools = RoleTools::Inherit;
@@ -171,7 +178,12 @@ fn cli_fetches_only_the_id_query_and_emits_verified_matching_definition() {
         os::unix::net::UnixListener,
         process::Command,
     };
-    for (requested, returned) in [("book", "book"), ("illustrator", "illustrator"), ("book", "illustrator"), ("illustrator", "book")] {
+    for (requested, returned) in [
+        ("book", "book"),
+        ("illustrator", "illustrator"),
+        ("book", "illustrator"),
+        ("illustrator", "book"),
+    ] {
         let tmp = tempfile::tempdir().unwrap();
         fs::create_dir(tmp.path().join("curriculum")).unwrap();
         let socket = tmp.path().join("curriculum/curriculum.sock");
@@ -191,7 +203,8 @@ fn cli_fetches_only_the_id_query_and_emits_verified_matching_definition() {
                     surface: Surface::ClaudeAgent
                 })
             );
-            let reply = rkyv::to_bytes::<rkyv::rancor::Error>(&Outcome::RoleComposed(role)).unwrap();
+            let reply =
+                rkyv::to_bytes::<rkyv::rancor::Error>(&Outcome::RoleComposed(role)).unwrap();
             peer.write_all(&(reply.len() as u32).to_be_bytes()).unwrap();
             peer.write_all(&reply).unwrap();
         });
@@ -211,7 +224,11 @@ fn cli_fetches_only_the_id_query_and_emits_verified_matching_definition() {
             assert!(String::from_utf8_lossy(&output.stderr).contains("different role"));
         }
         assert!(!tmp.path().join(".claude").exists());
-        for invalid in ["ComposeRole.{ comment-relay ClaudeAgent }", "/tmp/prompt.md", "inline prose"] {
+        for invalid in [
+            "ComposeRole.{ comment-relay ClaudeAgent }",
+            "/tmp/prompt.md",
+            "inline prose",
+        ] {
             let output = Command::new(env!("CARGO_BIN_EXE_curriculum"))
                 .env("XDG_RUNTIME_DIR", tmp.path())
                 .args(["--claude-agent-markdown", invalid])
