@@ -3,14 +3,16 @@
 Curriculum owns the skill registry implementation and its CLI/Nexus boundary.
 Skill bodies remain authored Markdown in three repositories:
 
-- Psyche: `psyche-skills/skills/*.md`
+- Psyche: `psyche-skills/skills/*.md` and `psyche-skills/vision/*.md`
 - Mind: `mind-skills/skills/*.md`
 - Field: `field-skills/skills/*.md`
 
-Each filename is the skill name. Frontmatter `dependencies` names other skills.
-The registry is keyed by canonical source path, reads the current file bodies,
-and validates unique names and complete acyclic dependency graphs. Source data
-is not compiled into the Rust binary.
+Psyche `skills/*.md` filenames are skill names; Psyche `vision/*.md` filenames
+are prefixed with `vision-` to form their skill names. Mind and Field filenames
+are skill names. Frontmatter `dependencies` names other skills. The registry
+is keyed by canonical source path, reads the current file bodies, and validates
+unique names and complete acyclic dependency graphs. Source data is not
+compiled into the Rust binary.
 
 ## Requests
 
@@ -30,11 +32,18 @@ projection keeps the previous registry active and reports its reason on CLI
 stderr.
 
 `RebuildSkills` projects the loaded registry and role plan without changing
-their source data. `CheckSkills` rereads all three authored repositories and
-compares the current sources, five generated skill trees, role packet files,
-role manifest, and standing selection without writing. It rejects when a
-skill source changed without an `EditSkills` signal or when any projection is
-stale.
+their source data. `CheckSkills` rereads Psyche's configured repository root
+and the Mind and Field skill directories, then compares current sources, five
+generated skill trees, role packet files, the role manifest, and standing
+selection without writing. It rejects when a skill source changed without an
+`EditSkills` signal or when any projection is stale.
+
+`EditSkills` changes paths within the roots already loaded by the service. A
+different configured root takes effect when the service reopens: `SkillMemory`
+seeds its registry from the current settings at open. After changing the root
+configuration and restarting the service, `RebuildSkills` projects that newly
+loaded registry and role plan. `CheckSkills` then verifies the resulting
+sources and projections.
 
 The Nexus handles only typed archived signals. It does not parse Datom. The
 CLI reads `roles.datom`, parses the previous generated-role manifest, and

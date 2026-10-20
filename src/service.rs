@@ -13,7 +13,9 @@ use crate::{
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct Settings {
-    source_roots: Vec<PathBuf>,
+    psyche_repository: PathBuf,
+    mind_skills: PathBuf,
+    field_skills: PathBuf,
     workspace: PathBuf,
     runtime: PathBuf,
 }
@@ -30,11 +32,9 @@ impl ReadsCurriculumSettings for Settings {
                 .ok_or_else(|| format!("missing environment setting {name}"))
         };
         Ok(Settings {
-            source_roots: vec![
-                path("CURRICULUM_PSYCHES_SKILLS_DIR")?,
-                path("CURRICULUM_MIND_SKILLS_DIR")?,
-                path("CURRICULUM_FIELD_SKILLS_DIR")?,
-            ],
+            psyche_repository: path("CURRICULUM_PSYCHES_REPOSITORY_DIR")?,
+            mind_skills: path("CURRICULUM_MIND_SKILLS_DIR")?,
+            field_skills: path("CURRICULUM_FIELD_SKILLS_DIR")?,
             workspace: path("CURRICULUM_WORKSPACE")?,
             runtime: path("XDG_RUNTIME_DIR")?.join("curriculum"),
         })
@@ -44,7 +44,7 @@ impl ReadsCurriculumSettings for Settings {
 #[derive(Clone)]
 pub struct SkillSnapshot {
     registry: SkillRegistry,
-    source_roots: Vec<PathBuf>,
+    settings: Settings,
     projector: SkillProjector,
     last_error: Option<String>,
     last_change: Option<SkillChange>,
@@ -52,7 +52,7 @@ pub struct SkillSnapshot {
 
 pub struct SkillMemory {
     registry: SkillRegistry,
-    source_roots: Vec<PathBuf>,
+    settings: Settings,
     projector: SkillProjector,
     last_error: Option<String>,
     last_change: Option<SkillChange>,
@@ -70,13 +70,17 @@ impl Remembering for SkillMemory {
         if admission.directory() != settings.runtime {
             return None;
         }
-        let registry = SkillRegistry::from_repositories(&settings.source_roots)
-            .map_err(|error| eprintln!("{error}"))
-            .ok()?;
-        let projector = SkillProjector::at(settings.workspace);
+        let registry = SkillRegistry::from_repositories(
+            &settings.psyche_repository,
+            &settings.mind_skills,
+            &settings.field_skills,
+        )
+        .map_err(|error| eprintln!("{error}"))
+        .ok()?;
+        let projector = SkillProjector::at(settings.workspace.clone());
         Some(Self {
             registry,
-            source_roots: settings.source_roots,
+            settings,
             projector,
             last_error: None,
             last_change: None,
@@ -119,7 +123,7 @@ impl Remembering for SkillMemory {
     fn read(&self, _: Self::Reading) -> Self::Remembered {
         SkillSnapshot {
             registry: self.registry.clone(),
-            source_roots: self.source_roots.clone(),
+            settings: self.settings.clone(),
             projector: self.projector.clone(),
             last_error: self.last_error.clone(),
             last_change: self.last_change.clone(),
@@ -208,8 +212,12 @@ async fn rebuild_skills(role_plan: RolePlan, memory: &MemoryHandle<SkillMemory>)
 }
 
 fn read_current_sources(snapshot: &SkillSnapshot) -> Result<SkillRegistry, String> {
-    let current = SkillRegistry::from_repositories(&snapshot.source_roots)
-        .map_err(|error| error.to_string())?;
+    let current = SkillRegistry::from_repositories(
+        &snapshot.settings.psyche_repository,
+        &snapshot.settings.mind_skills,
+        &snapshot.settings.field_skills,
+    )
+    .map_err(|error| error.to_string())?;
     let changes = snapshot
         .registry
         .changes_to(&current)
