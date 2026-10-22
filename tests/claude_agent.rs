@@ -22,6 +22,17 @@ fn composition(role_name: &str) -> RoleComposition {
         "EXACT_CURRENT_BODY\nUnicode: » λ\n",
     )
     .unwrap();
+    for (kind, name, body) in [
+        ("vision", "book", "BOOK_VISION_BODY"),
+        (
+            "compensation",
+            "book-crystallization",
+            "BOOK_CRYSTALLIZATION_BODY",
+        ),
+    ] {
+        fs::create_dir_all(roots[0].join(kind)).unwrap();
+        fs::write(roots[0].join(kind).join(format!("{name}.md")), body).unwrap();
+    }
     let registry = SkillRegistry::from_context_repositories(
         &roots,
         &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
@@ -35,8 +46,18 @@ fn composition(role_name: &str) -> RoleComposition {
             effort: Effort::Medium,
             permission: Permission::Unrestricted,
             description_module: "role-book-description".into(),
-            context_modules: vec!["role-book-body".into()],
-            role_tools: if role_name == "illustrator" {
+            context_modules: if matches!(role_name, "general-purpose" | "book-author") {
+                vec![
+                    "role-book-body".into(),
+                    "vision-book".into(),
+                    "compensation-book-crystallization".into(),
+                ]
+            } else {
+                vec!["role-book-body".into()]
+            },
+            role_tools: if matches!(role_name, "general-purpose" | "book-author") {
+                RoleTools::Inherit
+            } else if role_name == "illustrator" {
                 RoleTools::Explicit(vec![])
             } else {
                 RoleTools::Explicit(vec![
@@ -181,6 +202,8 @@ fn cli_fetches_only_the_id_query_and_emits_verified_matching_definition() {
     for (requested, returned) in [
         ("book", "book"),
         ("illustrator", "illustrator"),
+        ("general-purpose", "general-purpose"),
+        ("book-author", "book-author"),
         ("book", "illustrator"),
         ("illustrator", "book"),
     ] {
@@ -236,6 +259,30 @@ fn cli_fetches_only_the_id_query_and_emits_verified_matching_definition() {
                 .unwrap();
             assert!(!output.status.success());
             assert!(output.stdout.is_empty());
+        }
+    }
+}
+
+#[test]
+fn book_writing_native_definitions_carry_both_instruction_bodies_once() {
+    for name in ["general-purpose", "book-author"] {
+        let role = composition(name);
+        let text = role.claude_agent_markdown().unwrap();
+        let (header, body) = text.split_once("\n---\n\n").unwrap();
+        assert!(header.contains(&format!("name: {name}\n")));
+        assert!(!header.lines().any(|l| l.starts_with("tools:")));
+        assert_eq!(body, role.context_text);
+        for expected in ["BOOK_VISION_BODY", "BOOK_CRYSTALLIZATION_BODY"] {
+            assert_eq!(body.matches(expected).count(), 1);
+        }
+        for id in ["vision-book", "compensation-book-crystallization"] {
+            let provenance: Vec<_> = role
+                .context_provenance_vector
+                .iter()
+                .filter(|p| p.module_identity == id)
+                .collect();
+            assert_eq!(provenance.len(), 1);
+            assert_eq!(provenance[0].startup_placement, StartupPlacement::System);
         }
     }
 }

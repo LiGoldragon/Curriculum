@@ -15,21 +15,22 @@ impl RendersClaudeAgent for RoleComposition {
         }
         let (expected_tools, tools_header) = match self.role_name.as_str() {
             "book" => (
-                vec![
+                RoleTools::Explicit(vec![
                     "Read".into(),
                     "Bash".into(),
                     "Agent".into(),
                     "Artifact".into(),
-                ],
-                "[Read, Bash, Agent, Artifact]",
+                ]),
+                "tools: [Read, Bash, Agent, Artifact]\n",
             ),
-            "illustrator" => (vec![], "[]"),
+            "illustrator" => (RoleTools::Explicit(vec![]), "tools: []\n"),
+            "general-purpose" | "book-author" => (RoleTools::Inherit, ""),
             _ => return Err("unsupported native role".into()),
         };
         if self.model_id != "sonnet"
             || self.effort != Effort::Medium
             || self.permission != Permission::Unrestricted
-            || self.role_tools != RoleTools::Explicit(expected_tools)
+            || self.role_tools != expected_tools
         {
             return Err(
                 "unsupported native role metadata; qualify a changed contract first".into(),
@@ -43,7 +44,7 @@ impl RendersClaudeAgent for RoleComposition {
         }
         let description = self.description_text.yaml_string();
         Ok(format!(
-            "---\nname: {}\ndescription: {description}\nmodel: sonnet\neffort: medium\ntools: {tools_header}\n---\n\n{}",
+            "---\nname: {}\ndescription: {description}\nmodel: sonnet\neffort: medium\n{tools_header}---\n\n{}",
             self.role_name, self.context_text
         ))
     }

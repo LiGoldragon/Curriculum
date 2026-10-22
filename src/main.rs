@@ -16,12 +16,18 @@ fn main() -> ExitCode {
         arguments.remove(0);
         requested_role = match arguments.as_slice() {
             [request] if request == "ComposeRole.{ book ClaudeAgent }" => Some("book"),
+            [request] if request == "ComposeRole.{ general-purpose ClaudeAgent }" => {
+                Some("general-purpose")
+            }
+            [request] if request == "ComposeRole.{ book-author ClaudeAgent }" => {
+                Some("book-author")
+            }
             [request] if request == "ComposeRole.{ illustrator ClaudeAgent }" => {
                 Some("illustrator")
             }
             _ => {
                 eprintln!(
-                    "expected --claude-agent-markdown with an exact book or illustrator ClaudeAgent ComposeRole request"
+                    "expected --claude-agent-markdown with an exact supported ClaudeAgent ComposeRole request"
                 );
                 return ExitCode::FAILURE;
             }
