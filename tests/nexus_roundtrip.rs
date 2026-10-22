@@ -23,7 +23,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let base = temp.path();
     let runtime = base.join("runtime");
     fs::create_dir(&runtime).unwrap();
-    // The pinned Nexus entry point binds inside an already provisioned runtime directory.
+    // The Nexus binds inside an already provisioned runtime directory.
     fs::create_dir(runtime.join("curriculum")).unwrap();
     let stdout_path = base.join("nexus.stdout");
     let stderr_path = base.join("nexus.stderr");
@@ -32,9 +32,17 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         base.join("mind-context"),
         base.join("field-context"),
     ];
-    for root in &roots {
+    for (index, root) in roots.iter().enumerate() {
         fs::create_dir(root).unwrap();
+        fs::create_dir_all(root.join(".git")).unwrap();
+        let revision = ["a", "b", "c"][index].repeat(40);
+        fs::write(root.join(".git/HEAD"), format!("{revision}\n")).unwrap();
     }
+    fs::write(roots[1].join(".keep"), "mind context source").unwrap();
+    let refresh_program = base.join("refresh-contexts");
+    fs::write(&refresh_program, "#!/bin/sh\nexit 0\n").unwrap();
+    use std::os::unix::fs::PermissionsExt;
+    fs::set_permissions(&refresh_program, fs::Permissions::from_mode(0o700)).unwrap();
     for kind in ["spirit", "intent"] {
         fs::create_dir(roots[0].join(kind)).unwrap();
     }
@@ -46,16 +54,15 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         "---\ndescription: instruction\ndependencies: []\nplacement: user\n---\nEXACT_USER_BODY",
     )
     .unwrap();
+    let current_psyche_revision = "a".repeat(40);
     let child = Command::new(env!("CARGO_BIN_EXE_curriculum-nexus"))
         .env("XDG_RUNTIME_DIR", &runtime)
         .env("CURRICULUM_CONTEXT_LAYOUT", "2")
+        .env("CURRICULUM_CONTEXT_REFRESH_PROGRAM", &refresh_program)
         .env_remove("CURRICULUM_ROLES_FILE")
         .env("CURRICULUM_PSYCHES_REPOSITORY_DIR", &roots[0])
         .env("CURRICULUM_MIND_CONTEXT_DIR", &roots[1])
         .env("CURRICULUM_FIELD_CONTEXT_DIR", &roots[2])
-        .env("CURRICULUM_PSYCHES_REVISION", "a".repeat(40))
-        .env("CURRICULUM_MIND_REVISION", "b".repeat(40))
-        .env("CURRICULUM_FIELD_REVISION", "c".repeat(40))
         .stdout(Stdio::from(fs::File::create(&stdout_path).unwrap()))
         .stderr(Stdio::from(fs::File::create(&stderr_path).unwrap()))
         .spawn()
@@ -97,7 +104,11 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     assert!(text.contains("field-context"));
     let sources = invoke(&runtime, "ResolveSources.[ compensation-illustration ]");
     assert!(sources.status.success());
-    assert!(String::from_utf8_lossy(&sources.stdout).contains("compensation/illustration.md"));
+    let source_text = String::from_utf8_lossy(&sources.stdout);
+    assert!(source_text.contains("compensation/illustration.md"));
+    let psyche_sources = invoke(&runtime, "ResolveSources.[ intent-seat ]");
+    assert!(psyche_sources.status.success());
+    assert!(String::from_utf8_lossy(&psyche_sources.stdout).contains(&current_psyche_revision));
     for old in [
         "RebuildSkills",
         "CheckSkills",

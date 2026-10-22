@@ -54,17 +54,23 @@ impl Operating<SkillMemory> for CurriculumOperation {
             let Some(snapshot) = memory.read(()).await else {
                 return Outcome::Rejected("Curriculum memory unavailable".into());
             };
+            let registry = match SourceConfiguration::from_environment()
+                .and_then(|configuration| configuration.read().map_err(|e| e.to_string()))
+            {
+                Ok(registry) => registry,
+                Err(error) => return Outcome::Rejected(error),
+            };
             match query {
-                Query::ResolveSkills(ids) => match snapshot.registry.expand_skills(&ids) {
+                Query::ResolveSkills(ids) => match registry.expand_skills(&ids) {
                     Ok(s) => Outcome::ResolvedSkills(s.into_iter().map(|m| m.name).collect()),
                     Err(e) => Outcome::Rejected(e.to_string()),
                 },
-                Query::ResolveSources(ids) => match snapshot.registry.resolved_sources(&ids) {
+                Query::ResolveSources(ids) => match registry.resolved_sources(&ids) {
                     Ok(s) => Outcome::ResolvedSources(s),
                     Err(e) => Outcome::Rejected(e.to_string()),
                 },
                 Query::ComposeStartup(selection) => {
-                    match crate::startup::compose(&snapshot.registry, &selection) {
+                    match crate::startup::compose(&registry, &selection) {
                         Ok(s) => Outcome::StartupComposed(s),
                         Err(e) => Outcome::Rejected(e),
                     }

@@ -4,6 +4,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
     path::{Path, PathBuf},
+    process::Command,
 };
 use thiserror::Error;
 
@@ -60,7 +61,7 @@ pub fn valid_id(value: &str) -> bool {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceConfiguration {
     pub roots: [PathBuf; 3],
-    pub revisions: [String; 3],
+    pub refresh_program: PathBuf,
 }
 impl SourceConfiguration {
     pub fn from_environment() -> Result<Self, String> {
@@ -68,14 +69,10 @@ impl SourceConfiguration {
             return Err("only authored context layout 2 is supported".into());
         }
         let mut roots: [PathBuf; 3] = Default::default();
-        let mut revisions: [String; 3] = Default::default();
-        for (i, (root, revision)) in [
-            (
-                "CURRICULUM_PSYCHES_REPOSITORY_DIR",
-                "CURRICULUM_PSYCHES_REVISION",
-            ),
-            ("CURRICULUM_MIND_CONTEXT_DIR", "CURRICULUM_MIND_REVISION"),
-            ("CURRICULUM_FIELD_CONTEXT_DIR", "CURRICULUM_FIELD_REVISION"),
+        for (i, root) in [
+            "CURRICULUM_PSYCHES_REPOSITORY_DIR",
+            "CURRICULUM_MIND_CONTEXT_DIR",
+            "CURRICULUM_FIELD_CONTEXT_DIR",
         ]
         .iter()
         .enumerate()
@@ -83,14 +80,82 @@ impl SourceConfiguration {
             roots[i] = std::env::var_os(root)
                 .map(PathBuf::from)
                 .ok_or_else(|| format!("missing {root}"))?;
-            revisions[i] = std::env::var(revision).map_err(|_| format!("missing {revision}"))?;
         }
-        Ok(Self { roots, revisions })
+        let refresh_program = std::env::var_os("CURRICULUM_CONTEXT_REFRESH_PROGRAM")
+            .map(PathBuf::from)
+            .ok_or_else(|| "missing CURRICULUM_CONTEXT_REFRESH_PROGRAM".to_owned())?;
+        Ok(Self {
+            roots,
+            refresh_program,
+        })
     }
     pub fn read(&self) -> Result<SkillRegistry, RegistryError> {
-        SkillRegistry::from_context_repositories(&self.roots, &self.revisions)
+        let refreshed = Command::new(&self.refresh_program).status().map_err(|e| {
+            invalid(
+                &self.refresh_program,
+                format!("refresh current context: {e}"),
+            )
+        })?;
+        if !refreshed.success() {
+            return Err(invalid(&self.refresh_program, "context refresh failed"));
+        }
+        let revisions = self
+            .roots
+            .iter()
+            .map(|root| repository_revision(root))
+            .collect::<Result<Vec<_>, _>>()?;
+        let revisions: [String; 3] = revisions.try_into().expect("three source roots");
+        SkillRegistry::from_context_repositories(&self.roots, &revisions)
     }
 }
+
+fn repository_revision(root: &Path) -> Result<String, RegistryError> {
+    let head_path = root.join(".git/HEAD");
+    let head = fs::read_to_string(&head_path)
+        .map_err(|e| invalid(&head_path, format!("read current Git revision: {e}")))?;
+    let value = head.trim();
+    let revision = if let Some(reference) = value.strip_prefix("ref: ") {
+        if !reference.starts_with("refs/heads/")
+            || reference
+                .split('/')
+                .any(|part| part == ".." || part.is_empty())
+        {
+            return Err(invalid(root, "Git HEAD is not a local branch"));
+        }
+        let reference_path = root.join(".git").join(reference);
+        match fs::read_to_string(&reference_path) {
+            Ok(revision) => revision.trim().to_owned(),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                let packed = fs::read_to_string(root.join(".git/packed-refs"))
+                    .map_err(|e| invalid(root, format!("read packed Git refs: {e}")))?;
+                packed
+                    .lines()
+                    .find_map(|line| {
+                        let mut fields = line.split_whitespace();
+                        let revision = fields.next()?;
+                        let name = fields.next()?;
+                        (name == reference).then(|| revision.to_owned())
+                    })
+                    .ok_or_else(|| invalid(root, "current Git branch has no commit"))?
+            }
+            Err(error) => return Err(invalid(&reference_path, error)),
+        }
+    } else {
+        value.to_owned()
+    };
+    if revision.len() != 40
+        || !revision
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    {
+        return Err(invalid(
+            root,
+            "current Git revision must be 40 lowercase hex",
+        ));
+    }
+    Ok(revision)
+}
+
 impl SkillRegistry {
     pub fn from_context_repositories(
         input: &[PathBuf; 3],
