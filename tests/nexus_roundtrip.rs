@@ -38,7 +38,12 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         let revision = ["a", "b", "c"][index].repeat(40);
         fs::write(root.join(".git/HEAD"), format!("{revision}\n")).unwrap();
     }
-    fs::write(roots[1].join(".keep"), "mind context source").unwrap();
+    fs::create_dir(roots[1].join("role")).unwrap();
+    fs::write(
+        roots[1].join("role/book-description.md"),
+        "Publish a current book.",
+    )
+    .unwrap();
     let refresh_program = base.join("refresh-contexts");
     fs::write(&refresh_program, "#!/bin/sh\nexit 0\n").unwrap();
     use std::os::unix::fs::PermissionsExt;
@@ -54,12 +59,18 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         "---\ndescription: instruction\ndependencies: []\nplacement: user\n---\nEXACT_USER_BODY",
     )
     .unwrap();
+    let roles = base.join("roles.datom");
+    fs::write(
+        &roles,
+        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted role-book-description [ spirit-core intent-seat compensation-illustration ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
+    )
+    .unwrap();
     let current_psyche_revision = "a".repeat(40);
     let child = Command::new(env!("CARGO_BIN_EXE_curriculum-nexus"))
         .env("XDG_RUNTIME_DIR", &runtime)
         .env("CURRICULUM_CONTEXT_LAYOUT", "2")
         .env("CURRICULUM_CONTEXT_REFRESH_PROGRAM", &refresh_program)
-        .env_remove("CURRICULUM_ROLES_FILE")
+        .env("CURRICULUM_ROLES_FILE", &roles)
         .env("CURRICULUM_PSYCHES_REPOSITORY_DIR", &roots[0])
         .env("CURRICULUM_MIND_CONTEXT_DIR", &roots[1])
         .env("CURRICULUM_FIELD_CONTEXT_DIR", &roots[2])
@@ -109,6 +120,9 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let psyche_sources = invoke(&runtime, "ResolveSources.[ intent-seat ]");
     assert!(psyche_sources.status.success());
     assert!(String::from_utf8_lossy(&psyche_sources.stdout).contains(&current_psyche_revision));
+    let role = invoke(&runtime, "ComposeRole.{ book ClaudeAgent }");
+    assert!(role.status.success());
+    assert!(String::from_utf8_lossy(&role.stdout).contains("EXACT_USER_BODY"));
     for old in [
         "RebuildSkills",
         "CheckSkills",
@@ -138,4 +152,9 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     assert!(changed_text.starts_with("StartupComposed."));
     assert!(changed_text.contains("CHANGED_SOURCE"));
     assert!(!changed_text.contains("EXACT_USER_BODY"));
+    let changed_role = invoke(&runtime, "ComposeRole.{ book ClaudeAgent }");
+    assert!(changed_role.status.success());
+    let changed_role_text = String::from_utf8(changed_role.stdout).unwrap();
+    assert!(changed_role_text.contains("CHANGED_SOURCE"));
+    assert!(!changed_role_text.contains("EXACT_USER_BODY"));
 }

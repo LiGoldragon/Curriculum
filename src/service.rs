@@ -1,17 +1,15 @@
 use crate::{
     generated::{Outcome, Query, Roles},
-    registry::{ExpandsSkills, SkillRegistry, SourceConfiguration},
+    registry::{ExpandsSkills, SourceConfiguration},
 };
 use nexus::{Admission, Changed, MemoryHandle, Nexus, Operating, Remembering, Signaling};
 use std::{future::Future, path::PathBuf};
 
 #[derive(Clone)]
 pub struct SkillSnapshot {
-    registry: SkillRegistry,
     roles: Option<Roles>,
 }
 pub struct SkillMemory {
-    registry: SkillRegistry,
     roles: Option<Roles>,
 }
 impl Remembering for SkillMemory {
@@ -22,21 +20,20 @@ impl Remembering for SkillMemory {
         if admission.directory() != CurriculumNexus::directory() {
             return None;
         }
-        let registry = SourceConfiguration::from_environment()
+        SourceConfiguration::from_environment()
             .and_then(|c| c.read().map_err(|e| e.to_string()))
             .map_err(|e| eprintln!("{e}"))
             .ok()?;
         let roles = crate::roles::read_declared()
             .map_err(|e| eprintln!("{e}"))
             .ok()?;
-        Some(Self { registry, roles })
+        Some(Self { roles })
     }
     fn change(&mut self, _: ()) -> Changed {
         Changed::Failed
     }
     fn read(&self, _: ()) -> SkillSnapshot {
         SkillSnapshot {
-            registry: self.registry.clone(),
             roles: self.roles.clone(),
         }
     }
@@ -77,7 +74,7 @@ impl Operating<SkillMemory> for CurriculumOperation {
                 }
                 Query::ComposeRole(selection) => match snapshot.roles {
                     Some(roles) => {
-                        match crate::roles::compose(&snapshot.registry, &roles, &selection) {
+                        match crate::roles::compose(&registry, &roles, &selection) {
                             Ok(s) => Outcome::RoleComposed(s),
                             Err(e) => Outcome::Rejected(e),
                         }
