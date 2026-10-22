@@ -125,5 +125,17 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         "CHANGED_SOURCE",
     )
     .unwrap();
-    assert!(!invoke(&runtime,"ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit-core intent-seat ] [ compensation-illustration ] }").status.success());
+    let changed = invoke(
+        &runtime,
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit-core intent-seat ] [ compensation-illustration ] }",
+    );
+    assert!(
+        changed.status.success(),
+        "{}",
+        String::from_utf8_lossy(&changed.stderr)
+    );
+    let changed_text = String::from_utf8(changed.stdout).unwrap();
+    assert!(changed_text.starts_with("StartupComposed."));
+    assert!(changed_text.contains("CHANGED_SOURCE"));
+    assert!(!changed_text.contains("EXACT_USER_BODY"));
 }
