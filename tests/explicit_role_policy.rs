@@ -16,7 +16,7 @@ fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
     fs::write(roots[2].join("role/unselected.md"), "UNSELECTED_NOISE").unwrap();
     fs::write(
         roots[2].join("compensation/illustration.md"),
-        "---\ndependencies: [ role-unselected ]\nplacement: system\n---\nAUTHORED_RULES\n",
+        "---\ndependencies: [ role:unselected ]\nplacement: system\n---\nAUTHORED_RULES\n",
     )
     .unwrap();
     let registry = SkillRegistry::from_context_repositories(
@@ -31,10 +31,10 @@ fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
             model_id: "sonnet".into(),
             effort: Effort::Medium,
             permission: Permission::Unrestricted,
-            description_module: "role-illustrator-description".into(),
+            description_module: "role:illustrator-description".into(),
             context_modules: vec![
-                "role-illustrator-svg".into(),
-                "compensation-illustration".into(),
+                "role:illustrator-svg".into(),
+                "compensation:illustration".into(),
             ],
             role_tools: RoleTools::Explicit(vec![]),
             role_callers: RoleCallers::Only(vec![CallerMetaflow {
@@ -86,7 +86,7 @@ fn inline_paths_missing_ambiguous_roles_and_invalid_caller_tool_data_refuse() {
     for value in [
         "Inline prose is forbidden",
         "/tmp/source.md",
-        "role-missing",
+        "role:missing",
     ] {
         let mut d = data.clone();
         d.role_definition_vector[0].context_modules = vec![value.into()];

@@ -50,13 +50,19 @@ pub type SystemModules = std::vec::Vec<ModuleIdentity>;
 #[rustfmt::skip]
 pub type UserModules = std::vec::Vec<ModuleIdentity>;
 #[rustfmt::skip]
+pub type FlowId = String;
+#[rustfmt::skip]
 pub type SystemText = String;
 #[rustfmt::skip]
 pub type UserText = String;
 #[rustfmt::skip]
+pub type RecordsText = String;
+#[rustfmt::skip]
 pub type SystemPayloadSha256 = String;
 #[rustfmt::skip]
 pub type UserPayloadSha256 = String;
+#[rustfmt::skip]
+pub type RecordsPayloadSha256 = String;
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
@@ -65,6 +71,7 @@ pub struct StartupSelection {
     pub target: Target,
     pub system_modules: SystemModules,
     pub user_modules: UserModules,
+    pub flow_id_vector: std::vec::Vec<FlowId>,
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
@@ -86,8 +93,10 @@ pub struct ContextProvenance {
 pub struct StartupComposition {
     pub system_text: SystemText,
     pub user_text: UserText,
+    pub records_text: RecordsText,
     pub system_payload_sha256: SystemPayloadSha256,
     pub user_payload_sha256: UserPayloadSha256,
+    pub records_payload_sha256: RecordsPayloadSha256,
     pub context_provenance_vector: std::vec::Vec<ContextProvenance>,
 }
 #[rustfmt::skip]

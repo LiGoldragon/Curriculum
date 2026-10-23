@@ -52,11 +52,17 @@ fn invalid(path: &Path, message: impl ToString) -> RegistryError {
 fn canonical(path: &Path) -> Result<PathBuf, RegistryError> {
     fs::canonicalize(path).map_err(|e| invalid(path, e))
 }
-pub fn valid_id(value: &str) -> bool {
+fn valid_segment(value: &str) -> bool {
     !value.is_empty()
         && value
             .bytes()
             .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+}
+
+pub fn valid_id(value: &str) -> bool {
+    value.split_once(':').is_some_and(|(kind, subject)| {
+        MODULE_TYPES.contains(&kind) && valid_segment(subject) && !subject.contains(':')
+    })
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceConfiguration {
@@ -220,10 +226,10 @@ impl SkillRegistry {
                         .file_stem()
                         .and_then(|s| s.to_str())
                         .unwrap_or_default();
-                    if !valid_id(subject) {
+                    if !valid_segment(subject) {
                         return Err(invalid(&path, "invalid subject"));
                     }
-                    let name = format!("{kind}-{subject}");
+                    let name = format!("{kind}:{subject}");
                     let body = fs::read_to_string(&path).map_err(|e| invalid(&path, e))?;
                     let text = instructions(&body).map_err(|e| invalid(&path, e))?;
                     if text.trim().is_empty() {
@@ -309,7 +315,7 @@ impl SkillRegistry {
             .ok_or_else(|| invalid(&skill.path, "outside configured roots"))?;
         let (kind, subject) = skill
             .name
-            .split_once('-')
+            .split_once(':')
             .ok_or_else(|| invalid(&skill.path, "invalid identity"))?;
         let text = instructions(&skill.body).map_err(|e| invalid(&skill.path, e))?;
         Ok(crate::generated::ResolvedModule {

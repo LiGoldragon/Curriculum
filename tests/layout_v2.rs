@@ -25,10 +25,10 @@ fn source_api_exposes_registry_address_and_declared_placement() {
     source(
         &r[2],
         "compensation/illustration.md",
-        "---\ndependencies: [ vision-book ]\nplacement: system\n---\nExact approved text.\n",
+        "---\ndependencies: [ vision:book ]\nplacement: system\n---\nExact approved text.\n",
     );
     let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
-    let ids = vec!["compensation-illustration".into()];
+    let ids = vec!["compensation:illustration".into()];
     let resolved = registry.resolved_sources(&ids).unwrap();
     assert_eq!(resolved.len(), 2);
     assert_eq!(resolved[1].repository_name, "field-context");
@@ -71,7 +71,7 @@ fn mixed_duplicate_case_nested_and_escape_layouts_refuse() {
             _ => source(
                 &r[1],
                 "knowledge/missing.md",
-                "---\ndependencies: [ knowledge-absent ]\n---\nMissing.\n",
+                "---\ndependencies: [ knowledge:absent ]\n---\nMissing.\n",
             ),
         }
         assert!(
@@ -90,7 +90,7 @@ fn same_subject_different_types_are_distinct() {
     let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
     assert_eq!(
         registry.skill_names().unwrap(),
-        vec!["inquiry-topic", "knowledge-topic"]
+        vec!["inquiry:topic", "knowledge:topic"]
     );
     assert!(registry.resolve_exact(&["topic".into()]).is_err());
 }
@@ -133,49 +133,49 @@ fn registry_workspace_projection_updates_plain_target_directories() {
     assert_eq!(published.published_content_digest.len(), 64);
 
     assert!(
-        fs::read_to_string(workspace.join(".agents/skills/knowledge-topic/SKILL.md"))
+        fs::read_to_string(workspace.join(".agents/skills/knowledge:topic/SKILL.md"))
             .unwrap()
             .contains("Other.\n")
     );
     assert!(
-        fs::read_to_string(workspace.join(".claude/skills/knowledge-topic/SKILL.md"))
+        fs::read_to_string(workspace.join(".claude/skills/knowledge:topic/SKILL.md"))
             .unwrap()
             .contains("disable-model-invocation: true\n")
     );
     assert_eq!(
-        fs::read_to_string(workspace.join(".agents/skills/knowledge-topic/agents/openai.yaml"))
+        fs::read_to_string(workspace.join(".agents/skills/knowledge:topic/agents/openai.yaml"))
             .unwrap(),
         "policy:\n  allow_implicit_invocation: false\n"
     );
     assert_eq!(
-        fs::read_to_string(workspace.join(".codex/skills/knowledge-topic/agents/openai.yaml"))
+        fs::read_to_string(workspace.join(".codex/skills/knowledge:topic/agents/openai.yaml"))
             .unwrap(),
         "policy:\n  allow_implicit_invocation: false\n"
     );
     assert!(
-        fs::read_to_string(workspace.join(".opencode/skills/knowledge-topic/SKILL.md"))
+        fs::read_to_string(workspace.join(".opencode/skills/knowledge:topic/SKILL.md"))
             .unwrap()
-            .starts_with("---\nname: knowledge-topic\n")
+            .starts_with("---\nname: knowledge:topic\n")
     );
     for surface in [".codex/skills", ".pi/skills"] {
         assert!(workspace
             .join(surface)
-            .join("knowledge-topic/SKILL.md")
+            .join("knowledge:topic/SKILL.md")
             .is_file());
     }
     assert!(
-        fs::read_to_string(workspace.join(".pi/skills/knowledge-topic/SKILL.md"))
+        fs::read_to_string(workspace.join(".pi/skills/knowledge:topic/SKILL.md"))
             .unwrap()
             .contains("Pi-only.\n")
     );
     assert!(
-        fs::read_to_string(workspace.join(".pi/skills/knowledge-topic/SKILL.md"))
+        fs::read_to_string(workspace.join(".pi/skills/knowledge:topic/SKILL.md"))
             .unwrap()
             .contains("{% if claude %}\n")
     );
     assert_eq!(
         fs::read_to_string(workspace.join("modules")).unwrap(),
-        format!("knowledge-topic {} knowledge/topic.md\n", revisions()[1])
+        format!("knowledge:topic {} knowledge/topic.md\n", revisions()[1])
     );
 
     let stale = workspace.join(".agents/skills/retired/SKILL.md");
@@ -197,14 +197,14 @@ fn registry_workspace_projection_updates_plain_target_directories() {
         published.published_content_digest
     );
     assert_eq!(
-        fs::read_to_string(workspace.join(".agents/skills/knowledge-topic/SKILL.md")).unwrap(),
+        fs::read_to_string(workspace.join(".agents/skills/knowledge:topic/SKILL.md")).unwrap(),
         "Latest module text.\n"
     );
     // A directory not named in the previous generated inventory is user-owned.
     assert_eq!(fs::read_to_string(&stale).unwrap(), "stale");
     assert_eq!(fs::read_to_string(unrelated).unwrap(), "preserve");
     assert!(
-        fs::read_dir(workspace.join(".agents/skills/knowledge-topic"))
+        fs::read_dir(workspace.join(".agents/skills/knowledge:topic"))
             .unwrap()
             .all(|entry| !entry
                 .unwrap()

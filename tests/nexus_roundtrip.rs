@@ -23,6 +23,8 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let base = temp.path();
     let runtime = base.join("runtime");
     fs::create_dir(&runtime).unwrap();
+    let records = base.join("flows");
+    fs::create_dir(&records).unwrap();
     // The Nexus binds inside an already provisioned runtime directory.
     fs::create_dir(runtime.join("curriculum")).unwrap();
     let stdout_path = base.join("nexus.stdout");
@@ -62,7 +64,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let roles = base.join("roles.datom");
     fs::write(
         &roles,
-        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted role-book-description [ spirit-core intent-seat compensation-illustration ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
+        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted role:book-description [ spirit:core intent:seat compensation:illustration ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
     )
     .unwrap();
     let current_psyche_revision = "a".repeat(40);
@@ -74,6 +76,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         .env("CURRICULUM_PSYCHES_REPOSITORY_DIR", &roots[0])
         .env("CURRICULUM_MIND_CONTEXT_DIR", &roots[1])
         .env("CURRICULUM_FIELD_CONTEXT_DIR", &roots[2])
+        .env("CURRICULUM_RECORDS_DIR", &records)
         .stdout(Stdio::from(fs::File::create(&stdout_path).unwrap()))
         .stderr(Stdio::from(fs::File::create(&stderr_path).unwrap()))
         .spawn()
@@ -102,7 +105,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     }
     let response = invoke(
         &runtime,
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit-core intent-seat ] [ compensation-illustration ] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core intent:seat ] [ compensation:illustration ] [] }",
     );
     assert!(
         response.status.success(),
@@ -113,11 +116,11 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     assert!(text.starts_with("StartupComposed."));
     assert!(text.contains("EXACT_USER_BODY"));
     assert!(text.contains("field-context"));
-    let sources = invoke(&runtime, "ResolveSources.[ compensation-illustration ]");
+    let sources = invoke(&runtime, "ResolveSources.[ compensation:illustration ]");
     assert!(sources.status.success());
     let source_text = String::from_utf8_lossy(&sources.stdout);
     assert!(source_text.contains("compensation/illustration.md"));
-    let psyche_sources = invoke(&runtime, "ResolveSources.[ intent-seat ]");
+    let psyche_sources = invoke(&runtime, "ResolveSources.[ intent:seat ]");
     assert!(psyche_sources.status.success());
     assert!(String::from_utf8_lossy(&psyche_sources.stdout).contains(&current_psyche_revision));
     let role = invoke(&runtime, "ComposeRole.{ book ClaudeAgent }");
@@ -127,8 +130,8 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         "RebuildSkills",
         "CheckSkills",
         "EditSkills.{ [] [] [] }",
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit-core intent-seat ] [ «/tmp/arbitrary.md» ] }",
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit-core intent-seat ] [ «inline prompt text» ] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core intent:seat ] [ «/tmp/arbitrary.md» ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core intent:seat ] [ «inline prompt text» ] [] }",
     ] {
         assert!(!invoke(&runtime, old).status.success(), "accepted {old}");
     }
@@ -141,7 +144,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     .unwrap();
     let changed = invoke(
         &runtime,
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit-core intent-seat ] [ compensation-illustration ] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core intent:seat ] [ compensation:illustration ] [] }",
     );
     assert!(
         changed.status.success(),

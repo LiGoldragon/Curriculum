@@ -67,18 +67,20 @@ impl Operating<SkillMemory> for CurriculumOperation {
                     Err(e) => Outcome::Rejected(e.to_string()),
                 },
                 Query::ComposeStartup(selection) => {
-                    match crate::startup::compose(&registry, &selection) {
+                    let records_root = match std::env::var_os("CURRICULUM_RECORDS_DIR") {
+                        Some(root) => PathBuf::from(root),
+                        None => return Outcome::Rejected("missing CURRICULUM_RECORDS_DIR".into()),
+                    };
+                    match crate::startup::compose(&registry, &records_root, &selection) {
                         Ok(s) => Outcome::StartupComposed(s),
                         Err(e) => Outcome::Rejected(e),
                     }
                 }
                 Query::ComposeRole(selection) => match snapshot.roles {
-                    Some(roles) => {
-                        match crate::roles::compose(&registry, &roles, &selection) {
-                            Ok(s) => Outcome::RoleComposed(s),
-                            Err(e) => Outcome::Rejected(e),
-                        }
-                    }
+                    Some(roles) => match crate::roles::compose(&registry, &roles, &selection) {
+                        Ok(s) => Outcome::RoleComposed(s),
+                        Err(e) => Outcome::Rejected(e),
+                    },
                     None => Outcome::Rejected("no server-declared ID-only roles metadata".into()),
                 },
             }
@@ -153,12 +155,12 @@ mod tests {
 
     #[test]
     fn signal_decodes_and_answers_only_archived_types() {
-        let query = Query::ResolveSkills(vec!["knowledge-main-flow".into()]);
+        let query = Query::ResolveSkills(vec!["knowledge:main-flow".into()]);
         let encoded = rkyv::to_bytes::<rkyv::rancor::Error>(&query).expect("archive query");
         assert_eq!(CurriculumSignal.decode(&encoded), Some(query));
         assert_eq!(
-            CurriculumSignal.answer(Outcome::ResolvedSkills(vec!["spirit-core".into()])),
-            Outcome::ResolvedSkills(vec!["spirit-core".into()])
+            CurriculumSignal.answer(Outcome::ResolvedSkills(vec!["spirit:core".into()])),
+            Outcome::ResolvedSkills(vec!["spirit:core".into()])
         );
     }
 }
