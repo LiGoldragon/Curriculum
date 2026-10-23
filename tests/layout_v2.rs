@@ -94,3 +94,157 @@ fn same_subject_different_types_are_distinct() {
     );
     assert!(registry.resolve_exact(&["topic".into()]).is_err());
 }
+
+#[test]
+fn registry_workspace_projection_updates_plain_target_directories() {
+    use curriculum::registry::workspace::WorkspaceProjector;
+
+    let temp = tempfile::tempdir().unwrap();
+    let r = roots(temp.path());
+    let source_path = r[1].join("knowledge/topic.md");
+    source(
+        &r[1],
+        "knowledge/topic.md",
+        "---\ndescription: topic\nuser-only: true\n---\nBase.\n{% if claude %}\nClaude-only.\n{% else %}\nOther.\n{% endif %}\n{% if pi %}\nPi-only.\n{% endif %}\n{% raw %}\n{% if claude %}\n{% endraw %}\n",
+    );
+    let workspace = temp.path().join("workspace");
+    let projector = WorkspaceProjector::new(&workspace);
+
+    let first = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+    projector.write(&first).unwrap();
+
+    assert!(
+        fs::read_to_string(workspace.join(".agents/skills/knowledge-topic/SKILL.md"))
+            .unwrap()
+            .contains("Other.\n")
+    );
+    assert!(
+        fs::read_to_string(workspace.join(".claude/skills/knowledge-topic/SKILL.md"))
+            .unwrap()
+            .contains("disable-model-invocation: true\n")
+    );
+    assert_eq!(
+        fs::read_to_string(workspace.join(".agents/skills/knowledge-topic/agents/openai.yaml"))
+            .unwrap(),
+        "policy:\n  allow_implicit_invocation: false\n"
+    );
+    assert_eq!(
+        fs::read_to_string(workspace.join(".codex/skills/knowledge-topic/agents/openai.yaml"))
+            .unwrap(),
+        "policy:\n  allow_implicit_invocation: false\n"
+    );
+    assert!(
+        fs::read_to_string(workspace.join(".opencode/skills/knowledge-topic/SKILL.md"))
+            .unwrap()
+            .starts_with("---\nname: knowledge-topic\n")
+    );
+    for surface in [".codex/skills", ".pi/skills"] {
+        assert!(workspace
+            .join(surface)
+            .join("knowledge-topic/SKILL.md")
+            .is_file());
+    }
+    assert!(
+        fs::read_to_string(workspace.join(".pi/skills/knowledge-topic/SKILL.md"))
+            .unwrap()
+            .contains("Pi-only.\n")
+    );
+    assert!(
+        fs::read_to_string(workspace.join(".pi/skills/knowledge-topic/SKILL.md"))
+            .unwrap()
+            .contains("{% if claude %}\n")
+    );
+    assert_eq!(
+        fs::read_to_string(workspace.join("modules")).unwrap(),
+        format!("knowledge-topic {} knowledge/topic.md\n", revisions()[1])
+    );
+
+    let stale = workspace.join(".agents/skills/retired/SKILL.md");
+    fs::create_dir_all(stale.parent().unwrap()).unwrap();
+    fs::write(&stale, "stale").unwrap();
+    let unrelated = workspace.join(".agents/skills/local/notes.txt");
+    fs::create_dir_all(unrelated.parent().unwrap()).unwrap();
+    fs::write(&unrelated, "preserve").unwrap();
+
+    fs::write(&source_path, "Latest module text.\n").unwrap();
+    let latest = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+    projector.write(&latest).unwrap();
+    assert_eq!(
+        fs::read_to_string(workspace.join(".agents/skills/knowledge-topic/SKILL.md")).unwrap(),
+        "Latest module text.\n"
+    );
+    // A directory not named in the previous generated inventory is user-owned.
+    assert_eq!(fs::read_to_string(&stale).unwrap(), "stale");
+    assert_eq!(fs::read_to_string(unrelated).unwrap(), "preserve");
+    assert!(
+        fs::read_dir(workspace.join(".agents/skills/knowledge-topic"))
+            .unwrap()
+            .all(|entry| !entry
+                .unwrap()
+                .file_name()
+                .to_string_lossy()
+                .ends_with(".tmp"))
+    );
+
+    let outside = temp.path().join("outside");
+    fs::create_dir_all(&outside).unwrap();
+    let linked_workspace = temp.path().join("linked-workspace");
+    fs::create_dir_all(&linked_workspace).unwrap();
+    std::os::unix::fs::symlink(&outside, linked_workspace.join(".agents")).unwrap();
+    assert!(WorkspaceProjector::new(&linked_workspace)
+        .write(&latest)
+        .is_err());
+    assert_eq!(fs::read_dir(outside).unwrap().count(), 0);
+}
+
+#[test]
+fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
+    use curriculum::{registry::workspace::WorkspaceProjector, registry::MODULE_TYPES};
+    let temp = tempfile::tempdir().unwrap();
+    let r = roots(temp.path());
+    for (index, kind) in MODULE_TYPES.iter().enumerate() {
+        source(&r[index % 3], &format!("{kind}/item-{index}.md"),
+            "---\ndescription: fixture\n  user-only: true  \n---\n{% if claude %}\nclaude\n{% endif %}\n{% if codex %}\ncodex\n{% endif %}\n{% if pi %}\npi\n{% endif %}\n{% if opencode %}\nopencode\n{% endif %}\n");
+    }
+    let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+    let ids = registry.skill_names().unwrap();
+    assert_eq!(ids.len(), 8);
+    let workspace = temp.path().join("workspace");
+    WorkspaceProjector::new(&workspace)
+        .write(&registry)
+        .unwrap();
+    let inventory = fs::read_to_string(workspace.join("modules")).unwrap();
+    let lines = inventory.lines().collect::<Vec<_>>();
+    let mut sorted = lines.clone();
+    sorted.sort();
+    assert_eq!(lines, sorted);
+    for id in ids {
+        for (surface, marker) in [
+            (".claude/skills", "claude"),
+            (".agents/skills", "codex"),
+            (".codex/skills", "codex"),
+            (".pi/skills", "pi"),
+            (".opencode/skills", "opencode"),
+        ] {
+            let rendered =
+                fs::read_to_string(workspace.join(surface).join(&id).join("SKILL.md")).unwrap();
+            assert!(rendered.contains(marker), "{surface}/{id}");
+            assert!(
+                !rendered.contains("{% if "),
+                "unrendered directive in {surface}/{id}"
+            );
+        }
+        for surface in [".agents/skills", ".codex/skills"] {
+            assert!(workspace
+                .join(surface)
+                .join(&id)
+                .join("agents/openai.yaml")
+                .is_file());
+        }
+        assert!(
+            fs::read_to_string(workspace.join(".claude/skills").join(&id).join("SKILL.md"))
+                .unwrap()
+                .contains("disable-model-invocation: true")
+        );
+    }
+}

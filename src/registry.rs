@@ -376,6 +376,301 @@ impl ExpandsSkills for SkillRegistry {
         Ok(self.entries.keys().cloned().collect())
     }
 }
+
+/// Projects the authoritative registry into plain harness skill directories.
+/// All source text comes from the resolved registry; this code never scans a
+/// second skill repository or follows generated symlinks.
+pub mod workspace {
+    use super::{invalid, ExpandsSkills, RegistryError, ResolvedSkill, SkillRegistry};
+    use std::{
+        fs,
+        io::Write,
+        path::{Component, Path, PathBuf},
+        sync::atomic::{AtomicU64, Ordering},
+    };
+
+    static NEXT_TEMP: AtomicU64 = AtomicU64::new(0);
+
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    enum Target {
+        Claude,
+        Codex,
+        CodexAlt,
+        Pi,
+        OpenCode,
+    }
+
+    impl Target {
+        const ALL: [Self; 5] = [
+            Self::Claude,
+            Self::Codex,
+            Self::CodexAlt,
+            Self::Pi,
+            Self::OpenCode,
+        ];
+
+        fn directory(self) -> &'static str {
+            match self {
+                Self::Claude => ".claude/skills",
+                Self::Codex => ".agents/skills",
+                Self::CodexAlt => ".codex/skills",
+                Self::Pi => ".pi/skills",
+                Self::OpenCode => ".opencode/skills",
+            }
+        }
+
+        fn render(self, skill: &ResolvedSkill) -> Result<String, RegistryError> {
+            let mut rendered = String::new();
+            let mut branches = Vec::<(bool, bool)>::new();
+            let mut raw = false;
+
+            for (index, line) in skill.body.split_inclusive('\n').enumerate() {
+                let line_number = index + 1;
+                let directive = line.trim();
+                if raw {
+                    if directive == "{% endraw %}" {
+                        raw = false;
+                    } else if branches.iter().all(|(selected, _)| *selected) {
+                        rendered.push_str(line);
+                    }
+                    continue;
+                }
+
+                let selected = match directive {
+                    "{% if claude %}" => Some(self == Self::Claude),
+                    "{% if codex %}" => Some(matches!(self, Self::Codex | Self::CodexAlt)),
+                    "{% if opencode %}" => Some(self == Self::OpenCode),
+                    "{% if pi %}" => Some(self == Self::Pi),
+                    "{% raw %}" => {
+                        raw = true;
+                        continue;
+                    }
+                    "{% endraw %}" => {
+                        return Err(invalid(
+                            &skill.path,
+                            format!("line {line_number}: endraw without raw"),
+                        ));
+                    }
+                    "{% else %}" => {
+                        let Some((selected, saw_else)) = branches.last_mut() else {
+                            return Err(invalid(
+                                &skill.path,
+                                format!("line {line_number}: else without if"),
+                            ));
+                        };
+                        if *saw_else {
+                            return Err(invalid(
+                                &skill.path,
+                                format!("line {line_number}: repeated else"),
+                            ));
+                        }
+                        *selected = !*selected;
+                        *saw_else = true;
+                        continue;
+                    }
+                    "{% endif %}" => {
+                        if branches.pop().is_none() {
+                            return Err(invalid(
+                                &skill.path,
+                                format!("line {line_number}: endif without if"),
+                            ));
+                        }
+                        continue;
+                    }
+                    _ => None,
+                };
+                if let Some(selected) = selected {
+                    branches.push((selected, false));
+                    continue;
+                }
+                if branches.iter().all(|(selected, _)| *selected) {
+                    if self == Self::Claude && directive == "user-only: true" {
+                        rendered.push_str("disable-model-invocation: true\n");
+                    } else {
+                        rendered.push_str(line);
+                    }
+                }
+            }
+
+            if !branches.is_empty() || raw {
+                return Err(invalid(
+                    &skill.path,
+                    "unclosed target conditional or raw block",
+                ));
+            }
+            if self == Self::OpenCode {
+                let name = format!("name: {}\n", skill.name);
+                rendered = match rendered.strip_prefix("---\n") {
+                    Some(rest) => format!("---\n{name}{rest}"),
+                    None => format!("---\n{name}---\n{rendered}"),
+                };
+            }
+            Ok(rendered)
+        }
+    }
+
+    pub struct WorkspaceProjector {
+        root: PathBuf,
+    }
+
+    impl WorkspaceProjector {
+        pub fn new(root: impl Into<PathBuf>) -> Self {
+            Self { root: root.into() }
+        }
+
+        pub fn write(&self, registry: &SkillRegistry) -> Result<(), RegistryError> {
+            fs::create_dir_all(&self.root).map_err(|e| invalid(&self.root, e))?;
+            let ids = registry.skill_names()?;
+            let skills = registry.resolve_exact(&ids)?;
+            let modules = registry.resolved_exact_sources(&ids)?;
+            for target in Target::ALL {
+                self.remove_stale(target, &ids)?;
+            }
+            for skill in &skills {
+                for target in Target::ALL {
+                    let relative = Path::new(target.directory())
+                        .join(&skill.name)
+                        .join("SKILL.md");
+                    let path = self.safe(&relative)?;
+                    let parent = path.parent().expect("skill output parent");
+                    fs::create_dir_all(parent).map_err(|e| invalid(parent, e))?;
+                    write_atomic(&path, target.render(skill)?)?;
+                }
+                if user_only(&skill.body) {
+                    for surface in [".agents/skills", ".codex/skills"] {
+                        let path = self.safe(
+                            &Path::new(surface)
+                                .join(&skill.name)
+                                .join("agents/openai.yaml"),
+                        )?;
+                        let parent = path.parent().expect("policy output parent");
+                        fs::create_dir_all(parent).map_err(|e| invalid(parent, e))?;
+                        write_atomic(
+                            &path,
+                            "policy:\n  allow_implicit_invocation: false\n".into(),
+                        )?;
+                    }
+                }
+            }
+            let inventory = modules
+                .iter()
+                .map(|m| {
+                    format!(
+                        "{} {} {}\n",
+                        m.module_identity, m.source_revision, m.source_relative_path
+                    )
+                })
+                .collect::<String>();
+            write_atomic(&self.safe(Path::new("modules"))?, inventory)?;
+            Ok(())
+        }
+
+        fn remove_stale(&self, target: Target, current: &[String]) -> Result<(), RegistryError> {
+            // A prior inventory is the ownership receipt. Without one, existing
+            // directories may belong to the user and are left untouched.
+            let inventory = self.safe(Path::new("modules"))?;
+            let previous = match fs::read_to_string(&inventory) {
+                Ok(text) => text
+                    .lines()
+                    .filter_map(|line| line.split_whitespace().next().map(str::to_owned))
+                    .collect::<Vec<_>>(),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+                Err(error) => return Err(invalid(&inventory, error)),
+            };
+            let surface = self.safe(Path::new(target.directory()))?;
+            let entries = match fs::read_dir(&surface) {
+                Ok(entries) => entries,
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+                Err(e) => return Err(invalid(&surface, e)),
+            };
+            for entry in entries {
+                let entry = entry.map_err(|e| invalid(&surface, e))?;
+                let name = entry.file_name().to_string_lossy().into_owned();
+                let path = entry.path();
+                let metadata = fs::symlink_metadata(&path).map_err(|e| invalid(&path, e))?;
+                if previous.iter().any(|id| id == &name)
+                    && !current.iter().any(|id| id == &name)
+                    && !metadata.file_type().is_symlink()
+                    && metadata.is_dir()
+                {
+                    fs::remove_dir_all(&path).map_err(|e| invalid(&path, e))?;
+                }
+            }
+            Ok(())
+        }
+
+        fn safe(&self, relative: &Path) -> Result<PathBuf, RegistryError> {
+            if relative.is_absolute()
+                || relative
+                    .components()
+                    .any(|component| !matches!(component, Component::Normal(_)))
+            {
+                return Err(invalid(relative, "workspace output escapes its root"));
+            }
+            let root = fs::canonicalize(&self.root).map_err(|e| invalid(&self.root, e))?;
+            let components = relative.components().collect::<Vec<_>>();
+            let mut path = root;
+            for (index, component) in components.iter().enumerate() {
+                path.push(component.as_os_str());
+                match fs::symlink_metadata(&path) {
+                    Ok(metadata) if metadata.file_type().is_symlink() => {
+                        return Err(invalid(&path, "workspace output crosses a symlink"));
+                    }
+                    Ok(metadata) if index + 1 < components.len() && !metadata.is_dir() => {
+                        return Err(invalid(&path, "workspace output parent is not a directory"));
+                    }
+                    Ok(_) => (),
+                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => (),
+                    Err(error) => return Err(invalid(&path, error)),
+                }
+            }
+            Ok(path)
+        }
+    }
+
+    fn write_atomic(path: &Path, contents: String) -> Result<(), RegistryError> {
+        let parent = path.parent().expect("workspace output parent");
+        let mut temporary = None;
+        for _ in 0..16 {
+            let serial = NEXT_TEMP.fetch_add(1, Ordering::Relaxed);
+            let candidate = parent.join(format!(".curriculum-{}-{serial}.tmp", std::process::id()));
+            match fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&candidate)
+            {
+                Ok(mut file) => {
+                    if let Err(error) = file.write_all(contents.as_bytes()) {
+                        let _ = fs::remove_file(&candidate);
+                        return Err(invalid(&candidate, error));
+                    }
+                    if let Err(error) = fs::rename(&candidate, path) {
+                        let _ = fs::remove_file(&candidate);
+                        return Err(invalid(path, error));
+                    }
+                    temporary = Some(());
+                    break;
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                Err(error) => return Err(invalid(&candidate, error)),
+            }
+        }
+        if temporary.is_none() {
+            return Err(invalid(path, "cannot allocate an atomic output file"));
+        }
+        Ok(())
+    }
+
+    fn user_only(body: &str) -> bool {
+        body.strip_prefix("---\n")
+            .and_then(|body| body.split_once("\n---\n"))
+            .is_some_and(|(frontmatter, _)| {
+                frontmatter
+                    .lines()
+                    .any(|line| line.trim() == "user-only: true")
+            })
+    }
+}
 fn dependencies(path: &Path, body: &str) -> Result<Vec<String>, RegistryError> {
     let Some((header, _)) = body
         .strip_prefix("---\n")
