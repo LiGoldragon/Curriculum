@@ -111,7 +111,26 @@ fn registry_workspace_projection_updates_plain_target_directories() {
     let projector = WorkspaceProjector::new(&workspace);
 
     let first = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
-    projector.write(&first).unwrap();
+    let published = projector.project(&first).unwrap();
+    assert_eq!(
+        published.deployment_destination,
+        fs::canonicalize(&workspace).unwrap().to_string_lossy()
+    );
+    assert_eq!(published.repository_revision_vector.len(), 3);
+    assert_eq!(
+        published.repository_revision_vector[0].repository_name,
+        "psyche-context"
+    );
+    assert_eq!(
+        published.repository_revision_vector[0].source_revision,
+        revisions()[0]
+    );
+    assert_eq!(
+        published.renderer_version,
+        "curriculum-workspace-projector-v1"
+    );
+    assert_eq!(published.published_inventory_digest.len(), 64);
+    assert_eq!(published.published_content_digest.len(), 64);
 
     assert!(
         fs::read_to_string(workspace.join(".agents/skills/knowledge-topic/SKILL.md"))
@@ -168,7 +187,15 @@ fn registry_workspace_projection_updates_plain_target_directories() {
 
     fs::write(&source_path, "Latest module text.\n").unwrap();
     let latest = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
-    projector.write(&latest).unwrap();
+    let refreshed = projector.project(&latest).unwrap();
+    assert_eq!(
+        refreshed.published_inventory_digest,
+        published.published_inventory_digest
+    );
+    assert_ne!(
+        refreshed.published_content_digest,
+        published.published_content_digest
+    );
     assert_eq!(
         fs::read_to_string(workspace.join(".agents/skills/knowledge-topic/SKILL.md")).unwrap(),
         "Latest module text.\n"

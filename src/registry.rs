@@ -381,8 +381,10 @@ impl ExpandsSkills for SkillRegistry {
 /// All source text comes from the resolved registry; this code never scans a
 /// second skill repository or follows generated symlinks.
 pub mod workspace {
-    use super::{invalid, ExpandsSkills, RegistryError, ResolvedSkill, SkillRegistry};
+    use super::{invalid, sha256, ExpandsSkills, RegistryError, ResolvedSkill, SkillRegistry};
+    use crate::generated::{ProjectionCandidate, RepositoryRevision};
     use std::{
+        collections::BTreeMap,
         fs,
         io::Write,
         path::{Component, Path, PathBuf},
@@ -390,7 +392,10 @@ pub mod workspace {
     };
 
     static NEXT_TEMP: AtomicU64 = AtomicU64::new(0);
+    pub const RENDERER_VERSION: &str = "curriculum-workspace-projector-v1";
 
+    /// Typed identity of a fully materialized workspace generation. This is
+    /// returned only after all projection writes and the canonical inventory.
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     enum Target {
         Claude,
@@ -519,10 +524,18 @@ pub mod workspace {
         }
 
         pub fn write(&self, registry: &SkillRegistry) -> Result<(), RegistryError> {
+            self.project(registry).map(|_| ())
+        }
+
+        pub fn project(
+            &self,
+            registry: &SkillRegistry,
+        ) -> Result<ProjectionCandidate, RegistryError> {
             fs::create_dir_all(&self.root).map_err(|e| invalid(&self.root, e))?;
             let ids = registry.skill_names()?;
             let skills = registry.resolve_exact(&ids)?;
             let modules = registry.resolved_exact_sources(&ids)?;
+            let mut outputs = BTreeMap::<PathBuf, String>::new();
             for target in Target::ALL {
                 self.remove_stale(target, &ids)?;
             }
@@ -531,24 +544,16 @@ pub mod workspace {
                     let relative = Path::new(target.directory())
                         .join(&skill.name)
                         .join("SKILL.md");
-                    let path = self.safe(&relative)?;
-                    let parent = path.parent().expect("skill output parent");
-                    fs::create_dir_all(parent).map_err(|e| invalid(parent, e))?;
-                    write_atomic(&path, target.render(skill)?)?;
+                    outputs.insert(relative, target.render(skill)?);
                 }
                 if user_only(&skill.body) {
                     for surface in [".agents/skills", ".codex/skills"] {
-                        let path = self.safe(
-                            &Path::new(surface)
+                        outputs.insert(
+                            Path::new(surface)
                                 .join(&skill.name)
                                 .join("agents/openai.yaml"),
-                        )?;
-                        let parent = path.parent().expect("policy output parent");
-                        fs::create_dir_all(parent).map_err(|e| invalid(parent, e))?;
-                        write_atomic(
-                            &path,
                             "policy:\n  allow_implicit_invocation: false\n".into(),
-                        )?;
+                        );
                     }
                 }
             }
@@ -561,8 +566,40 @@ pub mod workspace {
                     )
                 })
                 .collect::<String>();
-            write_atomic(&self.safe(Path::new("modules"))?, inventory)?;
-            Ok(())
+            outputs.insert(PathBuf::from("modules"), inventory.clone());
+            let mut content_manifest = String::new();
+            for (relative, contents) in &outputs {
+                content_manifest.push_str(&format!(
+                    "{} {}\n",
+                    relative.to_string_lossy(),
+                    sha256(contents.as_bytes())
+                ));
+            }
+            for (relative, contents) in &outputs {
+                let path = self.safe(relative)?;
+                let parent = path.parent().expect("skill output parent");
+                fs::create_dir_all(parent).map_err(|e| invalid(parent, e))?;
+                write_atomic(&path, contents.clone())?;
+            }
+            let destination = fs::canonicalize(&self.root).map_err(|e| invalid(&self.root, e))?;
+            let repositories = registry
+                .roots
+                .iter()
+                .zip(registry.revisions.iter())
+                .enumerate()
+                .map(|(index, (_root, revision))| RepositoryRevision {
+                    repository_name: ["psyche-context", "mind-context", "field-context"][index]
+                        .into(),
+                    source_revision: revision.clone(),
+                })
+                .collect();
+            Ok(ProjectionCandidate {
+                deployment_destination: destination.to_string_lossy().into_owned(),
+                repository_revision_vector: repositories,
+                published_inventory_digest: sha256(inventory.as_bytes()),
+                published_content_digest: sha256(content_manifest.as_bytes()),
+                renderer_version: RENDERER_VERSION.into(),
+            })
         }
 
         fn remove_stale(&self, target: Target, current: &[String]) -> Result<(), RegistryError> {

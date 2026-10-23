@@ -108,6 +108,31 @@ pub struct ResolvedModule {
     pub string_vector: std::vec::Vec<String>,
 }
 #[rustfmt::skip]
+pub type DeploymentDestination = String;
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub struct RepositoryRevision {
+    pub repository_name: RepositoryName,
+    pub source_revision: SourceRevision,
+}
+#[rustfmt::skip]
+pub type PublishedInventoryDigest = String;
+#[rustfmt::skip]
+pub type PublishedContentDigest = String;
+#[rustfmt::skip]
+pub type RendererVersion = String;
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub struct ProjectionCandidate {
+    pub deployment_destination: DeploymentDestination,
+    pub repository_revision_vector: std::vec::Vec<RepositoryRevision>,
+    pub published_inventory_digest: PublishedInventoryDigest,
+    pub published_content_digest: PublishedContentDigest,
+    pub renderer_version: RendererVersion,
+}
+#[rustfmt::skip]
 pub type RoleName = String;
 #[rustfmt::skip]
 pub type ModelId = String;
