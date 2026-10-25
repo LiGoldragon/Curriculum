@@ -26,7 +26,7 @@ fn composition(role_name: &str) -> RoleComposition {
         ("vision", "book", "BOOK_VISION_BODY"),
         (
             "compensation",
-            "book-crystallization",
+            "book-making",
             "BOOK_CRYSTALLIZATION_BODY",
         ),
     ] {
@@ -50,7 +50,7 @@ fn composition(role_name: &str) -> RoleComposition {
                 vec![
                     "role-book-body".into(),
                     "vision-book".into(),
-                    "compensation-book-crystallization".into(),
+                    "compensation-book-making".into(),
                 ]
             } else {
                 vec!["role-book-body".into()]
@@ -275,7 +275,7 @@ fn book_writing_native_definitions_carry_both_instruction_bodies_once() {
         for expected in ["BOOK_VISION_BODY", "BOOK_CRYSTALLIZATION_BODY"] {
             assert_eq!(body.matches(expected).count(), 1);
         }
-        for id in ["vision-book", "compensation-book-crystallization"] {
+        for id in ["vision-book", "compensation-book-making"] {
             let provenance: Vec<_> = role
                 .context_provenance_vector
                 .iter()
