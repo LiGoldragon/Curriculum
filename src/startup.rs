@@ -110,12 +110,16 @@ fn records(root: &Path, flows: &[String]) -> Result<String, String> {
         if !flow_id(flow) {
             return Err(format!("record missing: {flow}"));
         }
+        // A remembered flow with no records contributes nothing: neither a
+        // flow directory nor a vision or notion record is required.
         let flow_root = root.join(flow);
-        if std::fs::symlink_metadata(&flow_root)
-            .map(|metadata| !metadata.is_dir() || metadata.file_type().is_symlink())
-            .unwrap_or(true)
-        {
-            return Err(format!("record missing: {flow}"));
+        match std::fs::symlink_metadata(&flow_root) {
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(_) => return Err(format!("record missing: {flow}")),
+            Ok(metadata) if !metadata.is_dir() || metadata.file_type().is_symlink() => {
+                return Err(format!("record missing: {flow}"));
+            }
+            Ok(_) => {}
         }
         let flow_root =
             std::fs::canonicalize(&flow_root).map_err(|_| format!("record missing: {flow}"))?;
@@ -147,9 +151,6 @@ fn records(root: &Path, flows: &[String]) -> Result<String, String> {
             });
             topic_paths.sort();
             paths.extend(topic_paths);
-        }
-        if paths.is_empty() {
-            return Err(format!("record missing: {flow}"));
         }
         for path in paths {
             let metadata =

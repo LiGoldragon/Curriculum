@@ -254,9 +254,37 @@ fn selected_raw_records_are_verified_in_flow_vision_notion_and_file_order() {
     assert!(!result.records_text.contains("ARCHIVED"));
     assert_eq!(result.records_payload_sha256, digest(&result.records_text));
 
-    selection.flow_id_vector = vec!["missing".into()];
+}
+
+#[test]
+fn a_remembered_flow_with_no_records_contributes_nothing_and_refuses_nothing() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (_, registry, mut selection) = fixture(tmp.path());
+    let flows = tmp.path().join("flows");
+    fs::create_dir_all(flows.join("first/vision")).unwrap();
+    fs::write(flows.join("first/vision/a.md"), "FIRST-A\n").unwrap();
+    fs::create_dir_all(flows.join("empty/vision")).unwrap();
+    fs::write(flows.join("empty/vision/archive-old.md"), "ARCHIVED\n").unwrap();
+    fs::create_dir_all(flows.join("bare")).unwrap();
+    selection.flow_id_vector = vec![
+        "absent".into(),
+        "first".into(),
+        "empty".into(),
+        "bare".into(),
+    ];
+
+    let result = startup::compose(&registry, &flows, &selection).unwrap();
+    assert_eq!(result.records_text, "FIRST-A\n");
+    assert_eq!(result.records_payload_sha256, digest("FIRST-A\n"));
+
+    selection.flow_id_vector = vec!["absent".into()];
+    let result = startup::compose(&registry, &flows, &selection).unwrap();
+    assert!(result.records_text.is_empty());
+    assert_eq!(result.records_payload_sha256, digest(""));
+
+    selection.flow_id_vector = vec!["../first".into()];
     assert_eq!(
-        startup::compose(&registry, &tmp.path().join("flows"), &selection),
-        Err("record missing: missing".into())
+        startup::compose(&registry, &flows, &selection),
+        Err("record missing: ../first".into())
     );
 }
