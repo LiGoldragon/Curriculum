@@ -43,6 +43,41 @@ fn source_api_exposes_registry_address_and_declared_placement() {
 }
 
 #[test]
+fn a_dependency_reads_type_subject_and_type_hyphen_subject_as_one_id() {
+    let temp = tempfile::tempdir().unwrap();
+    let r = roots(temp.path());
+    source(&r[0], "vision/book-making.md", "Book making.\n");
+    source(&r[0], "spirit/core.md", "Core.\n");
+    source(
+        &r[2],
+        "compensation/illustration.md",
+        "---\ndependencies: [vision-book-making, spirit:core]\n---\nIllustrate.\n",
+    );
+    let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+    let resolved = registry
+        .resolved_sources(&["compensation:illustration".into()])
+        .unwrap();
+    let ids: Vec<&str> = resolved
+        .iter()
+        .map(|module| module.module_identity.as_str())
+        .collect();
+    assert_eq!(
+        ids,
+        ["vision:book-making", "spirit:core", "compensation:illustration"]
+    );
+
+    let temp = tempfile::tempdir().unwrap();
+    let r = roots(temp.path());
+    source(&r[0], "spirit/core.md", "Core.\n");
+    source(
+        &r[2],
+        "compensation/twice.md",
+        "---\ndependencies: [ spirit-core spirit:core ]\n---\nTwice.\n",
+    );
+    assert!(SkillRegistry::from_context_repositories(&r, &revisions()).is_err());
+}
+
+#[test]
 fn mixed_duplicate_case_nested_and_escape_layouts_refuse() {
     for case in 0..7 {
         let temp = tempfile::tempdir().unwrap();

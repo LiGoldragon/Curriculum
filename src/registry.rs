@@ -731,11 +731,22 @@ fn dependencies(path: &Path, body: &str) -> Result<Vec<String>, RegistryError> {
     let ids: Vec<String> = inner
         .split(|c: char| c == ',' || c.is_whitespace())
         .filter(|s| !s.is_empty())
-        .map(str::to_owned)
+        .map(dependency_id)
         .collect();
     let mut seen = BTreeSet::new();
     if ids.iter().any(|id| !valid_id(id) || !seen.insert(id)) {
         return Err(invalid(path, "invalid or duplicate dependency ID"));
     }
     Ok(ids)
+}
+/// A dependency names a module as `type:subject` or as `type-subject`; both
+/// are the same ID, held as `type:subject`. No module type has a hyphen, so
+/// the first hyphen of a hyphen form separates its type from its subject.
+fn dependency_id(word: &str) -> String {
+    match word.split_once('-') {
+        Some((kind, subject)) if !word.contains(':') && MODULE_TYPES.contains(&kind) => {
+            format!("{kind}:{subject}")
+        }
+        _ => word.to_owned(),
+    }
 }
