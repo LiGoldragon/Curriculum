@@ -13,7 +13,6 @@ pub const MODULE_TYPES: &[&str] = &[
     "intent",
     "spirit",
     "knowledge",
-    "inquiry",
     "compensation",
     "role",
     "raw",
@@ -38,6 +37,8 @@ pub enum RegistryError {
     InvalidSource { path: PathBuf, message: String },
     #[error("missing module {0}")]
     Missing(String),
+    #[error("invalid module ID {0}")]
+    InvalidModuleId(String),
     #[error("duplicate module {0}")]
     Duplicate(String),
     #[error("dependency cycle at {0}")]
@@ -277,6 +278,32 @@ impl SkillRegistry {
                     .ok_or_else(|| RegistryError::Missing(id.clone()))
             })
             .collect()
+    }
+    /// Partition explicitly declared module IDs without turning an absent
+    /// declaration into a failure. Invalid IDs and duplicates remain errors;
+    /// callers may then use the available IDs with either exact or dependency
+    /// expanding resolution while reporting omissions in declaration order.
+    pub fn available_declared(
+        &self,
+        ids: &[String],
+    ) -> Result<(Vec<String>, Vec<String>), RegistryError> {
+        let mut seen = BTreeSet::new();
+        let mut available = Vec::new();
+        let mut omitted = Vec::new();
+        for id in ids {
+            if !valid_id(id) {
+                return Err(RegistryError::InvalidModuleId(id.clone()));
+            }
+            if !seen.insert(id) {
+                return Err(RegistryError::Duplicate(id.clone()));
+            }
+            if self.entries.contains_key(id) {
+                available.push(id.clone());
+            } else {
+                omitted.push(id.clone());
+            }
+        }
+        Ok((available, omitted))
     }
     pub fn resolved_exact_sources(
         &self,

@@ -59,6 +59,7 @@ fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
     let tmp = tempfile::tempdir().unwrap();
     let (_, registry, selection) = fixture(tmp.path());
     let result = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
+    assert!(result.omitted_modules.is_empty());
     assert_eq!(result.context_provenance_vector.len(), 25);
     let system_ids = result
         .context_provenance_vector
@@ -115,6 +116,42 @@ fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
         rkyv::from_bytes::<Outcome, rkyv::rancor::Error>(&bytes).unwrap(),
         outcome
     );
+}
+
+#[test]
+fn missing_declared_modules_are_reported_in_order_while_available_modules_compose() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (_, registry, mut selection) = fixture(tmp.path());
+    selection.user_modules = vec![
+        "compensation:user00".into(),
+        "knowledge:deliberatelyabsent2c06c7".into(),
+    ];
+    let one = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
+    assert_eq!(one.omitted_modules, ["knowledge:deliberatelyabsent2c06c7"]);
+    assert!(one.system_text.contains("SPIRIT"));
+    assert!(one.user_text.contains("BODY_00_EXACT"));
+
+    selection.user_modules = vec![
+        "compensation:user03".into(),
+        "compensation:missing-first".into(),
+        "compensation:user01".into(),
+        "compensation:missing-second".into(),
+    ];
+    let result = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
+    assert_eq!(
+        result.omitted_modules,
+        ["compensation:missing-first", "compensation:missing-second"]
+    );
+    assert!(result.user_text.contains("BODY_03_EXACT"));
+    assert!(result.user_text.contains("BODY_01_EXACT"));
+    assert!(!result.user_text.contains("missing-first"));
+    let available: Vec<_> = result
+        .context_provenance_vector
+        .iter()
+        .filter(|module| module.module_identity.starts_with("compensation:"))
+        .map(|module| module.module_identity.as_str())
+        .collect();
+    assert_eq!(available, ["compensation:user03", "compensation:user01"]);
 }
 #[test]
 fn caller_paths_inline_text_unknown_duplicates_wrong_placement_and_changed_sources_refuse() {

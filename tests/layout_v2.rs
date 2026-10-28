@@ -82,17 +82,13 @@ fn mixed_duplicate_case_nested_and_escape_layouts_refuse() {
 }
 
 #[test]
-fn same_subject_different_types_are_distinct() {
+fn inquiry_directories_are_not_loaded() {
     let temp = tempfile::tempdir().unwrap();
     let r = roots(temp.path());
     source(&r[1], "knowledge/topic.md", "Knowledge.");
     source(&r[1], "inquiry/topic.md", "Inquiry.");
     let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
-    assert_eq!(
-        registry.skill_names().unwrap(),
-        vec!["inquiry:topic", "knowledge:topic"]
-    );
-    assert!(registry.resolve_exact(&["topic".into()]).is_err());
+    assert_eq!(registry.skill_names().unwrap(), vec!["knowledge:topic"]);
 }
 
 #[test]
@@ -235,7 +231,7 @@ fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
     }
     let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
     let ids = registry.skill_names().unwrap();
-    assert_eq!(ids.len(), 8);
+    assert_eq!(ids.len(), MODULE_TYPES.len());
     let workspace = temp.path().join("workspace");
     WorkspaceProjector::new(&workspace)
         .write(&registry)

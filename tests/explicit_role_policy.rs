@@ -58,6 +58,7 @@ fn role_uses_only_selected_authored_ids_and_preserves_policy_through_wire() {
     let tmp = tempfile::tempdir().unwrap();
     let (registry, data, selection) = fixture(tmp.path());
     let result = roles::compose(&registry, &data, &selection).unwrap();
+    assert!(result.omitted_modules.is_empty());
     assert_eq!(result.model_id, "sonnet");
     assert!(matches!(result.effort, Effort::Medium));
     assert!(matches!(&result.role_tools,RoleTools::Explicit(v) if v.is_empty()));
@@ -83,11 +84,7 @@ fn role_uses_only_selected_authored_ids_and_preserves_policy_through_wire() {
 fn inline_paths_missing_ambiguous_roles_and_invalid_caller_tool_data_refuse() {
     let tmp = tempfile::tempdir().unwrap();
     let (registry, data, selection) = fixture(tmp.path());
-    for value in [
-        "Inline prose is forbidden",
-        "/tmp/source.md",
-        "role:missing",
-    ] {
+    for value in ["Inline prose is forbidden", "/tmp/source.md"] {
         let mut d = data.clone();
         d.role_definition_vector[0].context_modules = vec![value.into()];
         assert!(roles::compose(&registry, &d, &selection).is_err());
@@ -106,4 +103,43 @@ fn inline_paths_missing_ambiguous_roles_and_invalid_caller_tool_data_refuse() {
     let duplicate = d.role_definition_vector[0].context_modules[0].clone();
     d.role_definition_vector[0].context_modules.push(duplicate);
     assert!(roles::validate(&d).is_err());
+}
+
+#[test]
+fn role_composes_available_modules_and_reports_one_or_multiple_omissions() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (registry, mut data, selection) = fixture(tmp.path());
+    data.role_definition_vector[0].context_modules =
+        vec!["role:illustrator-svg".into(), "role:missing-only".into()];
+    let one = roles::compose(&registry, &data, &selection).unwrap();
+    assert_eq!(one.omitted_modules, ["role:missing-only"]);
+    assert!(one.context_text.contains("SAFE_SVG"));
+
+    data.role_definition_vector[0].context_modules = vec![
+        "role:missing-first".into(),
+        "role:illustrator-svg".into(),
+        "role:missing-second".into(),
+        "compensation:illustration".into(),
+    ];
+    let result = roles::compose(&registry, &data, &selection).unwrap();
+    assert_eq!(
+        result.omitted_modules,
+        ["role:missing-first", "role:missing-second"]
+    );
+    assert!(result.context_text.contains("SAFE_SVG"));
+    assert!(result.context_text.contains("AUTHORED_RULES"));
+    assert!(!result.context_text.contains("missing-first"));
+    let available: Vec<_> = result
+        .context_provenance_vector
+        .iter()
+        .map(|module| module.module_identity.as_str())
+        .collect();
+    assert_eq!(
+        available,
+        [
+            "role:illustrator-description",
+            "role:illustrator-svg",
+            "compensation:illustration"
+        ]
+    );
 }

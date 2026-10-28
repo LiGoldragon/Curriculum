@@ -103,9 +103,12 @@ pub fn compose(
         .chain(&role.context_modules)
         .cloned()
         .collect();
+    let (available_ids, omitted_modules) = registry
+        .available_declared(&ids)
+        .map_err(|e| e.to_string())?;
     // Deliberately exact: no dependency closure, universal module or ambient file.
     let modules = registry
-        .resolved_exact_sources(&ids)
+        .resolved_exact_sources(&available_ids)
         .map_err(|e| e.to_string())?;
     let target = match role.surface {
         crate::generated::Surface::ClaudeAgent => crate::generated::Target::Claude,
@@ -116,12 +119,25 @@ pub fn compose(
         .iter()
         .map(|m| crate::context_render::render(&target, &m.string))
         .collect::<Result<_, _>>()?;
-    let description_text = rendered[0].clone();
+    let description_text = modules
+        .iter()
+        .zip(&rendered)
+        .find(|(module, _)| module.module_identity == role.description_module)
+        .map(|(_, body)| body.clone())
+        .unwrap_or_default();
+    let available_context_modules: Vec<_> = modules
+        .iter()
+        .filter(|module| module.module_identity != role.description_module)
+        .map(|module| module.module_identity.as_str())
+        .collect();
     let mut context_text = format!(
         "These are your skills, given here; do not reload them.\n\nModule IDs: {}\n",
-        role.context_modules.join(", ")
+        available_context_modules.join(", ")
     );
-    for (module, body) in modules.iter().zip(&rendered).skip(1) {
+    for (module, body) in modules.iter().zip(&rendered) {
+        if module.module_identity == role.description_module {
+            continue;
+        }
         context_text.push_str(&format!(
             "\n<!-- module: {} -->\n{}\n<!-- end-module: {} -->\n",
             module.module_identity, body, module.module_identity
@@ -154,6 +170,7 @@ pub fn compose(
         context_text,
         role_tools: role.role_tools.clone(),
         role_callers: role.role_callers.clone(),
+        omitted_modules,
         context_provenance_vector: provenance,
     })
 }

@@ -45,10 +45,15 @@ pub fn compose(
         .chain(&selection.user_modules)
         .cloned()
         .collect();
-    let resolved = registry
-        .resolved_sources(&roots)
+    let (available_roots, omitted_modules) = registry
+        .available_declared(&roots)
         .map_err(|e| e.to_string())?;
-    let snapshot = registry.expand_skills(&roots).map_err(|e| e.to_string())?;
+    let resolved = registry
+        .resolved_sources(&available_roots)
+        .map_err(|e| e.to_string())?;
+    let snapshot = registry
+        .expand_skills(&available_roots)
+        .map_err(|e| e.to_string())?;
     let mut system = Vec::new();
     let mut user = Vec::new();
     let mut provenance = Vec::new();
@@ -95,6 +100,7 @@ pub fn compose(
         system_payload_sha256: sha256(system_text.as_bytes()),
         user_payload_sha256: sha256(user_text.as_bytes()),
         records_payload_sha256: sha256(records_text.as_bytes()),
+        omitted_modules,
         system_text,
         user_text,
         records_text,
