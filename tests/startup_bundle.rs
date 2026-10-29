@@ -283,6 +283,28 @@ fn effective_header_placement_overrides_the_requested_kind_default() {
 }
 
 #[test]
+fn on_demand_module_refuses_startup_composition() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (roots, _, mut selection) = fixture(tmp.path());
+    fs::write(
+        roots[2].join("compensation/user00.md"),
+        "---\ndependencies: []\nplacement: on-demand\n---\nON_DEMAND_ONLY\n",
+    )
+    .unwrap();
+    let registry = SkillRegistry::from_context_repositories(
+        &roots,
+        &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
+    )
+    .unwrap();
+    selection.user_modules = vec!["compensation:user00".into()];
+
+    assert_eq!(
+        startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap_err(),
+        "module has no startup placement: compensation:user00 (on-demand)"
+    );
+}
+
+#[test]
 fn manifest_distinguishes_authored_and_target_rendered_module_hashes() {
     let tmp = tempfile::tempdir().unwrap();
     let (roots, _, selection) = fixture(tmp.path());
