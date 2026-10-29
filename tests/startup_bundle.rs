@@ -154,7 +154,7 @@ fn missing_declared_modules_are_reported_in_order_while_available_modules_compos
     assert_eq!(available, ["compensation:user03", "compensation:user01"]);
 }
 #[test]
-fn caller_paths_inline_text_unknown_duplicates_wrong_placement_and_changed_sources_refuse() {
+fn caller_paths_inline_text_unknown_duplicates_and_changed_sources_refuse() {
     let tmp = tempfile::tempdir().unwrap();
     let (roots, registry, selection) = fixture(tmp.path());
     for bad in [
@@ -172,10 +172,6 @@ fn caller_paths_inline_text_unknown_duplicates_wrong_placement_and_changed_sourc
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     let mut s = selection.clone();
     s.user_modules.push("vision:core".into());
-    assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
-    let mut s = selection.clone();
-    s.system_modules = vec!["compensation:user00".into()];
-    s.user_modules.clear();
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     fs::write(roots[2].join("compensation/user00.md"), "Changed").unwrap();
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &selection).is_err());
@@ -232,18 +228,58 @@ fn target_rendering_precedes_hashing_and_preserves_raw_and_shell_literals() {
 }
 
 #[test]
-fn spirit_intent_cannot_be_user_even_without_frontmatter_placement() {
+fn effective_header_placement_overrides_the_requested_kind_default() {
     let tmp = tempfile::tempdir().unwrap();
-    let (_, registry, selection) = fixture(tmp.path());
-    for id in ["spirit:core", "intent:seat"] {
-        let mut s = selection.clone();
-        s.system_modules.retain(|m| m != id);
-        s.user_modules.push(id.into());
-        assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
-    }
-    let mut s = selection;
-    s.system_modules.clear();
-    assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
+    let (roots, _, mut selection) = fixture(tmp.path());
+    fs::create_dir(roots[2].join("role")).unwrap();
+    fs::write(
+        roots[2].join("role/psyche-core-primary-presentation.md"),
+        "---\ndependencies: []\nplacement: system\n---\nPRESENTATION_ROLE_V1\n",
+    )
+    .unwrap();
+    let registry = SkillRegistry::from_context_repositories(
+        &roots,
+        &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
+    )
+    .unwrap();
+    selection
+        .user_modules
+        .push("role:psyche-core-primary-presentation".into());
+
+    let composed = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
+    assert_eq!(
+        composed.system_text.matches("PRESENTATION_ROLE_V1").count(),
+        1
+    );
+    assert!(!composed.user_text.contains("PRESENTATION_ROLE_V1"));
+    let role = composed
+        .context_provenance_vector
+        .iter()
+        .find(|row| row.module_identity == "role:psyche-core-primary-presentation")
+        .unwrap();
+    assert_eq!(role.startup_placement, StartupPlacement::System);
+    assert_eq!(
+        role.source_relative_path,
+        "role/psyche-core-primary-presentation.md"
+    );
+
+    fs::write(
+        roots[2].join("role/psyche-core-primary-presentation.md"),
+        "---\ndependencies: []\nplacement: system\n---\nPRESENTATION_ROLE_V2\n",
+    )
+    .unwrap();
+    assert!(startup::compose(&registry, &tmp.path().join("flows"), &selection).is_err());
+    let refreshed = SkillRegistry::from_context_repositories(
+        &roots,
+        &["d".repeat(40), "e".repeat(40), "f".repeat(40)],
+    )
+    .unwrap();
+    let composed = startup::compose(&refreshed, &tmp.path().join("flows"), &selection).unwrap();
+    assert_eq!(
+        composed.system_text.matches("PRESENTATION_ROLE_V2").count(),
+        1
+    );
+    assert!(!composed.system_text.contains("PRESENTATION_ROLE_V1"));
 }
 
 #[test]

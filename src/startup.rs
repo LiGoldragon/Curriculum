@@ -23,16 +23,10 @@ pub fn compose(
         return Err("invalid metaflow address".into());
     }
     let mut explicit = BTreeSet::new();
-    for (names, system) in [
-        (&selection.system_modules, true),
-        (&selection.user_modules, false),
-    ] {
+    for names in [&selection.system_modules, &selection.user_modules] {
         for name in names {
             if !identifier(name) || !explicit.insert(name.clone()) {
                 return Err("invalid, duplicate or cross-placement module ID".into());
-            }
-            if system != system_module(name) {
-                return Err(format!("module has the wrong startup placement: {name}"));
             }
         }
     }
@@ -66,7 +60,17 @@ pub fn compose(
             ));
         }
         let body = instructions(&source.body)?;
-        let is_system = system_module(&source.name);
+        let is_system = match module.declared_placement.as_str() {
+            "system" => true,
+            "user" => false,
+            "" => system_module(&module.module_identity),
+            placement => {
+                return Err(format!(
+                    "module has no startup placement: {} ({placement})",
+                    module.module_identity
+                ));
+            }
+        };
         let output = if is_system { &mut system } else { &mut user };
         let ordinal = output.len() as i64;
         let rendered = crate::context_render::render(&selection.target, body)?;
