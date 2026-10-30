@@ -28,9 +28,9 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let stdout_path = base.join("nexus.stdout");
     let stderr_path = base.join("nexus.stderr");
     let roots = [
-        base.join("psyche-context"),
-        base.join("mind-context"),
-        base.join("field-context"),
+        base.join("psyche-belief"),
+        base.join("mind-belief"),
+        base.join("field-belief"),
     ];
     for (index, root) in roots.iter().enumerate() {
         fs::create_dir(root).unwrap();
@@ -112,7 +112,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let text = String::from_utf8(response.stdout).unwrap();
     assert!(text.starts_with("StartupComposed."));
     assert!(text.contains("EXACT_USER_BODY"));
-    assert!(text.contains("field-context"));
+    assert!(text.contains("field-belief"));
     let sources = invoke(&runtime, "ResolveSources.[ compensation-illustration ]");
     assert!(sources.status.success());
     let source_text = String::from_utf8_lossy(&sources.stdout);

@@ -31,7 +31,7 @@ fn source_api_exposes_registry_address_and_declared_placement() {
     let ids = vec!["compensation-illustration".into()];
     let resolved = registry.resolved_sources(&ids).unwrap();
     assert_eq!(resolved.len(), 2);
-    assert_eq!(resolved[1].repository_name, "field-context");
+    assert_eq!(resolved[1].repository_name, "field-belief");
     assert_eq!(
         resolved[1].source_relative_path,
         "compensation/illustration.md"

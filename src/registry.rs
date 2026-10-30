@@ -314,7 +314,7 @@ impl SkillRegistry {
         let text = instructions(&skill.body).map_err(|e| invalid(&skill.path, e))?;
         Ok(crate::generated::ResolvedModule {
             module_identity: skill.name.clone(),
-            repository_name: ["psyche-context", "mind-context", "field-context"][i].into(),
+            repository_name: ["psyche-belief", "mind-belief", "field-belief"][i].into(),
             source_revision: self.revisions[i].clone(),
             source_root: self.roots[i].to_string_lossy().into_owned(),
             source_relative_path: skill
