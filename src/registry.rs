@@ -52,7 +52,7 @@ fn invalid(path: &Path, message: impl ToString) -> RegistryError {
 fn canonical(path: &Path) -> Result<PathBuf, RegistryError> {
     fs::canonicalize(path).map_err(|e| invalid(path, e))
 }
-fn valid_segment(value: &str) -> bool {
+pub fn valid_segment(value: &str) -> bool {
     !value.is_empty()
         && value
             .bytes()
