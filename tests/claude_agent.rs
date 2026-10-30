@@ -45,15 +45,15 @@ fn composition(role_name: &str) -> RoleComposition {
             model_id: "sonnet".into(),
             effort: Effort::Medium,
             permission: Permission::Unrestricted,
-            description_module: "role-book-description".into(),
+            description_module: "role:book-description".into(),
             context_modules: if matches!(role_name, "general-purpose" | "book-author") {
                 vec![
-                    "role-book-body".into(),
-                    "vision-book".into(),
-                    "compensation-book-making".into(),
+                    "role:book-body".into(),
+                    "vision:book".into(),
+                    "compensation:book-making".into(),
                 ]
             } else {
-                vec!["role-book-body".into()]
+                vec!["role:book-body".into()]
             },
             role_tools: if matches!(role_name, "general-purpose" | "book-author") {
                 RoleTools::Inherit
@@ -275,7 +275,7 @@ fn book_writing_native_definitions_carry_both_instruction_bodies_once() {
         for expected in ["BOOK_VISION_BODY", "BOOK_CRYSTALLIZATION_BODY"] {
             assert_eq!(body.matches(expected).count(), 1);
         }
-        for id in ["vision-book", "compensation-book-making"] {
+        for id in ["vision:book", "compensation:book-making"] {
             let provenance: Vec<_> = role
                 .context_provenance_vector
                 .iter()

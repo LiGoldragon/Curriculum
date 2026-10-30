@@ -3,12 +3,13 @@
 use crate::{
     generated::{ContextProvenance, StartupComposition, StartupPlacement, StartupSelection},
     registry::{ExpandsSkills, SkillRegistry},
-    startup_metadata::{declared_placement, instructions, sha256},
+    startup_metadata::{instructions, sha256},
 };
-use std::collections::{BTreeMap, BTreeSet};
+use std::{collections::BTreeSet, path::Path};
 
 pub fn compose(
     registry: &SkillRegistry,
+    records_root: &Path,
     selection: &StartupSelection,
 ) -> Result<StartupComposition, String> {
     let caller = &selection.caller_metaflow;
@@ -21,28 +22,23 @@ pub fn compose(
     {
         return Err("invalid metaflow address".into());
     }
-    let mut explicit = BTreeMap::new();
+    let mut explicit = BTreeSet::new();
     for (names, system) in [
         (&selection.system_modules, true),
         (&selection.user_modules, false),
     ] {
         for name in names {
-            if !identifier(name) || explicit.insert(name.clone(), system).is_some() {
+            if !identifier(name) || !explicit.insert(name.clone()) {
                 return Err("invalid, duplicate or cross-placement module ID".into());
+            }
+            if system != system_module(name) {
+                return Err(format!("module has the wrong startup placement: {name}"));
             }
         }
     }
     if explicit.is_empty() {
         return Err("startup requires at least one authored module".into());
     }
-    let system_closure = registry
-        .expand_skills(&selection.system_modules)
-        .map_err(|e| e.to_string())?;
-    let user_closure = registry
-        .expand_skills(&selection.user_modules)
-        .map_err(|e| e.to_string())?;
-    let systems: BTreeSet<_> = system_closure.iter().map(|s| s.name.as_str()).collect();
-    let users: BTreeSet<_> = user_closure.iter().map(|s| s.name.as_str()).collect();
     let roots: Vec<_> = selection
         .system_modules
         .iter()
@@ -65,42 +61,7 @@ pub fn compose(
             ));
         }
         let body = instructions(&source.body)?;
-        let declared = match declared_placement(&source.body) {
-            "system" => Some(true),
-            "user" => Some(false),
-            "" => None,
-            _ => return Err(format!("module {} is not startup-placed", source.name)),
-        };
-        let selected = explicit.get(&source.name).copied();
-        if selected.zip(declared).is_some_and(|(a, b)| a != b) {
-            return Err(format!(
-                "placement conflicts with authored module {}",
-                source.name
-            ));
-        }
-        let system_only = source.name.starts_with("spirit-") || source.name.starts_with("intent-");
-        if system_only && (selected == Some(false) || declared == Some(false)) {
-            return Err(format!("spirit/intent must be SYSTEM: {}", source.name));
-        }
-        let is_system = match selected
-            .or(declared)
-            .or(if system_only { Some(true) } else { None })
-        {
-            Some(value) => value,
-            None => match (
-                systems.contains(source.name.as_str()),
-                users.contains(source.name.as_str()),
-            ) {
-                (true, false) => true,
-                (false, true) => false,
-                _ => {
-                    return Err(format!(
-                        "dependency {} has ambiguous placement",
-                        source.name
-                    ));
-                }
-            },
-        };
+        let is_system = system_module(&source.name);
         let output = if is_system { &mut system } else { &mut user };
         let ordinal = output.len() as i64;
         let rendered = crate::context_render::render(&selection.target, body)?;
@@ -122,20 +83,95 @@ pub fn compose(
             integer: ordinal,
         });
     }
-    if !system.iter().any(|(id, _)| id.starts_with("spirit-"))
-        || !system.iter().any(|(id, _)| id.starts_with("intent-"))
+    if !system.iter().any(|(id, _)| id.starts_with("spirit:"))
+        || !system.iter().any(|(id, _)| id.starts_with("intent:"))
     {
         return Err("startup requires explicit Spirit and seat-intent SYSTEM context".into());
     }
     let system_text = render(&system);
     let user_text = render(&user);
+    let records_text = records(records_root, &selection.flow_id_vector)?;
     Ok(StartupComposition {
         system_payload_sha256: sha256(system_text.as_bytes()),
         user_payload_sha256: sha256(user_text.as_bytes()),
+        records_payload_sha256: sha256(records_text.as_bytes()),
         system_text,
         user_text,
+        records_text,
         context_provenance_vector: provenance,
     })
+}
+
+fn records(root: &Path, flows: &[String]) -> Result<String, String> {
+    let root =
+        std::fs::canonicalize(root).map_err(|_| "record missing: records root".to_owned())?;
+    let mut output = String::new();
+    for flow in flows {
+        if !flow_id(flow) {
+            return Err(format!("record missing: {flow}"));
+        }
+        let flow_root = root.join(flow);
+        if std::fs::symlink_metadata(&flow_root)
+            .map(|metadata| !metadata.is_dir() || metadata.file_type().is_symlink())
+            .unwrap_or(true)
+        {
+            return Err(format!("record missing: {flow}"));
+        }
+        let flow_root =
+            std::fs::canonicalize(&flow_root).map_err(|_| format!("record missing: {flow}"))?;
+        if !flow_root.starts_with(&root) {
+            return Err(format!("record missing: {flow}"));
+        }
+        let mut paths = Vec::new();
+        for topic in ["vision", "notion"] {
+            let directory = flow_root.join(topic);
+            match std::fs::symlink_metadata(&directory) {
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+                Err(_) => return Err(format!("record missing: {flow}")),
+                Ok(metadata) if !metadata.is_dir() || metadata.file_type().is_symlink() => {
+                    return Err(format!("record missing: {flow}"));
+                }
+                Ok(_) => {}
+            }
+            let mut topic_paths = std::fs::read_dir(&directory)
+                .map_err(|_| format!("record missing: {flow}"))?
+                .map(|entry| entry.map(|entry| entry.path()))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|_| format!("record missing: {flow}"))?;
+            topic_paths.retain(|path| {
+                path.extension().is_some_and(|extension| extension == "md")
+                    && path
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .is_some_and(|name| !name.starts_with("archive-"))
+            });
+            topic_paths.sort();
+            paths.extend(topic_paths);
+        }
+        if paths.is_empty() {
+            return Err(format!("record missing: {flow}"));
+        }
+        for path in paths {
+            let metadata =
+                std::fs::symlink_metadata(&path).map_err(|_| format!("record missing: {flow}"))?;
+            if !metadata.is_file() || metadata.file_type().is_symlink() {
+                return Err(format!("record missing: {flow}"));
+            }
+            let bytes = std::fs::read(&path).map_err(|_| format!("record missing: {flow}"))?;
+            if std::fs::read(&path).ok().as_deref() != Some(bytes.as_slice()) {
+                return Err(format!("record missing: {flow}"));
+            }
+            let text = String::from_utf8(bytes).map_err(|_| format!("record missing: {flow}"))?;
+            if !output.is_empty() && !output.ends_with('\n') {
+                output.push('\n');
+            }
+            output.push_str(&text);
+            if !output.ends_with('\n') {
+                output.push('\n');
+            }
+        }
+    }
+    Ok(output)
 }
 
 fn render(modules: &[(String, String)]) -> String {
@@ -158,10 +194,32 @@ fn render(modules: &[(String, String)]) -> String {
     text
 }
 fn identifier(value: &str) -> bool {
+    value.split_once(':').is_some_and(|(kind, subject)| {
+        matches!(
+            kind,
+            "spirit"
+                | "intent"
+                | "vision"
+                | "knowledge"
+                | "inquiry"
+                | "compensation"
+                | "role"
+                | "raw"
+        ) && !subject.is_empty()
+            && !subject.contains(':')
+            && subject
+                .bytes()
+                .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+    })
+}
+fn system_module(value: &str) -> bool {
+    value.starts_with("spirit:") || value.starts_with("intent:")
+}
+fn flow_id(value: &str) -> bool {
     !value.is_empty()
         && value
             .bytes()
-            .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
 }
 fn word(value: &str) -> bool {
     !value.is_empty()
