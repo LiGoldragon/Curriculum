@@ -13,21 +13,35 @@ impl RendersClaudeAgent for RoleComposition {
         if self.surface != Surface::ClaudeAgent || self.role_callers != RoleCallers::Any {
             return Err("native rendering requires an Any-caller Claude role".into());
         }
-        let (expected_tools, tools_header) = match self.role_name.as_str() {
+        let (expected_model, expected_tools, tools_header) = match self.role_name.as_str() {
             "book" => (
+                "sonnet",
                 RoleTools::Explicit(vec![
                     "Read".into(),
                     "Bash".into(),
                     "Agent".into(),
                     "Artifact".into(),
+                    "ArtifactComments".into(),
                 ]),
-                "tools: [Read, Bash, Agent, Artifact]\n",
+                "tools: [Read, Bash, Agent, Artifact, ArtifactComments]\n",
             ),
-            "illustrator" => (RoleTools::Explicit(vec![]), "tools: []\n"),
-            "general-purpose" | "book-author" => (RoleTools::Inherit, ""),
+            "book-page" => (
+                "opus",
+                RoleTools::Explicit(vec![
+                    "Read".into(),
+                    "Bash".into(),
+                    "Agent".into(),
+                    "ToolSearch".into(),
+                    "ArtifactData".into(),
+                    "ArtifactComments".into(),
+                ]),
+                "tools: [Read, Bash, Agent, ToolSearch, ArtifactData, ArtifactComments]\n",
+            ),
+            "illustrator" => ("sonnet", RoleTools::Explicit(vec![]), "tools: []\n"),
+            "general-purpose" | "book-author" => ("sonnet", RoleTools::Inherit, ""),
             _ => return Err("unsupported native role".into()),
         };
-        if self.model_id != "sonnet"
+        if self.model_id != expected_model
             || self.effort != Effort::Medium
             || self.permission != Permission::Unrestricted
             || self.role_tools != expected_tools
@@ -44,8 +58,8 @@ impl RendersClaudeAgent for RoleComposition {
         }
         let description = self.description_text.yaml_string();
         Ok(format!(
-            "---\nname: {}\ndescription: {description}\nmodel: sonnet\neffort: medium\n{tools_header}---\n\n{}",
-            self.role_name, self.context_text
+            "---\nname: {}\ndescription: {description}\nmodel: {expected_model}\neffort: medium\n{tools_header}---\n\n{}",
+            self.role_name, self.context_text,
         ))
     }
 }

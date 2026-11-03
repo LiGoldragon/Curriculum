@@ -16,6 +16,7 @@ fn main() -> ExitCode {
         arguments.remove(0);
         requested_role = match arguments.as_slice() {
             [request] if request == "ComposeRole.{ book ClaudeAgent }" => Some("book"),
+            [request] if request == "ComposeRole.{ book-page ClaudeAgent }" => Some("book-page"),
             [request] if request == "ComposeRole.{ general-purpose ClaudeAgent }" => {
                 Some("general-purpose")
             }
