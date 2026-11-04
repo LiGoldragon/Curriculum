@@ -63,11 +63,13 @@ impl Operating<SkillMemory> for CurriculumOperation {
             let Some(snapshot) = memory.read(()).await else {
                 return Outcome::Rejected("Curriculum memory unavailable".into());
             };
-            let registry = match SourceConfiguration::from_environment()
-                .and_then(|configuration| configuration.read().map_err(|e| e.to_string()))
-            {
-                Ok(registry) => registry,
+            let configuration = match SourceConfiguration::from_environment() {
+                Ok(configuration) => configuration,
                 Err(error) => return Outcome::Rejected(error),
+            };
+            let registry = match configuration.read() {
+                Ok(registry) => registry,
+                Err(error) => return registry_outcome(error),
             };
             match query {
                 Query::ResolveSkills(ids) => match registry.expand_skills(&ids) {

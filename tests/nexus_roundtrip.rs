@@ -160,4 +160,16 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let changed_role_text = String::from_utf8(changed_role.stdout).unwrap();
     assert!(changed_role_text.contains("CHANGED_SOURCE"));
     assert!(!changed_role_text.contains("EXACT_USER_BODY"));
+
+    fs::write(
+        roots[2].join("compensation/illustration.md"),
+        "---\ndependencies: [ vision:first knowledge:second ]\nplacement: user\n---\nBODY",
+    )
+    .unwrap();
+    let missing = invoke(&runtime, "ResolveSkills.[ compensation:illustration ]");
+    assert!(missing.status.success());
+    assert_eq!(
+        String::from_utf8(missing.stdout).unwrap().trim(),
+        "ModuleMissing.vision:first"
+    );
 }
