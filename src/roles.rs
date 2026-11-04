@@ -4,7 +4,7 @@ use crate::{
         ContextProvenance, RoleCallers, RoleComposition, RoleDefinition, RoleSelection, RoleTools,
         Roles, StartupPlacement,
     },
-    registry::{SkillRegistry, valid_id},
+    registry::{CompositionError, SkillRegistry, valid_id},
     startup_metadata::sha256,
 };
 
@@ -92,7 +92,7 @@ pub fn compose(
     registry: &SkillRegistry,
     roles: &Roles,
     selection: &RoleSelection,
-) -> Result<RoleComposition, String> {
+) -> Result<RoleComposition, CompositionError> {
     validate(roles)?;
     let role: &RoleDefinition = roles
         .role_definition_vector
@@ -106,7 +106,7 @@ pub fn compose(
     // Deliberately exact: no dependency closure, universal module or ambient file.
     let modules = registry
         .resolved_exact_sources(&ids)
-        .map_err(|e| e.to_string())?;
+        ?;
     let target = match role.surface {
         crate::generated::Surface::ClaudeAgent => crate::generated::Target::Claude,
         crate::generated::Surface::CodexAgent => crate::generated::Target::Codex,

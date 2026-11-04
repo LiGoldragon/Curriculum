@@ -43,6 +43,23 @@ pub enum RegistryError {
     #[error("dependency cycle at {0}")]
     Cycle(String),
 }
+#[derive(Debug, Error)]
+pub enum CompositionError {
+    #[error("{0}")]
+    Registry(#[from] RegistryError),
+    #[error("{0}")]
+    Rejected(String),
+}
+impl From<String> for CompositionError {
+    fn from(value: String) -> Self {
+        Self::Rejected(value)
+    }
+}
+impl From<&str> for CompositionError {
+    fn from(value: &str) -> Self {
+        Self::Rejected(value.into())
+    }
+}
 fn invalid(path: &Path, message: impl ToString) -> RegistryError {
     RegistryError::InvalidSource {
         path: path.into(),
@@ -748,5 +765,27 @@ fn dependency_id(word: &str) -> String {
             format!("{kind}:{subject}")
         }
         _ => word.to_owned(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{RegistryError, SkillRegistry};
+    use std::{collections::BTreeMap, path::PathBuf};
+
+    #[test]
+    fn exact_resolution_reports_the_first_missing_identity_in_request_order() {
+        let registry = SkillRegistry {
+            entries: BTreeMap::new(),
+            roots: [PathBuf::new(), PathBuf::new(), PathBuf::new()],
+            revisions: [String::new(), String::new(), String::new()],
+        };
+        assert!(matches!(
+            registry.resolve_exact(&[
+                "vision:first".into(),
+                "knowledge:second".into(),
+            ]),
+            Err(RegistryError::Missing(identity)) if identity == "vision:first"
+        ));
     }
 }

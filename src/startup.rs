@@ -2,7 +2,7 @@
 //! Callers supply module IDs and a metaflow address, never paths or text.
 use crate::{
     generated::{ContextProvenance, StartupComposition, StartupPlacement, StartupSelection},
-    registry::{ExpandsSkills, SkillRegistry},
+    registry::{CompositionError, ExpandsSkills, SkillRegistry},
     startup_metadata::{instructions, sha256},
 };
 use std::{collections::BTreeSet, path::Path};
@@ -11,7 +11,7 @@ pub fn compose(
     registry: &SkillRegistry,
     records_root: &Path,
     selection: &StartupSelection,
-) -> Result<StartupComposition, String> {
+) -> Result<StartupComposition, CompositionError> {
     let caller = &selection.caller_metaflow;
     if !word(&caller.first_string)
         || !word(&caller.second_string)
@@ -32,7 +32,7 @@ pub fn compose(
                 return Err("invalid, duplicate or cross-placement module ID".into());
             }
             if system != system_module(name) {
-                return Err(format!("module has the wrong startup placement: {name}"));
+                return Err(format!("module has the wrong startup placement: {name}").into());
             }
         }
     }
@@ -47,8 +47,8 @@ pub fn compose(
         .collect();
     let resolved = registry
         .resolved_sources(&roots)
-        .map_err(|e| e.to_string())?;
-    let snapshot = registry.expand_skills(&roots).map_err(|e| e.to_string())?;
+        ?;
+    let snapshot = registry.expand_skills(&roots)?;
     let mut system = Vec::new();
     let mut user = Vec::new();
     let mut provenance = Vec::new();
@@ -58,7 +58,8 @@ pub fn compose(
             return Err(format!(
                 "source changed since registry admission: {}",
                 source.name
-            ));
+            )
+            .into());
         }
         let body = instructions(&source.body)?;
         let is_system = system_module(&source.name);
@@ -102,38 +103,38 @@ pub fn compose(
     })
 }
 
-fn records(root: &Path, flows: &[String]) -> Result<String, String> {
+fn records(root: &Path, flows: &[String]) -> Result<String, CompositionError> {
     let root =
         std::fs::canonicalize(root).map_err(|_| "record missing: records root".to_owned())?;
     let mut output = String::new();
     for flow in flows {
         if !flow_id(flow) {
-            return Err(format!("record missing: {flow}"));
+            return Err(format!("record missing: {flow}").into());
         }
         // A remembered flow with no records contributes nothing: neither a
         // flow directory nor a vision or notion record is required.
         let flow_root = root.join(flow);
         match std::fs::symlink_metadata(&flow_root) {
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
-            Err(_) => return Err(format!("record missing: {flow}")),
+            Err(_) => return Err(format!("record missing: {flow}").into()),
             Ok(metadata) if !metadata.is_dir() || metadata.file_type().is_symlink() => {
-                return Err(format!("record missing: {flow}"));
+                return Err(format!("record missing: {flow}").into());
             }
             Ok(_) => {}
         }
         let flow_root =
             std::fs::canonicalize(&flow_root).map_err(|_| format!("record missing: {flow}"))?;
         if !flow_root.starts_with(&root) {
-            return Err(format!("record missing: {flow}"));
+            return Err(format!("record missing: {flow}").into());
         }
         let mut paths = Vec::new();
         for topic in ["vision", "notion"] {
             let directory = flow_root.join(topic);
             match std::fs::symlink_metadata(&directory) {
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
-                Err(_) => return Err(format!("record missing: {flow}")),
+                Err(_) => return Err(format!("record missing: {flow}").into()),
                 Ok(metadata) if !metadata.is_dir() || metadata.file_type().is_symlink() => {
-                    return Err(format!("record missing: {flow}"));
+                    return Err(format!("record missing: {flow}").into());
                 }
                 Ok(_) => {}
             }
@@ -156,11 +157,11 @@ fn records(root: &Path, flows: &[String]) -> Result<String, String> {
             let metadata =
                 std::fs::symlink_metadata(&path).map_err(|_| format!("record missing: {flow}"))?;
             if !metadata.is_file() || metadata.file_type().is_symlink() {
-                return Err(format!("record missing: {flow}"));
+                return Err(format!("record missing: {flow}").into());
             }
             let bytes = std::fs::read(&path).map_err(|_| format!("record missing: {flow}"))?;
             if std::fs::read(&path).ok().as_deref() != Some(bytes.as_slice()) {
-                return Err(format!("record missing: {flow}"));
+                return Err(format!("record missing: {flow}").into());
             }
             let text = String::from_utf8(bytes).map_err(|_| format!("record missing: {flow}"))?;
             if !output.is_empty() && !output.ends_with('\n') {

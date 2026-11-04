@@ -1,6 +1,6 @@
 use crate::{
     generated::{Outcome, Query, Roles},
-    registry::{ExpandsSkills, SourceConfiguration},
+    registry::{CompositionError, ExpandsSkills, RegistryError, SourceConfiguration},
 };
 use nexus::{Admission, Changed, MemoryHandle, Nexus, Operating, Remembering, Signaling};
 use std::{future::Future, path::PathBuf};
@@ -39,6 +39,18 @@ impl Remembering for SkillMemory {
     }
 }
 pub struct CurriculumOperation;
+fn registry_outcome(error: RegistryError) -> Outcome {
+    match error {
+        RegistryError::Missing(module_identity) => Outcome::ModuleMissing(module_identity),
+        other => Outcome::Rejected(other.to_string()),
+    }
+}
+fn composition_outcome(error: CompositionError) -> Outcome {
+    match error {
+        CompositionError::Registry(error) => registry_outcome(error),
+        CompositionError::Rejected(error) => Outcome::Rejected(error),
+    }
+}
 impl Operating<SkillMemory> for CurriculumOperation {
     type Operation = Query;
     type Outcome = Outcome;
@@ -60,11 +72,11 @@ impl Operating<SkillMemory> for CurriculumOperation {
             match query {
                 Query::ResolveSkills(ids) => match registry.expand_skills(&ids) {
                     Ok(s) => Outcome::ResolvedSkills(s.into_iter().map(|m| m.name).collect()),
-                    Err(e) => Outcome::Rejected(e.to_string()),
+                    Err(e) => registry_outcome(e),
                 },
                 Query::ResolveSources(ids) => match registry.resolved_sources(&ids) {
                     Ok(s) => Outcome::ResolvedSources(s),
-                    Err(e) => Outcome::Rejected(e.to_string()),
+                    Err(e) => registry_outcome(e),
                 },
                 Query::ComposeStartup(selection) => {
                     let records_root = match std::env::var_os("CURRICULUM_RECORDS_DIR") {
@@ -73,13 +85,13 @@ impl Operating<SkillMemory> for CurriculumOperation {
                     };
                     match crate::startup::compose(&registry, &records_root, &selection) {
                         Ok(s) => Outcome::StartupComposed(s),
-                        Err(e) => Outcome::Rejected(e),
+                        Err(e) => composition_outcome(e),
                     }
                 }
                 Query::ComposeRole(selection) => match snapshot.roles {
                     Some(roles) => match crate::roles::compose(&registry, &roles, &selection) {
                         Ok(s) => Outcome::RoleComposed(s),
-                        Err(e) => Outcome::Rejected(e),
+                        Err(e) => composition_outcome(e),
                     },
                     None => Outcome::Rejected("no server-declared ID-only roles metadata".into()),
                 },
@@ -149,8 +161,9 @@ impl Nexus for CurriculumNexus {
 #[cfg(test)]
 mod tests {
     use crate::generated::{Outcome, Query};
+    use crate::registry::{CompositionError, RegistryError};
 
-    use super::CurriculumSignal;
+    use super::{CurriculumSignal, composition_outcome, registry_outcome};
     use nexus::Signaling;
 
     #[test]
@@ -161,6 +174,47 @@ mod tests {
         assert_eq!(
             CurriculumSignal.answer(Outcome::ResolvedSkills(vec!["spirit:core".into()])),
             Outcome::ResolvedSkills(vec!["spirit:core".into()])
+        );
+    }
+
+    #[test]
+    fn missing_registry_identity_is_a_typed_outcome() {
+        assert_eq!(
+            registry_outcome(RegistryError::Missing("vision:absent".into())),
+            Outcome::ModuleMissing("vision:absent".into())
+        );
+    }
+
+    #[test]
+    fn other_registry_errors_remain_generic_rejections() {
+        for (error, text) in [
+            (
+                RegistryError::Duplicate("vision:twice".into()),
+                "duplicate module vision:twice",
+            ),
+            (
+                RegistryError::Cycle("vision:cycle".into()),
+                "dependency cycle at vision:cycle",
+            ),
+            (
+                RegistryError::InvalidSource {
+                    path: "/fixture/source".into(),
+                    message: "unreadable".into(),
+                },
+                "invalid context source /fixture/source: unreadable",
+            ),
+        ] {
+            assert_eq!(registry_outcome(error), Outcome::Rejected(text.into()));
+        }
+    }
+
+    #[test]
+    fn missing_words_without_a_native_registry_error_stay_rejected() {
+        assert_eq!(
+            composition_outcome(CompositionError::Rejected(
+                "missing module vision:words-only".into()
+            )),
+            Outcome::Rejected("missing module vision:words-only".into())
         );
     }
 }
