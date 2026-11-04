@@ -148,9 +148,6 @@ fn records(root: &Path, flows: &[String]) -> Result<String, String> {
             topic_paths.sort();
             paths.extend(topic_paths);
         }
-        if paths.is_empty() {
-            return Err(format!("record missing: {flow}"));
-        }
         for path in paths {
             let metadata =
                 std::fs::symlink_metadata(&path).map_err(|_| format!("record missing: {flow}"))?;

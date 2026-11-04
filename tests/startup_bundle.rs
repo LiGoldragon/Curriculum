@@ -260,3 +260,34 @@ fn selected_raw_records_are_verified_in_flow_vision_notion_and_file_order() {
         Err("record missing: missing".into())
     );
 }
+
+#[test]
+fn selected_flow_with_no_nonarchive_records_contributes_empty_context() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (_, registry, mut selection) = fixture(tmp.path());
+    let flow = tmp.path().join("flows/empty");
+    fs::create_dir_all(flow.join("vision")).unwrap();
+    fs::create_dir_all(flow.join("notion")).unwrap();
+    fs::write(flow.join("vision/archive-old.md"), "ARCHIVED\n").unwrap();
+    fs::write(flow.join("notion/note.txt"), "NOT A RECORD\n").unwrap();
+    selection.flow_id_vector = vec!["empty".into()];
+
+    let result = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
+    assert!(result.records_text.is_empty());
+    assert_eq!(result.records_payload_sha256, digest(""));
+}
+
+#[test]
+fn malformed_selected_record_retains_a_typed_failure() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (_, registry, mut selection) = fixture(tmp.path());
+    let flow = tmp.path().join("flows/malformed/vision");
+    fs::create_dir_all(&flow).unwrap();
+    fs::write(flow.join("record.md"), [0xff]).unwrap();
+    selection.flow_id_vector = vec!["malformed".into()];
+
+    assert_eq!(
+        startup::compose(&registry, &tmp.path().join("flows"), &selection),
+        Err("record missing: malformed".into())
+    );
+}
