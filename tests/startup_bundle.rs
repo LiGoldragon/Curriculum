@@ -284,7 +284,9 @@ fn a_remembered_flow_with_no_records_contributes_nothing_and_refuses_nothing() {
 
     selection.flow_id_vector = vec!["../first".into()];
     assert_eq!(
-        startup::compose(&registry, &flows, &selection),
-        Err("record missing: ../first".into())
+        startup::compose(&registry, &flows, &selection)
+            .unwrap_err()
+            .to_string(),
+        "record missing: ../first"
     );
 }
