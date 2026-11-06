@@ -105,7 +105,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     }
     let response = invoke(
         &runtime,
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core intent:seat ] [ compensation:illustration ] [] }",
+        "ComposeStartup.{ { Field Publisher Terra } Claude [ spirit:core intent:seat ] [ compensation:illustration ] [] }",
     );
     assert!(
         response.status.success(),
@@ -130,8 +130,8 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         "RebuildSkills",
         "CheckSkills",
         "EditSkills.{ [] [] [] }",
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core intent:seat ] [ «/tmp/arbitrary.md» ] [] }",
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core intent:seat ] [ «inline prompt text» ] [] }",
+        "ComposeStartup.{ { Field Publisher Terra } Claude [ spirit:core intent:seat ] [ «/tmp/arbitrary.md» ] [] }",
+        "ComposeStartup.{ { Field Publisher Terra } Claude [ spirit:core intent:seat ] [ «inline prompt text» ] [] }",
     ] {
         assert!(!invoke(&runtime, old).status.success(), "accepted {old}");
     }
@@ -144,7 +144,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     .unwrap();
     let changed = invoke(
         &runtime,
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core intent:seat ] [ compensation:illustration ] [] }",
+        "ComposeStartup.{ { Field Publisher Terra } Claude [ spirit:core intent:seat ] [ compensation:illustration ] [] }",
     );
     assert!(
         changed.status.success(),

@@ -21,3 +21,11 @@ a path edit. Restart the Nexus after changing the root; `SkillMemory::open`
 loads the registry from the configured roots. Then send `RebuildSkills` to
 project that registry and role data. Do not send `EditSkills` paths from the
 previous root after switching roots.
+
+## Callers name their Model
+
+A caller metaflow is `{ Aspect Topic Model }`, as Flow 0.52.0 names an
+Address: its third word is one of Fable, Opus, Sonnet, Haiku, Astra, Sol, Luna
+or Terra. A Layer word is refused as an invalid metaflow address. Role caller
+allowlists in `roles.datom` name Models: comment-relay's caller is
+`{ Psyche core Sonnet }`.
