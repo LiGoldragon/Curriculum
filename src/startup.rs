@@ -17,7 +17,7 @@ pub fn compose(
         || !word(&caller.second_string)
         || !matches!(
             caller.third_string.as_str(),
-            "Primary" | "Secondary" | "Tertiary" | "Quaternary"
+            "Primary" | "Secondary" | "Tertiary" | "Quaternary" | "Fable" | "Opus" | "Sonnet" | "Haiku" | "Astra" | "Sol" | "Luna" | "Terra"
         )
     {
         return Err("invalid metaflow address".into());
