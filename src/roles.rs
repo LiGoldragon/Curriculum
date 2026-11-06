@@ -4,7 +4,7 @@ use crate::{
         ContextProvenance, RoleCallers, RoleComposition, RoleDefinition, RoleSelection, RoleTools,
         Roles, StartupPlacement,
     },
-    registry::{CompositionError, SkillRegistry, valid_id},
+    registry::{valid_id, valid_segment, CompositionError, SkillRegistry},
     startup_metadata::sha256,
 };
 
@@ -12,7 +12,7 @@ pub fn validate(roles: &Roles) -> Result<(), String> {
     let mut seen = std::collections::BTreeSet::new();
     for role in &roles.role_definition_vector {
         let surface = format!("{:?}", role.surface);
-        if !valid_id(&role.role_name)
+        if !valid_segment(&role.role_name)
             || !seen.insert((role.role_name.clone(), surface))
             || role.model_id.is_empty()
             || !role
@@ -104,9 +104,7 @@ pub fn compose(
         .cloned()
         .collect();
     // Deliberately exact: no dependency closure, universal module or ambient file.
-    let modules = registry
-        .resolved_exact_sources(&ids)
-        ?;
+    let modules = registry.resolved_exact_sources(&ids)?;
     let target = match role.surface {
         crate::generated::Surface::ClaudeAgent => crate::generated::Target::Claude,
         crate::generated::Surface::CodexAgent => crate::generated::Target::Codex,
