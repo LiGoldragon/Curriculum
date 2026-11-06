@@ -107,3 +107,41 @@ fn inline_paths_missing_ambiguous_roles_and_invalid_caller_tool_data_refuse() {
     d.role_definition_vector[0].context_modules.push(duplicate);
     assert!(roles::validate(&d).is_err());
 }
+
+#[test]
+fn declared_roles_accept_plain_names_and_model_callers() {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("roles.datom");
+    unsafe { std::env::set_var("CURRICULUM_ROLES_FILE", &path) };
+    let declared = roles::read_declared();
+    unsafe { std::env::remove_var("CURRICULUM_ROLES_FILE") };
+    let declared = declared.unwrap().unwrap();
+    assert!(roles::validate(&declared).is_ok());
+    assert!(declared
+        .role_definition_vector
+        .iter()
+        .all(|role| !role.role_name.contains(':')));
+    assert!(declared.role_definition_vector.iter().all(|role| {
+        std::iter::once(&role.description_module)
+            .chain(&role.context_modules)
+            .all(|module| module.contains(':'))
+    }));
+    assert!(declared.role_definition_vector.iter().any(|role| {
+        matches!(&role.role_callers, RoleCallers::Only(callers)
+            if callers.iter().any(|caller| caller.third_string == "Sonnet"))
+    }));
+}
+
+#[test]
+fn role_names_refuse_module_ids_and_malformed_segments() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (_, data, _) = fixture(tmp.path());
+    assert!(roles::validate(&data).is_ok());
+    for invalid in ["role:illustrator", "illustrator/name", ""] {
+        let mut changed = data.clone();
+        changed.role_definition_vector[0].role_name = invalid.into();
+        assert!(roles::validate(&changed).is_err(), "accepted {invalid:?}");
+    }
+    let mut changed = data;
+    changed.role_definition_vector[0].description_module = "illustrator-description".into();
+    assert!(roles::validate(&changed).is_err());
+}
