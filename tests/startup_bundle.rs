@@ -46,7 +46,7 @@ fn fixture(base: &std::path::Path) -> ([PathBuf; 3], SkillRegistry, StartupSelec
             caller_metaflow: CallerMetaflow {
                 first_string: "Field".into(),
                 second_string: "Publisher".into(),
-                third_string: "Quaternary".into(),
+                third_string: "Terra".into(),
             },
             system_modules: vec!["spirit:core".into(), "intent:seat".into()],
             user_modules: std::iter::once("vision:core".into()).chain(ids).collect(),
@@ -163,7 +163,7 @@ fn undeclared_shared_dependency_placement_refuses_instead_of_duplicate_injection
         caller_metaflow: CallerMetaflow {
             first_string: "Field".into(),
             second_string: "Publisher".into(),
-            third_string: "Quaternary".into(),
+            third_string: "Terra".into(),
         },
         system_modules: vec!["vision:system".into()],
         user_modules: vec!["compensation:user00".into()],
@@ -290,4 +290,29 @@ fn malformed_selected_record_retains_a_typed_failure() {
         startup::compose(&registry, &tmp.path().join("flows"), &selection),
         Err("record missing: malformed".into())
     );
+}
+
+/// A caller metaflow names its Model, as Flow's Address does: every Model is
+/// a caller, and a Layer word is no longer one.
+#[test]
+fn a_caller_metaflow_names_its_model_never_its_layer() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (_, registry, selection) = fixture(tmp.path());
+    for model in ["Fable", "Opus", "Sonnet", "Haiku", "Astra", "Sol", "Luna", "Terra"] {
+        let mut named = selection.clone();
+        named.caller_metaflow.third_string = model.into();
+        assert!(
+            startup::compose(&registry, &tmp.path().join("flows"), &named).is_ok(),
+            "{model} is a caller"
+        );
+    }
+    for layer in ["Primary", "Secondary", "Tertiary", "Quaternary"] {
+        let mut named = selection.clone();
+        named.caller_metaflow.third_string = layer.into();
+        assert_eq!(
+            startup::compose(&registry, &tmp.path().join("flows"), &named).err(),
+            Some("invalid metaflow address".to_owned()),
+            "{layer} is no caller"
+        );
+    }
 }

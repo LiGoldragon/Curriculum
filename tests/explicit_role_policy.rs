@@ -40,7 +40,7 @@ fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
             role_callers: RoleCallers::Only(vec![CallerMetaflow {
                 first_string: "Field".into(),
                 second_string: "Publisher".into(),
-                third_string: "Quaternary".into(),
+                third_string: "Terra".into(),
             }]),
         }],
     };

@@ -66,7 +66,7 @@ pub fn validate(roles: &Roles) -> Result<(), String> {
                     || !word(&caller.second_string)
                     || !matches!(
                         caller.third_string.as_str(),
-                        "Primary" | "Secondary" | "Tertiary" | "Quaternary"
+                        "Fable" | "Opus" | "Sonnet" | "Haiku" | "Astra" | "Sol" | "Luna" | "Terra"
                     )
                     || !seen.insert((
                         &caller.first_string,
