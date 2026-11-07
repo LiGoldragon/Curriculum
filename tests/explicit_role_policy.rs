@@ -26,16 +26,16 @@ fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
     .unwrap();
     let roles = Roles {
         role_definition_vector: vec![RoleDefinition {
-            role_name: "illustrator".into(),
+            role_name: RoleName("illustrator".into()),
             surface: Surface::ClaudeAgent,
-            model_id: "sonnet".into(),
+            model_id: ModelId("sonnet".into()),
             effort: Effort::Medium,
             permission: Permission::Unrestricted,
-            description_module: "role:illustrator-description".into(),
-            context_modules: vec![
-                "role:illustrator-svg".into(),
-                "compensation:illustration".into(),
-            ],
+            description_module: DescriptionModule(ModuleIdentity("role:illustrator-description".into())),
+            context_modules: ContextModules(vec![
+                ModuleIdentity("role:illustrator-svg".into()),
+                ModuleIdentity("compensation:illustration".into()),
+            ]),
             role_tools: RoleTools::Explicit(vec![]),
             role_callers: RoleCallers::Only(vec![CallerMetaflow {
                 first_string: "Field".into(),
@@ -48,7 +48,7 @@ fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
         registry,
         roles,
         RoleSelection {
-            role_name: "illustrator".into(),
+            role_name: RoleName("illustrator".into()),
             surface: Surface::ClaudeAgent,
         },
     )
@@ -58,17 +58,17 @@ fn role_uses_only_selected_authored_ids_and_preserves_policy_through_wire() {
     let tmp = tempfile::tempdir().unwrap();
     let (registry, data, selection) = fixture(tmp.path());
     let result = roles::compose(&registry, &data, &selection).unwrap();
-    assert_eq!(result.model_id, "sonnet");
+    assert_eq!(result.model_id.0, "sonnet");
     assert!(matches!(result.effort, Effort::Medium));
     assert!(matches!(&result.role_tools,RoleTools::Explicit(v) if v.is_empty()));
     assert!(
         matches!(&result.role_callers,RoleCallers::Only(v) if v.len()==1 && v[0].second_string=="Publisher")
     );
-    assert_eq!(result.context_text.matches("AUTHORED_RULES").count(), 1);
-    assert!(!result.context_text.contains("UNSELECTED_NOISE"));
+    assert_eq!(result.context_text.0.matches("AUTHORED_RULES").count(), 1);
+    assert!(!result.context_text.0.contains("UNSELECTED_NOISE"));
     assert_eq!(result.context_provenance_vector.len(), 3);
     assert_eq!(
-        result.context_provenance_vector[2].source_relative_path,
+        result.context_provenance_vector[2].source_relative_path.0,
         "compensation/illustration.md"
     );
     let outcome = Outcome::RoleComposed(result);
@@ -89,7 +89,7 @@ fn inline_paths_missing_ambiguous_roles_and_invalid_caller_tool_data_refuse() {
         "role:missing",
     ] {
         let mut d = data.clone();
-        d.role_definition_vector[0].context_modules = vec![value.into()];
+        d.role_definition_vector[0].context_modules = ContextModules(vec![ModuleIdentity(value.into())]);
         assert!(roles::compose(&registry, &d, &selection).is_err());
     }
     let mut d = data.clone();
@@ -103,7 +103,7 @@ fn inline_paths_missing_ambiguous_roles_and_invalid_caller_tool_data_refuse() {
     d.role_definition_vector[0].role_callers = RoleCallers::Only(vec![]);
     assert!(roles::validate(&d).is_err());
     let mut d = data.clone();
-    let duplicate = d.role_definition_vector[0].context_modules[0].clone();
-    d.role_definition_vector[0].context_modules.push(duplicate);
+    let duplicate = d.role_definition_vector[0].context_modules.0[0].clone();
+    d.role_definition_vector[0].context_modules.0.push(duplicate);
     assert!(roles::validate(&d).is_err());
 }

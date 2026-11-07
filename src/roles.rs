@@ -1,8 +1,9 @@
 //! Role metadata contains IDs only. Authored text is resolved by the same registry.
 use crate::{
     generated::{
-        ContextProvenance, RoleCallers, RoleComposition, RoleDefinition, RoleSelection, RoleTools,
-        Roles, StartupPlacement,
+        ContextPayloadSha256, ContextProvenance, ContextText, DescriptionPayloadSha256, DescriptionText,
+        RenderedSha256, RoleCallers, RoleComposition, RoleDefinition, RoleSelection, RoleTools, Roles,
+        StartupPlacement,
     },
     registry::{SkillRegistry, valid_id, valid_segment},
     startup_metadata::sha256,
@@ -12,23 +13,24 @@ pub fn validate(roles: &Roles) -> Result<(), String> {
     let mut seen = std::collections::BTreeSet::new();
     for role in &roles.role_definition_vector {
         let surface = format!("{:?}", role.surface);
-        if !valid_segment(&role.role_name)
-            || !seen.insert((role.role_name.clone(), surface))
-            || role.model_id.is_empty()
+        if !valid_segment(&role.role_name.0)
+            || !seen.insert((role.role_name.0.clone(), surface))
+            || role.model_id.0.is_empty()
             || !role
                 .model_id
+                .0
                 .bytes()
                 .all(|b| b.is_ascii_alphanumeric() || b".-_".contains(&b))
         {
             return Err("invalid or duplicate role metadata".into());
         }
         let mut ids = std::collections::BTreeSet::new();
-        for id in std::iter::once(&role.description_module).chain(&role.context_modules) {
-            if !valid_id(id) || !ids.insert(id) {
+        for id in std::iter::once(&role.description_module.0).chain(&role.context_modules.0) {
+            if !valid_id(&id.0) || !ids.insert(&id.0) {
                 return Err("invalid or duplicate role module ID".into());
             }
         }
-        if role.context_modules.is_empty() {
+        if role.context_modules.0.is_empty() {
             return Err("role context must not be empty".into());
         }
         if let RoleTools::Explicit(tools) = &role.role_tools {
@@ -99,9 +101,9 @@ pub fn compose(
         .iter()
         .find(|r| r.role_name == selection.role_name && r.surface == selection.surface)
         .ok_or("unknown role/surface")?;
-    let ids: Vec<_> = std::iter::once(&role.description_module)
-        .chain(&role.context_modules)
-        .cloned()
+    let ids: Vec<String> = std::iter::once(&role.description_module.0)
+        .chain(&role.context_modules.0)
+        .map(|id| id.0.clone())
         .collect();
     // Deliberately exact: no dependency closure, universal module or ambient file.
     let modules = registry
@@ -119,12 +121,12 @@ pub fn compose(
     let description_text = rendered[0].clone();
     let mut context_text = format!(
         "These are your skills, given here; do not reload them.\n\nModule IDs: {}\n",
-        role.context_modules.join(", ")
+        role.context_modules.0.iter().map(|id| id.0.as_str()).collect::<Vec<_>>().join(", ")
     );
     for (module, body) in modules.iter().zip(&rendered).skip(1) {
         context_text.push_str(&format!(
             "\n<!-- module: {} -->\n{}\n<!-- end-module: {} -->\n",
-            module.module_identity, body, module.module_identity
+            module.module_identity.0, body, module.module_identity.0
         ));
     }
     let provenance = modules
@@ -137,7 +139,7 @@ pub fn compose(
             source_relative_path: m.source_relative_path,
             source_sha256: m.source_sha256,
             body_sha256: m.body_sha256,
-            rendered_sha256: sha256(rendered[ordinal].as_bytes()),
+            rendered_sha256: RenderedSha256(sha256(rendered[ordinal].as_bytes())),
             startup_placement: StartupPlacement::System,
             integer: ordinal as i64,
         })
@@ -148,10 +150,10 @@ pub fn compose(
         model_id: role.model_id.clone(),
         effort: role.effort.clone(),
         permission: role.permission.clone(),
-        description_payload_sha256: sha256(description_text.as_bytes()),
-        context_payload_sha256: sha256(context_text.as_bytes()),
-        description_text,
-        context_text,
+        description_payload_sha256: DescriptionPayloadSha256(sha256(description_text.as_bytes())),
+        context_payload_sha256: ContextPayloadSha256(sha256(context_text.as_bytes())),
+        description_text: DescriptionText(description_text),
+        context_text: ContextText(context_text),
         role_tools: role.role_tools.clone(),
         role_callers: role.role_callers.clone(),
         context_provenance_vector: provenance,
@@ -170,9 +172,7 @@ pub fn read_declared() -> Result<Option<Roles>, String> {
         Potential::<crate::generated::RolesDocument>::from(text)
             .actualize(&mut Budget {
                 remaining: 1_048_576,
-                reader: ReaderBudget {
-                    remaining: 1_048_576,
-                },
+                reader: ReaderBudget::try_from(1_048_576).expect("a budget that fits"),
                 depth: 0,
                 maximum_depth: 1024,
             })

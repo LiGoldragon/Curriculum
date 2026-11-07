@@ -1,7 +1,11 @@
 //! In-memory startup composition from the server's three authored repositories.
 //! Callers supply module IDs and a metaflow address, never paths or text.
 use crate::{
-    generated::{ContextProvenance, StartupComposition, StartupPlacement, StartupSelection},
+    generated::{
+        ContextProvenance, RecordsPayloadSha256, RecordsText, RenderedSha256, StartupComposition,
+        StartupPlacement, StartupSelection, SystemPayloadSha256, SystemText, UserPayloadSha256,
+        UserText,
+    },
     registry::{ExpandsSkills, SkillRegistry},
     startup_metadata::{instructions, sha256},
 };
@@ -24,26 +28,27 @@ pub fn compose(
     }
     let mut explicit = BTreeSet::new();
     for (names, system) in [
-        (&selection.system_modules, true),
-        (&selection.user_modules, false),
+        (&selection.system_modules.0, true),
+        (&selection.user_modules.0, false),
     ] {
         for name in names {
-            if !identifier(name) || !explicit.insert(name.clone()) {
+            if !identifier(&name.0) || !explicit.insert(name.0.clone()) {
                 return Err("invalid, duplicate or cross-placement module ID".into());
             }
-            if system != system_module(name) {
-                return Err(format!("module has the wrong startup placement: {name}"));
+            if system != system_module(&name.0) {
+                return Err(format!("module has the wrong startup placement: {}", name.0));
             }
         }
     }
     if explicit.is_empty() {
         return Err("startup requires at least one authored module".into());
     }
-    let roots: Vec<_> = selection
+    let roots: Vec<String> = selection
         .system_modules
+        .0
         .iter()
-        .chain(&selection.user_modules)
-        .cloned()
+        .chain(&selection.user_modules.0)
+        .map(|id| id.0.clone())
         .collect();
     let resolved = registry
         .resolved_sources(&roots)
@@ -74,7 +79,7 @@ pub fn compose(
             source_relative_path: module.source_relative_path,
             source_sha256: module.source_sha256,
             body_sha256: module.body_sha256,
-            rendered_sha256,
+            rendered_sha256: RenderedSha256(rendered_sha256),
             startup_placement: if is_system {
                 StartupPlacement::System
             } else {
@@ -90,14 +95,15 @@ pub fn compose(
     }
     let system_text = render(&system);
     let user_text = render(&user);
-    let records_text = records(records_root, &selection.flow_id_vector)?;
+    let flows: Vec<String> = selection.flow_id_vector.iter().map(|flow| flow.0.clone()).collect();
+    let records_text = records(records_root, &flows)?;
     Ok(StartupComposition {
-        system_payload_sha256: sha256(system_text.as_bytes()),
-        user_payload_sha256: sha256(user_text.as_bytes()),
-        records_payload_sha256: sha256(records_text.as_bytes()),
-        system_text,
-        user_text,
-        records_text,
+        system_payload_sha256: SystemPayloadSha256(sha256(system_text.as_bytes())),
+        user_payload_sha256: UserPayloadSha256(sha256(user_text.as_bytes())),
+        records_payload_sha256: RecordsPayloadSha256(sha256(records_text.as_bytes())),
+        system_text: SystemText(system_text),
+        user_text: UserText(user_text),
+        records_text: RecordsText(records_text),
         context_provenance_vector: provenance,
     })
 }

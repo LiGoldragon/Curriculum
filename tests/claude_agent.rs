@@ -9,9 +9,7 @@ fn declared_roles() -> Roles {
         Potential::<RolesDocument>::from(include_str!("../roles.datom"))
             .actualize(&mut Budget {
                 remaining: 1_048_576,
-                reader: ReaderBudget {
-                    remaining: 1_048_576,
-                },
+                reader: ReaderBudget::try_from(1_048_576).expect("a budget that fits"),
                 depth: 0,
                 maximum_depth: 1024,
             })
@@ -58,24 +56,24 @@ fn composition(role_name: &str) -> RoleComposition {
     .unwrap();
     let data = Roles {
         role_definition_vector: vec![RoleDefinition {
-            role_name: role_name.into(),
+            role_name: RoleName(role_name.into()),
             surface: Surface::ClaudeAgent,
             model_id: if role_name == "book-page" {
-                "opus".into()
+                ModelId("opus".into())
             } else {
-                "sonnet".into()
+                ModelId("sonnet".into())
             },
             effort: Effort::Medium,
             permission: Permission::Unrestricted,
-            description_module: "role:book-description".into(),
+            description_module: DescriptionModule(ModuleIdentity("role:book-description".into())),
             context_modules: if matches!(role_name, "general-purpose" | "book-author") {
-                vec![
-                    "role:book-body".into(),
-                    "vision:book".into(),
-                    "compensation:book-making".into(),
-                ]
+                ContextModules(vec![
+                    ModuleIdentity("role:book-body".into()),
+                    ModuleIdentity("vision:book".into()),
+                    ModuleIdentity("compensation:book-making".into()),
+                ])
             } else {
-                vec!["role:book-body".into()]
+                ContextModules(vec![ModuleIdentity("role:book-body".into())])
             },
             role_tools: if matches!(role_name, "general-purpose" | "book-author") {
                 RoleTools::Inherit
@@ -106,7 +104,7 @@ fn composition(role_name: &str) -> RoleComposition {
         &registry,
         &data,
         &RoleSelection {
-            role_name: role_name.into(),
+            role_name: RoleName(role_name.into()),
             surface: Surface::ClaudeAgent,
         },
     )
@@ -118,7 +116,7 @@ fn renders_current_composition_without_description_frontmatter_injection() {
     let role = composition("book");
     let output = role.claude_agent_markdown().unwrap();
     let (header, body) = output.split_once("\n---\n\n").unwrap();
-    assert_eq!(body, role.context_text);
+    assert_eq!(body, role.context_text.0);
     assert!(header.contains(
         "model: sonnet\neffort: medium\ntools: [Read, Bash, Agent, Artifact, ArtifactComments]"
     ));
@@ -136,7 +134,7 @@ fn book_page_renders_the_exact_declared_native_contract() {
     let role = composition("book-page");
     let output = role.claude_agent_markdown().unwrap();
     let (header, body) = output.split_once("\n---\n\n").unwrap();
-    assert_eq!(body, role.context_text);
+    assert_eq!(body, role.context_text.0);
     assert!(header.contains("name: book-page\n"));
     assert!(header.contains(
         "model: opus\neffort: medium\ntools: [Read, Bash, Agent, ToolSearch, ArtifactData, ArtifactComments]"
@@ -150,10 +148,10 @@ fn book_native_renderers_match_the_declared_role_contracts() {
     let book = roles
         .role_definition_vector
         .iter()
-        .find(|role| role.role_name == "book" && role.surface == Surface::ClaudeAgent)
+        .find(|role| role.role_name.0 == "book" && role.surface == Surface::ClaudeAgent)
         .unwrap();
-    assert_eq!(book.description_module, "role:book-description");
-    assert_eq!(book.model_id, "sonnet");
+    assert_eq!(book.description_module.0.0, "role:book-description");
+    assert_eq!(book.model_id.0, "sonnet");
     assert_eq!(
         book.role_tools,
         RoleTools::Explicit(
@@ -165,10 +163,10 @@ fn book_native_renderers_match_the_declared_role_contracts() {
     let page = roles
         .role_definition_vector
         .iter()
-        .find(|role| role.role_name == "book-page" && role.surface == Surface::ClaudeAgent)
+        .find(|role| role.role_name.0 == "book-page" && role.surface == Surface::ClaudeAgent)
         .unwrap();
-    assert_eq!(page.description_module, "role:book-page-description");
-    assert_eq!(page.model_id, "opus");
+    assert_eq!(page.description_module.0.0, "role:book-page-description");
+    assert_eq!(page.model_id.0, "opus");
     assert_eq!(
         page.role_tools,
         RoleTools::Explicit(
@@ -194,7 +192,7 @@ fn refuses_restricted_callers_other_roles_and_changed_or_corrupt_contracts() {
     r.role_callers = RoleCallers::Only(vec![]);
     variants.push(r);
     let mut r = original.clone();
-    r.role_name = "illustrator".into();
+    r.role_name = RoleName("illustrator".into());
     variants.push(r);
     let mut r = original.clone();
     r.role_tools = RoleTools::Explicit(vec![]);
@@ -203,7 +201,7 @@ fn refuses_restricted_callers_other_roles_and_changed_or_corrupt_contracts() {
     r.role_tools = RoleTools::Inherit;
     variants.push(r);
     let mut r = original.clone();
-    r.model_id = "opus".into();
+    r.model_id = ModelId("opus".into());
     variants.push(r);
     let mut r = original.clone();
     r.effort = Effort::High;
@@ -215,10 +213,10 @@ fn refuses_restricted_callers_other_roles_and_changed_or_corrupt_contracts() {
     r.surface = Surface::CodexAgent;
     variants.push(r);
     let mut r = original.clone();
-    r.context_text.push_str("TAMPERED");
+    r.context_text.0.push_str("TAMPERED");
     variants.push(r);
     let mut r = original.clone();
-    r.description_text.push_str("TAMPERED");
+    r.description_text.0.push_str("TAMPERED");
     variants.push(r);
     let mut r = original;
     r.context_provenance_vector.clear();
@@ -233,7 +231,7 @@ fn illustrator_keeps_empty_tools_and_exact_composed_body() {
     let role = composition("illustrator");
     let output = role.claude_agent_markdown().unwrap();
     let (header, body) = output.split_once("\n---\n\n").unwrap();
-    assert_eq!(body, role.context_text);
+    assert_eq!(body, role.context_text.0);
     assert!(header.contains("name: illustrator\n"));
     assert!(header.contains("model: sonnet\neffort: medium\ntools: []"));
     assert!(!header.contains("Agent"));
@@ -252,7 +250,7 @@ fn illustrator_keeps_empty_tools_and_exact_composed_body() {
     r.role_callers = RoleCallers::Only(vec![]);
     variants.push(r);
     let mut r = role.clone();
-    r.model_id = "opus".into();
+    r.model_id = ModelId("opus".into());
     variants.push(r);
     let mut r = role.clone();
     r.effort = Effort::High;
@@ -264,16 +262,16 @@ fn illustrator_keeps_empty_tools_and_exact_composed_body() {
     r.surface = Surface::CodexAgent;
     variants.push(r);
     let mut r = role.clone();
-    r.context_text.push_str("TAMPERED");
+    r.context_text.0.push_str("TAMPERED");
     variants.push(r);
     let mut r = role.clone();
-    r.description_payload_sha256 = "0".repeat(64);
+    r.description_payload_sha256 = DescriptionPayloadSha256("0".repeat(64));
     variants.push(r);
     let mut r = role.clone();
     r.context_provenance_vector.clear();
     variants.push(r);
     let mut r = role;
-    r.role_name = "unknown".into();
+    r.role_name = RoleName("unknown".into());
     variants.push(r);
     for role in variants {
         assert!(role.claude_agent_markdown().is_err());
@@ -313,7 +311,7 @@ fn cli_fetches_only_the_id_query_and_emits_verified_matching_definition() {
             assert_eq!(
                 rkyv::from_bytes::<Query, rkyv::rancor::Error>(&bytes).unwrap(),
                 Query::ComposeRole(RoleSelection {
-                    role_name: requested.into(),
+                    role_name: RoleName(requested.into()),
                     surface: Surface::ClaudeAgent
                 })
             );
@@ -362,7 +360,7 @@ fn book_writing_native_definitions_carry_both_instruction_bodies_once() {
         let (header, body) = text.split_once("\n---\n\n").unwrap();
         assert!(header.contains(&format!("name: {name}\n")));
         assert!(!header.lines().any(|l| l.starts_with("tools:")));
-        assert_eq!(body, role.context_text);
+        assert_eq!(body, role.context_text.0);
         for expected in ["BOOK_VISION_BODY", "BOOK_CRYSTALLIZATION_BODY"] {
             assert_eq!(body.matches(expected).count(), 1);
         }
@@ -370,7 +368,7 @@ fn book_writing_native_definitions_carry_both_instruction_bodies_once() {
             let provenance: Vec<_> = role
                 .context_provenance_vector
                 .iter()
-                .filter(|p| p.module_identity == id)
+                .filter(|p| p.module_identity.0 == id)
                 .collect();
             assert_eq!(provenance.len(), 1);
             assert_eq!(provenance[0].startup_placement, StartupPlacement::System);

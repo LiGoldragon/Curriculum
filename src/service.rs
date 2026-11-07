@@ -1,5 +1,5 @@
 use crate::{
-    generated::{Outcome, Query, Roles},
+    generated::{ModuleIdentity, Outcome, Query, Roles},
     registry::{ExpandsSkills, SourceConfiguration},
 };
 use nexus::{Admission, Changed, MemoryHandle, Nexus, Operating, Remembering, Signaling};
@@ -58,11 +58,11 @@ impl Operating<SkillMemory> for CurriculumOperation {
                 Err(error) => return Outcome::Rejected(error),
             };
             match query {
-                Query::ResolveSkills(ids) => match registry.expand_skills(&ids) {
-                    Ok(s) => Outcome::ResolvedSkills(s.into_iter().map(|m| m.name).collect()),
+                Query::ResolveSkills(ids) => match registry.expand_skills(&names(&ids)) {
+                    Ok(s) => Outcome::ResolvedSkills(s.into_iter().map(|m| ModuleIdentity(m.name)).collect()),
                     Err(e) => Outcome::Rejected(e.to_string()),
                 },
-                Query::ResolveSources(ids) => match registry.resolved_sources(&ids) {
+                Query::ResolveSources(ids) => match registry.resolved_sources(&names(&ids)) {
                     Ok(s) => Outcome::ResolvedSources(s),
                     Err(e) => Outcome::Rejected(e.to_string()),
                 },
@@ -148,19 +148,23 @@ impl Nexus for CurriculumNexus {
 
 #[cfg(test)]
 mod tests {
-    use crate::generated::{Outcome, Query};
+    use crate::generated::{ModuleIdentity, Outcome, Query};
 
     use super::CurriculumSignal;
     use nexus::Signaling;
 
     #[test]
     fn signal_decodes_and_answers_only_archived_types() {
-        let query = Query::ResolveSkills(vec!["knowledge:main-flow".into()]);
+        let query = Query::ResolveSkills(vec![ModuleIdentity("knowledge:main-flow".into())]);
         let encoded = rkyv::to_bytes::<rkyv::rancor::Error>(&query).expect("archive query");
         assert_eq!(CurriculumSignal.decode(&encoded), Some(query));
         assert_eq!(
-            CurriculumSignal.answer(Outcome::ResolvedSkills(vec!["spirit:core".into()])),
-            Outcome::ResolvedSkills(vec!["spirit:core".into()])
+            CurriculumSignal.answer(Outcome::ResolvedSkills(vec![ModuleIdentity("spirit:core".into())])),
+            Outcome::ResolvedSkills(vec![ModuleIdentity("spirit:core".into())])
         );
     }
+}
+
+fn names(ids: &[ModuleIdentity]) -> Vec<String> {
+    ids.iter().map(|id| id.0.clone()).collect()
 }

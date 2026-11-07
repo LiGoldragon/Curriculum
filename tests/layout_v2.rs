@@ -31,13 +31,13 @@ fn source_api_exposes_registry_address_and_declared_placement() {
     let ids = vec!["compensation:illustration".into()];
     let resolved = registry.resolved_sources(&ids).unwrap();
     assert_eq!(resolved.len(), 2);
-    assert_eq!(resolved[1].repository_name, "field-belief");
+    assert_eq!(resolved[1].repository_name.0, "field-belief");
     assert_eq!(
-        resolved[1].source_relative_path,
+        resolved[1].source_relative_path.0,
         "compensation/illustration.md"
     );
-    assert_eq!(resolved[1].source_revision, "c".repeat(40));
-    assert_eq!(resolved[1].declared_placement, "system");
+    assert_eq!(resolved[1].source_revision.0, "c".repeat(40));
+    assert_eq!(resolved[1].declared_placement.0, "system");
     assert_eq!(resolved[1].string, "Exact approved text.\n");
     assert_eq!(registry.resolve_exact(&ids).unwrap().len(), 1);
 }
@@ -59,7 +59,7 @@ fn a_dependency_reads_type_subject_and_type_hyphen_subject_as_one_id() {
         .unwrap();
     let ids: Vec<&str> = resolved
         .iter()
-        .map(|module| module.module_identity.as_str())
+        .map(|module| module.module_identity.0.as_str())
         .collect();
     assert_eq!(
         ids,
@@ -148,24 +148,24 @@ fn registry_workspace_projection_updates_plain_target_directories() {
     let first = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
     let published = projector.project(&first).unwrap();
     assert_eq!(
-        published.deployment_destination,
+        published.deployment_destination.0,
         fs::canonicalize(&workspace).unwrap().to_string_lossy()
     );
     assert_eq!(published.repository_revision_vector.len(), 3);
     assert_eq!(
-        published.repository_revision_vector[0].repository_name,
+        published.repository_revision_vector[0].repository_name.0,
         "psyche-context"
     );
     assert_eq!(
-        published.repository_revision_vector[0].source_revision,
+        published.repository_revision_vector[0].source_revision.0,
         revisions()[0]
     );
     assert_eq!(
-        published.renderer_version,
+        published.renderer_version.0,
         "curriculum-workspace-projector-v1"
     );
-    assert_eq!(published.published_inventory_digest.len(), 64);
-    assert_eq!(published.published_content_digest.len(), 64);
+    assert_eq!(published.published_inventory_digest.0.len(), 64);
+    assert_eq!(published.published_content_digest.0.len(), 64);
 
     assert!(
         fs::read_to_string(workspace.join(".agents/skills/knowledge:topic/SKILL.md"))

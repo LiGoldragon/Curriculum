@@ -13,7 +13,7 @@ impl RendersClaudeAgent for RoleComposition {
         if self.surface != Surface::ClaudeAgent || self.role_callers != RoleCallers::Any {
             return Err("native rendering requires an Any-caller Claude role".into());
         }
-        let (expected_model, expected_tools, tools_header) = match self.role_name.as_str() {
+        let (expected_model, expected_tools, tools_header) = match self.role_name.0.as_str() {
             "book" => (
                 "sonnet",
                 RoleTools::Explicit(vec![
@@ -41,7 +41,7 @@ impl RendersClaudeAgent for RoleComposition {
             "general-purpose" | "book-author" => ("sonnet", RoleTools::Inherit, ""),
             _ => return Err("unsupported native role".into()),
         };
-        if self.model_id != expected_model
+        if self.model_id.0 != expected_model
             || self.effort != Effort::Medium
             || self.permission != Permission::Unrestricted
             || self.role_tools != expected_tools
@@ -50,16 +50,16 @@ impl RendersClaudeAgent for RoleComposition {
                 "unsupported native role metadata; qualify a changed contract first".into(),
             );
         }
-        if sha256(self.description_text.as_bytes()) != self.description_payload_sha256
-            || sha256(self.context_text.as_bytes()) != self.context_payload_sha256
+        if sha256(self.description_text.0.as_bytes()) != self.description_payload_sha256.0
+            || sha256(self.context_text.0.as_bytes()) != self.context_payload_sha256.0
             || self.context_provenance_vector.is_empty()
         {
             return Err("composed role payload verification failed".into());
         }
-        let description = self.description_text.yaml_string();
+        let description = self.description_text.0.yaml_string();
         Ok(format!(
             "---\nname: {}\ndescription: {description}\nmodel: {expected_model}\neffort: medium\n{tools_header}---\n\n{}",
-            self.role_name, self.context_text,
+            self.role_name.0, self.context_text.0,
         ))
     }
 }
