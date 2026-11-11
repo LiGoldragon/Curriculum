@@ -107,3 +107,22 @@ fn inline_paths_missing_ambiguous_roles_and_invalid_caller_tool_data_refuse() {
     d.role_definition_vector[0].context_modules.push(duplicate);
     assert!(roles::validate(&d).is_err());
 }
+#[test]
+fn a_role_naming_a_module_the_belief_repositories_lack_is_refused_naming_the_module() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (registry, data, selection) = fixture(tmp.path());
+    let mut d = data.clone();
+    d.role_definition_vector[0]
+        .context_modules
+        .push("knowledge:book-making".into());
+    assert_eq!(
+        roles::compose(&registry, &d, &selection).unwrap_err(),
+        "missing module knowledge:book-making"
+    );
+    let mut d = data;
+    d.role_definition_vector[0].description_module = "role:absent-description".into();
+    assert_eq!(
+        roles::compose(&registry, &d, &selection).unwrap_err(),
+        "missing module role:absent-description"
+    );
+}
