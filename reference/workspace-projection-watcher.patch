@@ -2,7 +2,9 @@ Workspace projection watcher: uncommitted work saved from branch 28efec-registry
 
 Base: Curriculum bfcb64533f4e5da0a3e6da5a47da3f07907e3283 (the branch head, which
 is not on main). Apply with `git apply reference/workspace-projection-watcher.patch`
-on that commit. Saved 2026-11-10 by flow 5e88e5 when the branch was closed; the
+on that commit, or on 31c7984, which differs from it only in roles.datom. On main
+c9b9874 the watcher hunks apply as they stand:
+`git apply --include='src/registry.rs' --include='Cargo.*' --include='tests/layout_v2.rs'`. Saved 2026-11-10 by flow 5e88e5 when the branch was closed; the
 work it starts is the bead that names this file.
 
 What it holds, as it stood in the checkout:
