@@ -2,7 +2,10 @@ use std::process::ExitCode;
 
 use curriculum::{
     claude_agent::RendersClaudeAgent,
-    client::{ConstructsCurriculumClient, CurriculumClient, PresentsOutcome, RunsClient},
+    client::{
+        ConstructsCurriculumClient, CurriculumClient, NamesRequestedRole, PresentsOutcome,
+        RunsClient,
+    },
     generated::Outcome,
 };
 
@@ -11,37 +14,25 @@ fn main() -> ExitCode {
     let render_agent = arguments
         .first()
         .is_some_and(|a| a == "--claude-agent-markdown");
-    let mut requested_role = None;
     if render_agent {
         arguments.remove(0);
-        requested_role = match arguments.as_slice() {
-            [request] if request == "ComposeRole.{ book ClaudeAgent }" => Some("book"),
-            [request] if request == "ComposeRole.{ book-page ClaudeAgent }" => Some("book-page"),
-            [request] if request == "ComposeRole.{ general-purpose ClaudeAgent }" => {
-                Some("general-purpose")
-            }
-            [request] if request == "ComposeRole.{ book-author ClaudeAgent }" => {
-                Some("book-author")
-            }
-            [request] if request == "ComposeRole.{ illustrator ClaudeAgent }" => {
-                Some("illustrator")
-            }
-            _ => {
-                eprintln!(
-                    "expected --claude-agent-markdown with an exact supported ClaudeAgent ComposeRole request"
-                );
-                return ExitCode::FAILURE;
-            }
-        };
+    }
+    let client = CurriculumClient::from_arguments(arguments);
+    let requested_role = render_agent
+        .then(|| client.requested_claude_role())
+        .flatten();
+    if render_agent && requested_role.is_none() {
+        eprintln!("expected --claude-agent-markdown with one ClaudeAgent ComposeRole request");
+        return ExitCode::FAILURE;
     }
 
-    match CurriculumClient::from_arguments(arguments).run() {
+    match client.run() {
         Ok(Outcome::Rejected(error)) => {
             eprintln!("{error}");
             ExitCode::FAILURE
         }
         Ok(Outcome::RoleComposed(role))
-            if render_agent && requested_role != Some(role.role_name.as_str()) =>
+            if render_agent && requested_role.as_deref() != Some(role.role_name.as_str()) =>
         {
             eprintln!("Curriculum Nexus returned a different role from the requested role");
             ExitCode::FAILURE

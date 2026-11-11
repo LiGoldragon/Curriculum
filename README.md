@@ -3,19 +3,21 @@
 A versioned context registry and Nexus for psyche-belief, mind-belief and field-belief. It resolves module IDs and composes startup and role prompts in memory. See ARCHITECTURE.md for the declared roots, wire contract, placement, hashes and guard boundaries; curriculum.ethos is the authoritative typed schema.
 
 There is no caller-selected context file, inline prompt, legacy skills directory, file projection or implicit context source. Flow requests startup composition; launcher adapters do not implement another composer. Consumers must deploy the schema, generated code, immutable source cohort and ID-only role declarations together. Existing live cohorts remain pinned until the replacement is checked.
-# Current Claude book definition
+# Claude agent definitions
 
-The current producer can render its registry-composed book role to stdout:
+The producer renders any registry-composed Claude role to stdout:
 
-    curriculum --claude-agent-markdown 'ComposeRole.{ book ClaudeAgent }'
+    curriculum --claude-agent-markdown 'ComposeRole.{ comment-relay ClaudeAgent }'
 
-The deployment owner installs this output as generated `.claude/agents/book.md`
-within its existing transaction. The producer writes no files and accepts no
-prompt path or inline prose. It checks returned payload hashes and requires the
-current book model, effort and explicit tool list. Native permission mode remains
-the caller's; this output grants no permission bypass.
+The deployment owner installs this output as generated
+`.claude/agents/<role>.md` within its existing transaction. The producer writes
+no files and accepts no prompt path or inline prose. It checks returned payload
+hashes and renders the model, effort and tool list the role definition declares;
+an `Inherit` role carries no tools line. Native permission mode remains the
+caller's; this output grants no permission bypass.
 
-This bounded renderer refuses other roles, restricted callers, empty or inherited
-tools and changed book metadata. It does not enable Illustrator dispatch or
-revive retired projection. The deployment owner must verify native loading and
+The renderer refuses other surfaces, a restricted role that inherits tools, and
+a role, model or tool name outside ASCII letters, digits, `-`, `_` and `.`. A
+caller policy is not carried into the native file: a native definition does not
+authenticate its caller. The deployment owner must verify native loading and
 tool resolution; rendering alone is not dispatch evidence.

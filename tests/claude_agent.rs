@@ -90,6 +90,14 @@ fn composition(role_name: &str) -> RoleComposition {
                     "ArtifactData".into(),
                     "ArtifactComments".into(),
                 ])
+            } else if role_name == "comment-relay" {
+                RoleTools::Explicit(vec![
+                    "Read".into(),
+                    "Bash".into(),
+                    "ToolSearch".into(),
+                    "ArtifactData".into(),
+                    "ArtifactComments".into(),
+                ])
             } else {
                 RoleTools::Explicit(vec![
                     "Read".into(),
@@ -99,7 +107,15 @@ fn composition(role_name: &str) -> RoleComposition {
                     "ArtifactComments".into(),
                 ])
             },
-            role_callers: RoleCallers::Any,
+            role_callers: if role_name == "comment-relay" {
+                RoleCallers::Only(vec![CallerMetaflow {
+                    first_string: "Psyche".into(),
+                    second_string: "core".into(),
+                    third_string: "Tertiary".into(),
+                }])
+            } else {
+                RoleCallers::Any
+            },
         }],
     };
     roles::compose(
@@ -187,38 +203,70 @@ fn book_native_renderers_match_the_declared_role_contracts() {
 }
 
 #[test]
-fn refuses_restricted_callers_other_roles_and_changed_or_corrupt_contracts() {
+fn renders_model_effort_tools_and_callers_from_the_composition() {
+    let mut role = composition("book");
+    role.model_id = "opus".into();
+    role.effort = Effort::High;
+    role.permission = Permission::Restricted;
+    role.role_callers = RoleCallers::Only(vec![]);
+    let output = role.claude_agent_markdown().unwrap();
+    let (header, body) = output.split_once("\n---\n\n").unwrap();
+    assert_eq!(body, role.context_text);
+    assert!(header.contains(
+        "model: opus\neffort: high\ntools: [Read, Bash, Agent, Artifact, ArtifactComments]"
+    ));
+    for (effort, rendered) in [
+        (Effort::Low, "effort: low\n"),
+        (Effort::Medium, "effort: medium\n"),
+        (Effort::Xhigh, "effort: xhigh\n"),
+    ] {
+        let mut role = role.clone();
+        role.effort = effort;
+        assert!(role.claude_agent_markdown().unwrap().contains(rendered));
+    }
+    let mut inherit = composition("book");
+    inherit.role_tools = RoleTools::Inherit;
+    let output = inherit.claude_agent_markdown().unwrap();
+    assert!(!output.lines().any(|l| l.starts_with("tools:")));
+    let relay = composition("comment-relay");
+    let output = relay.claude_agent_markdown().unwrap();
+    assert!(output.starts_with("---\nname: comment-relay\n"));
+    assert!(output.contains(
+        "model: sonnet\neffort: medium\ntools: [Read, Bash, ToolSearch, ArtifactData, ArtifactComments]\n---\n\n"
+    ));
+}
+
+#[test]
+fn refuses_other_surfaces_unverified_payloads_and_unplain_header_names() {
     let original = composition("book");
     let mut variants = Vec::new();
     let mut r = original.clone();
-    r.role_callers = RoleCallers::Only(vec![]);
-    variants.push(r);
-    let mut r = original.clone();
-    r.role_name = "illustrator".into();
-    variants.push(r);
-    let mut r = original.clone();
-    r.role_tools = RoleTools::Explicit(vec![]);
-    variants.push(r);
-    let mut r = original.clone();
-    r.role_tools = RoleTools::Inherit;
-    variants.push(r);
-    let mut r = original.clone();
-    r.model_id = "opus".into();
-    variants.push(r);
-    let mut r = original.clone();
-    r.effort = Effort::High;
+    r.surface = Surface::CodexAgent;
     variants.push(r);
     let mut r = original.clone();
     r.permission = Permission::Restricted;
+    r.role_tools = RoleTools::Inherit;
     variants.push(r);
     let mut r = original.clone();
-    r.surface = Surface::CodexAgent;
+    r.model_id = "sonnet\ntools: Evil".into();
+    variants.push(r);
+    let mut r = original.clone();
+    r.model_id = String::new();
+    variants.push(r);
+    let mut r = original.clone();
+    r.role_tools = RoleTools::Explicit(vec!["Read]".into()]);
+    variants.push(r);
+    let mut r = original.clone();
+    r.role_name = "book\nmodel: opus".into();
     variants.push(r);
     let mut r = original.clone();
     r.context_text.push_str("TAMPERED");
     variants.push(r);
     let mut r = original.clone();
     r.description_text.push_str("TAMPERED");
+    variants.push(r);
+    let mut r = original.clone();
+    r.description_payload_sha256 = "0".repeat(64);
     variants.push(r);
     let mut r = original;
     r.context_provenance_vector.clear();
@@ -241,43 +289,6 @@ fn illustrator_keeps_empty_tools_and_exact_composed_body() {
         header.lines().filter(|l| l.starts_with("tools:")).count(),
         1
     );
-    let mut variants = Vec::new();
-    let mut r = role.clone();
-    r.role_tools = RoleTools::Inherit;
-    variants.push(r);
-    let mut r = role.clone();
-    r.role_tools = RoleTools::Explicit(vec!["Agent".into()]);
-    variants.push(r);
-    let mut r = role.clone();
-    r.role_callers = RoleCallers::Only(vec![]);
-    variants.push(r);
-    let mut r = role.clone();
-    r.model_id = "opus".into();
-    variants.push(r);
-    let mut r = role.clone();
-    r.effort = Effort::High;
-    variants.push(r);
-    let mut r = role.clone();
-    r.permission = Permission::Restricted;
-    variants.push(r);
-    let mut r = role.clone();
-    r.surface = Surface::CodexAgent;
-    variants.push(r);
-    let mut r = role.clone();
-    r.context_text.push_str("TAMPERED");
-    variants.push(r);
-    let mut r = role.clone();
-    r.description_payload_sha256 = "0".repeat(64);
-    variants.push(r);
-    let mut r = role.clone();
-    r.context_provenance_vector.clear();
-    variants.push(r);
-    let mut r = role;
-    r.role_name = "unknown".into();
-    variants.push(r);
-    for role in variants {
-        assert!(role.claude_agent_markdown().is_err());
-    }
 }
 
 #[cfg(feature = "datom")]
@@ -294,6 +305,7 @@ fn cli_fetches_only_the_id_query_and_emits_verified_matching_definition() {
         ("illustrator", "illustrator"),
         ("general-purpose", "general-purpose"),
         ("book-author", "book-author"),
+        ("comment-relay", "comment-relay"),
         ("book", "illustrator"),
         ("book-page", "book"),
         ("illustrator", "book"),
@@ -339,7 +351,7 @@ fn cli_fetches_only_the_id_query_and_emits_verified_matching_definition() {
         }
         assert!(!tmp.path().join(".claude").exists());
         for invalid in [
-            "ComposeRole.{ comment-relay ClaudeAgent }",
+            "ComposeRole.{ book CodexAgent }",
             "/tmp/prompt.md",
             "inline prose",
         ] {

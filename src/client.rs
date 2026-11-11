@@ -8,7 +8,7 @@ use datom_codec::{Actualizing, Budget, Composing, Datomizable, Potential};
 use protos::{Protosizable, ReaderBudget, Textualizable};
 use thiserror::Error;
 
-use crate::generated::{CliRequest, Outcome, Query};
+use crate::generated::{CliRequest, Outcome, Query, RoleSelection, Surface};
 
 #[derive(Debug, Error)]
 pub enum ClientError {
@@ -42,6 +42,26 @@ impl ConstructsCurriculumClient for CurriculumClient {
     fn from_arguments(arguments: impl IntoIterator<Item = String>) -> Self {
         Self {
             arguments: arguments.into_iter().collect(),
+        }
+    }
+}
+
+pub trait NamesRequestedRole {
+    /// The role named by a single `ComposeRole` request for a Claude agent.
+    fn requested_claude_role(&self) -> Option<String>;
+}
+
+impl NamesRequestedRole for CurriculumClient {
+    fn requested_claude_role(&self) -> Option<String> {
+        let [argument] = self.arguments.as_slice() else {
+            return None;
+        };
+        match actualize_request(argument).ok()? {
+            CliRequest::ComposeRole(RoleSelection {
+                role_name,
+                surface: Surface::ClaudeAgent,
+            }) => Some(role_name),
+            _ => None,
         }
     }
 }
