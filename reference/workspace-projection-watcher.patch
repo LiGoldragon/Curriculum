@@ -1,0 +1,789 @@
+Workspace projection watcher: uncommitted work saved from branch 28efec-registry-projector
+
+Base: Curriculum bfcb64533f4e5da0a3e6da5a47da3f07907e3283 (the branch head, which
+is not on main). Apply with `git apply reference/workspace-projection-watcher.patch`
+on that commit. Saved 2026-11-10 by flow 5e88e5 when the branch was closed; the
+work it starts is the bead that names this file.
+
+What it holds, as it stood in the checkout:
+- src/registry.rs: `SourceConfiguration::read_current` and
+  `workspace::WorkspaceProjectionWatcher`, which watches the three belief roots
+  with `notify` and reprojects the workspace after each create, modify or remove
+  event.
+- Cargo.toml and Cargo.lock: the `notify = "=8.2.0"` dependency.
+- tests/layout_v2.rs: the watcher's test, beside other layout test edits.
+- src/claude_agent.rs, src/main.rs and tests/claude_agent.rs: the book-page
+  entry in the hardcoded Claude role table, the same change as a72f655; main
+  replaced that table in f3924f2, so these hunks are superseded and kept only so
+  nothing in the checkout was discarded unsaved.
+
+diff --git a/Cargo.lock b/Cargo.lock
+index 29ca9a7..e0730bd 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -84,6 +84,7 @@ dependencies = [
+  "datom-codec",
+  "ethos-zero",
+  "nexus",
++ "notify",
+  "protos",
+  "rkyv",
+  "sha2",
+@@ -170,6 +171,15 @@ version = "2.5.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
+ 
++[[package]]
++name = "fsevent-sys"
++version = "4.1.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "76ee7a02da4d231650c7cea31349b889be2f45ddb3ef3032d2ec8185f6313fd2"
++dependencies = [
++ "libc",
++]
++
+ [[package]]
+ name = "futures"
+ version = "0.3.34"
+@@ -301,6 +311,26 @@ dependencies = [
+  "hashbrown",
+ ]
+ 
++[[package]]
++name = "inotify"
++version = "0.11.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "4cc00ea907cab49550b7da656f80ebb97be1b997d931fbcd28d39734e17ce592"
++dependencies = [
++ "bitflags",
++ "inotify-sys",
++ "libc",
++]
++
++[[package]]
++name = "inotify-sys"
++version = "0.1.8"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "c033f80b2c113cdf91ab7a33faa9cbc014726dcad99880c8609af2a370edf37d"
++dependencies = [
++ "libc",
++]
++
+ [[package]]
+ name = "js-sys"
+ version = "0.3.105"
+@@ -339,6 +369,26 @@ dependencies = [
+  "syn 2.0.119",
+ ]
+ 
++[[package]]
++name = "kqueue"
++version = "1.2.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "8d763e5b24120b4ddf50de6c92308156765aabfbbccebf401da7cff2d70a41ea"
++dependencies = [
++ "kqueue-sys",
++ "libc",
++]
++
++[[package]]
++name = "kqueue-sys"
++version = "1.1.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "07293a4e297ac234359b510362495713f75ea345d5307140414f20c69ffeb087"
++dependencies = [
++ "bitflags",
++ "libc",
++]
++
+ [[package]]
+ name = "libc"
+ version = "0.2.189"
+@@ -351,6 +401,12 @@ version = "0.12.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
+ 
++[[package]]
++name = "log"
++version = "0.4.34"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
++
+ [[package]]
+ name = "memchr"
+ version = "2.8.3"
+@@ -399,6 +455,33 @@ dependencies = [
+  "tokio",
+ ]
+ 
++[[package]]
++name = "notify"
++version = "8.2.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "4d3d07927151ff8575b7087f245456e549fea62edf0ec4e565a5ee50c8402bc3"
++dependencies = [
++ "bitflags",
++ "fsevent-sys",
++ "inotify",
++ "kqueue",
++ "libc",
++ "log",
++ "mio",
++ "notify-types",
++ "walkdir",
++ "windows-sys 0.60.2",
++]
++
++[[package]]
++name = "notify-types"
++version = "2.1.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "42b8cfee0e339a0337359f3c88165702ac6e600dc01c0cc9579a92d62b08477a"
++dependencies = [
++ "bitflags",
++]
++
+ [[package]]
+ name = "once_cell"
+ version = "1.21.4"
+@@ -540,6 +623,15 @@ version = "1.0.23"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f"
+ 
++[[package]]
++name = "same-file"
++version = "1.0.6"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
++dependencies = [
++ "winapi-util",
++]
++
+ [[package]]
+ name = "serde"
+ version = "1.0.229"
+@@ -770,6 +862,16 @@ version = "0.9.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+ 
++[[package]]
++name = "walkdir"
++version = "2.5.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "29790946404f91d9c5d06f9874efddea1dc06c5efe94541a7d6863108e3a5e4b"
++dependencies = [
++ "same-file",
++ "winapi-util",
++]
++
+ [[package]]
+ name = "wasi"
+ version = "0.11.1+wasi-snapshot-preview1"
+@@ -821,12 +923,30 @@ dependencies = [
+  "unicode-ident",
+ ]
+ 
++[[package]]
++name = "winapi-util"
++version = "0.1.11"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
++dependencies = [
++ "windows-sys 0.61.2",
++]
++
+ [[package]]
+ name = "windows-link"
+ version = "0.2.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5"
+ 
++[[package]]
++name = "windows-sys"
++version = "0.60.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "f2f500e4d28234f72040990ec9d39e3a6b950f9f22d3dba18416c35882612bcb"
++dependencies = [
++ "windows-targets",
++]
++
+ [[package]]
+ name = "windows-sys"
+ version = "0.61.2"
+@@ -835,3 +955,68 @@ checksum = "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc"
+ dependencies = [
+  "windows-link",
+ ]
++
++[[package]]
++name = "windows-targets"
++version = "0.53.5"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "4945f9f551b88e0d65f3db0bc25c33b8acea4d9e41163edf90dcd0b19f9069f3"
++dependencies = [
++ "windows-link",
++ "windows_aarch64_gnullvm",
++ "windows_aarch64_msvc",
++ "windows_i686_gnu",
++ "windows_i686_gnullvm",
++ "windows_i686_msvc",
++ "windows_x86_64_gnu",
++ "windows_x86_64_gnullvm",
++ "windows_x86_64_msvc",
++]
++
++[[package]]
++name = "windows_aarch64_gnullvm"
++version = "0.53.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "a9d8416fa8b42f5c947f8482c43e7d89e73a173cead56d044f6a56104a6d1b53"
++
++[[package]]
++name = "windows_aarch64_msvc"
++version = "0.53.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "b9d782e804c2f632e395708e99a94275910eb9100b2114651e04744e9b125006"
++
++[[package]]
++name = "windows_i686_gnu"
++version = "0.53.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "960e6da069d81e09becb0ca57a65220ddff016ff2d6af6a223cf372a506593a3"
++
++[[package]]
++name = "windows_i686_gnullvm"
++version = "0.53.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "fa7359d10048f68ab8b09fa71c3daccfb0e9b559aed648a8f95469c27057180c"
++
++[[package]]
++name = "windows_i686_msvc"
++version = "0.53.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "1e7ac75179f18232fe9c285163565a57ef8d3c89254a30685b57d83a38d326c2"
++
++[[package]]
++name = "windows_x86_64_gnu"
++version = "0.53.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "9c3842cdd74a865a8066ab39c8a7a473c0778a3f29370b5fd6b4b9aa7df4a499"
++
++[[package]]
++name = "windows_x86_64_gnullvm"
++version = "0.53.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "0ffa179e2d07eee8ad8f57493436566c7cc30ac536a3379fdf008f47f6bb7ae1"
++
++[[package]]
++name = "windows_x86_64_msvc"
++version = "0.53.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "d6bbff5f0aada427a1e5a6da5f1f98158182f26556f345ac9e04d36d0ebed650"
+diff --git a/Cargo.toml b/Cargo.toml
+index 1f08920..a79d287 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -25,6 +25,7 @@ path = "src/nexus_main.rs"
+ sha2 = "=0.10.9"
+ datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "4dff16b4f7412febc3b71aac8b49680cd20988cb", features = ["rkyv"], optional = true }
+ nexus = { git = "https://github.com/LiGoldragon/nexus", rev = "ec097e315a3b0b99bc215a72f6c3f6d8b2b060cf" }
++notify = "=8.2.0"
+ protos = { git = "https://github.com/LiGoldragon/protos", rev = "15b41da8f2579e73ead59bc0c2b97529b8ac32d3", optional = true }
+ rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
+ thiserror = "2"
+diff --git a/src/claude_agent.rs b/src/claude_agent.rs
+index a056cb1..9b711b7 100644
+--- a/src/claude_agent.rs
++++ b/src/claude_agent.rs
+@@ -13,21 +13,35 @@ impl RendersClaudeAgent for RoleComposition {
+         if self.surface != Surface::ClaudeAgent || self.role_callers != RoleCallers::Any {
+             return Err("native rendering requires an Any-caller Claude role".into());
+         }
+-        let (expected_tools, tools_header) = match self.role_name.as_str() {
++        let (expected_model, expected_tools, tools_header) = match self.role_name.as_str() {
+             "book" => (
++                "sonnet",
+                 RoleTools::Explicit(vec![
+                     "Read".into(),
+                     "Bash".into(),
+                     "Agent".into(),
+                     "Artifact".into(),
++                    "ArtifactComments".into(),
+                 ]),
+-                "tools: [Read, Bash, Agent, Artifact]\n",
++                "tools: [Read, Bash, Agent, Artifact, ArtifactComments]\n",
+             ),
+-            "illustrator" => (RoleTools::Explicit(vec![]), "tools: []\n"),
+-            "general-purpose" | "book-author" => (RoleTools::Inherit, ""),
++            "book-page" => (
++                "opus",
++                RoleTools::Explicit(vec![
++                    "Read".into(),
++                    "Bash".into(),
++                    "Agent".into(),
++                    "ToolSearch".into(),
++                    "ArtifactData".into(),
++                    "ArtifactComments".into(),
++                ]),
++                "tools: [Read, Bash, Agent, ToolSearch, ArtifactData, ArtifactComments]\n",
++            ),
++            "illustrator" => ("sonnet", RoleTools::Explicit(vec![]), "tools: []\n"),
++            "general-purpose" | "book-author" => ("sonnet", RoleTools::Inherit, ""),
+             _ => return Err("unsupported native role".into()),
+         };
+-        if self.model_id != "sonnet"
++        if self.model_id != expected_model
+             || self.effort != Effort::Medium
+             || self.permission != Permission::Unrestricted
+             || self.role_tools != expected_tools
+@@ -44,8 +58,8 @@ impl RendersClaudeAgent for RoleComposition {
+         }
+         let description = self.description_text.yaml_string();
+         Ok(format!(
+-            "---\nname: {}\ndescription: {description}\nmodel: sonnet\neffort: medium\n{tools_header}---\n\n{}",
+-            self.role_name, self.context_text
++            "---\nname: {}\ndescription: {description}\nmodel: {expected_model}\neffort: medium\n{tools_header}---\n\n{}",
++            self.role_name, self.context_text,
+         ))
+     }
+ }
+diff --git a/src/main.rs b/src/main.rs
+index 77bfc3d..3424ff9 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -16,6 +16,7 @@ fn main() -> ExitCode {
+         arguments.remove(0);
+         requested_role = match arguments.as_slice() {
+             [request] if request == "ComposeRole.{ book ClaudeAgent }" => Some("book"),
++            [request] if request == "ComposeRole.{ book-page ClaudeAgent }" => Some("book-page"),
+             [request] if request == "ComposeRole.{ general-purpose ClaudeAgent }" => {
+                 Some("general-purpose")
+             }
+diff --git a/src/registry.rs b/src/registry.rs
+index e270ef3..6644b2e 100644
+--- a/src/registry.rs
++++ b/src/registry.rs
+@@ -106,6 +106,13 @@ impl SourceConfiguration {
+         if !refreshed.success() {
+             return Err(invalid(&self.refresh_program, "context refresh failed"));
+         }
++        self.read_current()
++    }
++
++    /// Read the sources as they currently stand without invoking the refresh
++    /// program. Watchers use this after filesystem notifications to avoid
++    /// turning their own source refresh into another refresh request.
++    pub fn read_current(&self) -> Result<SkillRegistry, RegistryError> {
+         let revisions = self
+             .roots
+             .iter()
+@@ -414,11 +421,13 @@ impl ExpandsSkills for SkillRegistry {
+ /// All source text comes from the resolved registry; this code never scans a
+ /// second skill repository or follows generated symlinks.
+ pub mod workspace {
+-    use super::{invalid, sha256, ExpandsSkills, RegistryError, ResolvedSkill, SkillRegistry};
++    use super::{ExpandsSkills, RegistryError, ResolvedSkill, SkillRegistry, invalid, sha256};
+     use crate::generated::{ProjectionCandidate, RepositoryRevision};
++    use notify::{Event, EventKind, RecursiveMode, Watcher};
+     use std::{
+         collections::BTreeMap,
+         fs,
++        future::Future,
+         io::Write,
+         path::{Component, Path, PathBuf},
+         sync::atomic::{AtomicU64, Ordering},
+@@ -551,6 +560,92 @@ pub mod workspace {
+         root: PathBuf,
+     }
+ 
++    /// Watches the configured authored roots and reconciles candidates after
++    /// source edits or Git pull updates. It never treats a candidate as active.
++    pub struct WorkspaceProjectionWatcher {
++        configuration: super::SourceConfiguration,
++        projector: WorkspaceProjector,
++    }
++
++    impl WorkspaceProjectionWatcher {
++        pub fn new(
++            configuration: super::SourceConfiguration,
++            destination: impl Into<PathBuf>,
++        ) -> Self {
++            Self {
++                configuration,
++                projector: WorkspaceProjector::new(destination),
++            }
++        }
++
++        pub async fn run<C, F>(&self, cancellation: F, mut candidate_ready: C) -> Result<(), String>
++        where
++            C: FnMut(ProjectionCandidate) -> Result<(), String> + Send,
++            F: Future<Output = ()> + Send,
++        {
++            fs::create_dir_all(&self.projector.root).map_err(|error| error.to_string())?;
++            let destination =
++                fs::canonicalize(&self.projector.root).map_err(|error| error.to_string())?;
++            for root in &self.configuration.roots {
++                let root = fs::canonicalize(root).map_err(|error| error.to_string())?;
++                if destination.starts_with(root) {
++                    return Err(
++                        "projection destination may not be inside a watched source root".into(),
++                    );
++                }
++            }
++            let (sender, mut receiver) = tokio::sync::mpsc::unbounded_channel();
++            let callback = sender.clone();
++            let mut watcher =
++                notify::recommended_watcher(move |event: Result<Event, notify::Error>| {
++                    let _ = callback.send(event);
++                })
++                .map_err(|error| error.to_string())?;
++            for root in &self.configuration.roots {
++                watcher
++                    .watch(root, RecursiveMode::Recursive)
++                    .map_err(|error| error.to_string())?;
++            }
++
++            let initial = self
++                .configuration
++                .read()
++                .map_err(|error| error.to_string())?;
++            candidate_ready(
++                self.projector
++                    .project(&initial)
++                    .map_err(|e| e.to_string())?,
++            )?;
++
++            tokio::pin!(cancellation);
++            loop {
++                let event = tokio::select! {
++                    _ = &mut cancellation => return Ok(()),
++                    event = receiver.recv() => event.ok_or_else(|| "source watcher stopped".to_owned())?,
++                };
++                if !relevant(event)? {
++                    continue;
++                }
++                while let Ok(event) = receiver.try_recv() {
++                    let _ = relevant(event)?;
++                }
++                let latest = self
++                    .configuration
++                    .read_current()
++                    .map_err(|error| error.to_string())?;
++                candidate_ready(self.projector.project(&latest).map_err(|e| e.to_string())?)?;
++            }
++        }
++    }
++
++    fn relevant(event: Result<Event, notify::Error>) -> Result<bool, String> {
++        let event = event.map_err(|error| error.to_string())?;
++        Ok(matches!(
++            event.kind,
++            EventKind::Create(_) | EventKind::Modify(_) | EventKind::Remove(_)
++        ))
++    }
++
+     impl WorkspaceProjector {
+         pub fn new(root: impl Into<PathBuf>) -> Self {
+             Self { root: root.into() }
+diff --git a/tests/claude_agent.rs b/tests/claude_agent.rs
+index fb5be2f..482f936 100644
+--- a/tests/claude_agent.rs
++++ b/tests/claude_agent.rs
+@@ -1,6 +1,24 @@
+ use curriculum::{claude_agent::RendersClaudeAgent, generated::*, registry::SkillRegistry, roles};
+ use std::fs;
+ 
++#[cfg(feature = "datom")]
++fn declared_roles() -> Roles {
++    use datom_codec::{Actualizing, Budget, Potential};
++    use protos::ReaderBudget;
++    let RolesDocument::Roles(roles) =
++        Potential::<RolesDocument>::from(include_str!("../roles.datom"))
++            .actualize(&mut Budget {
++                remaining: 1_048_576,
++                reader: ReaderBudget {
++                    remaining: 1_048_576,
++                },
++                depth: 0,
++                maximum_depth: 1024,
++            })
++            .unwrap();
++    roles
++}
++
+ fn composition(role_name: &str) -> RoleComposition {
+     let tmp = tempfile::tempdir().unwrap();
+     let roots = [
+@@ -42,7 +60,11 @@ fn composition(role_name: &str) -> RoleComposition {
+         role_definition_vector: vec![RoleDefinition {
+             role_name: role_name.into(),
+             surface: Surface::ClaudeAgent,
+-            model_id: "sonnet".into(),
++            model_id: if role_name == "book-page" {
++                "opus".into()
++            } else {
++                "sonnet".into()
++            },
+             effort: Effort::Medium,
+             permission: Permission::Unrestricted,
+             description_module: "role:book-description".into(),
+@@ -59,12 +81,22 @@ fn composition(role_name: &str) -> RoleComposition {
+                 RoleTools::Inherit
+             } else if role_name == "illustrator" {
+                 RoleTools::Explicit(vec![])
++            } else if role_name == "book-page" {
++                RoleTools::Explicit(vec![
++                    "Read".into(),
++                    "Bash".into(),
++                    "Agent".into(),
++                    "ToolSearch".into(),
++                    "ArtifactData".into(),
++                    "ArtifactComments".into(),
++                ])
+             } else {
+                 RoleTools::Explicit(vec![
+                     "Read".into(),
+                     "Bash".into(),
+                     "Agent".into(),
+                     "Artifact".into(),
++                    "ArtifactComments".into(),
+                 ])
+             },
+             role_callers: RoleCallers::Any,
+@@ -87,7 +119,9 @@ fn renders_current_composition_without_description_frontmatter_injection() {
+     let output = role.claude_agent_markdown().unwrap();
+     let (header, body) = output.split_once("\n---\n\n").unwrap();
+     assert_eq!(body, role.context_text);
+-    assert!(header.contains("model: sonnet\neffort: medium\ntools: [Read, Bash, Agent, Artifact]"));
++    assert!(header.contains(
++        "model: sonnet\neffort: medium\ntools: [Read, Bash, Agent, Artifact, ArtifactComments]"
++    ));
+     assert!(header.contains("\\\"whole\\\""));
+     assert!(header.contains("\\n---\\ntools: Evil"));
+     assert_eq!(
+@@ -97,6 +131,61 @@ fn renders_current_composition_without_description_frontmatter_injection() {
+     assert!(!header.contains("permissionMode"));
+ }
+ 
++#[test]
++fn book_page_renders_the_exact_declared_native_contract() {
++    let role = composition("book-page");
++    let output = role.claude_agent_markdown().unwrap();
++    let (header, body) = output.split_once("\n---\n\n").unwrap();
++    assert_eq!(body, role.context_text);
++    assert!(header.contains("name: book-page\n"));
++    assert!(header.contains(
++        "model: opus\neffort: medium\ntools: [Read, Bash, Agent, ToolSearch, ArtifactData, ArtifactComments]"
++    ));
++}
++
++#[cfg(feature = "datom")]
++#[test]
++fn book_native_renderers_match_the_declared_role_contracts() {
++    let roles = declared_roles();
++    let book = roles
++        .role_definition_vector
++        .iter()
++        .find(|role| role.role_name == "book" && role.surface == Surface::ClaudeAgent)
++        .unwrap();
++    assert_eq!(book.description_module, "role:book-description");
++    assert_eq!(book.model_id, "sonnet");
++    assert_eq!(
++        book.role_tools,
++        RoleTools::Explicit(
++            ["Read", "Bash", "Agent", "Artifact", "ArtifactComments"]
++                .map(str::to_owned)
++                .into()
++        )
++    );
++    let page = roles
++        .role_definition_vector
++        .iter()
++        .find(|role| role.role_name == "book-page" && role.surface == Surface::ClaudeAgent)
++        .unwrap();
++    assert_eq!(page.description_module, "role:book-page-description");
++    assert_eq!(page.model_id, "opus");
++    assert_eq!(
++        page.role_tools,
++        RoleTools::Explicit(
++            [
++                "Read",
++                "Bash",
++                "Agent",
++                "ToolSearch",
++                "ArtifactData",
++                "ArtifactComments",
++            ]
++            .map(str::to_owned)
++            .into()
++        )
++    );
++}
++
+ #[test]
+ fn refuses_restricted_callers_other_roles_and_changed_or_corrupt_contracts() {
+     let original = composition("book");
+@@ -201,10 +290,12 @@ fn cli_fetches_only_the_id_query_and_emits_verified_matching_definition() {
+     };
+     for (requested, returned) in [
+         ("book", "book"),
++        ("book-page", "book-page"),
+         ("illustrator", "illustrator"),
+         ("general-purpose", "general-purpose"),
+         ("book-author", "book-author"),
+         ("book", "illustrator"),
++        ("book-page", "book"),
+         ("illustrator", "book"),
+     ] {
+         let tmp = tempfile::tempdir().unwrap();
+diff --git a/tests/layout_v2.rs b/tests/layout_v2.rs
+index e0a7ebb..890534f 100644
+--- a/tests/layout_v2.rs
++++ b/tests/layout_v2.rs
+@@ -154,10 +154,12 @@ fn registry_workspace_projection_updates_plain_target_directories() {
+             .starts_with("---\nname: knowledge:topic\n")
+     );
+     for surface in [".codex/skills", ".pi/skills"] {
+-        assert!(workspace
+-            .join(surface)
+-            .join("knowledge:topic/SKILL.md")
+-            .is_file());
++        assert!(
++            workspace
++                .join(surface)
++                .join("knowledge:topic/SKILL.md")
++                .is_file()
++        );
+     }
+     assert!(
+         fs::read_to_string(workspace.join(".pi/skills/knowledge:topic/SKILL.md"))
+@@ -214,20 +216,25 @@ fn registry_workspace_projection_updates_plain_target_directories() {
+     let linked_workspace = temp.path().join("linked-workspace");
+     fs::create_dir_all(&linked_workspace).unwrap();
+     std::os::unix::fs::symlink(&outside, linked_workspace.join(".agents")).unwrap();
+-    assert!(WorkspaceProjector::new(&linked_workspace)
+-        .write(&latest)
+-        .is_err());
++    assert!(
++        WorkspaceProjector::new(&linked_workspace)
++            .write(&latest)
++            .is_err()
++    );
+     assert_eq!(fs::read_dir(outside).unwrap().count(), 0);
+ }
+ 
+ #[test]
+ fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
+-    use curriculum::{registry::workspace::WorkspaceProjector, registry::MODULE_TYPES};
++    use curriculum::{registry::MODULE_TYPES, registry::workspace::WorkspaceProjector};
+     let temp = tempfile::tempdir().unwrap();
+     let r = roots(temp.path());
+     for (index, kind) in MODULE_TYPES.iter().enumerate() {
+-        source(&r[index % 3], &format!("{kind}/item-{index}.md"),
+-            "---\ndescription: fixture\n  user-only: true  \n---\n{% if claude %}\nclaude\n{% endif %}\n{% if codex %}\ncodex\n{% endif %}\n{% if pi %}\npi\n{% endif %}\n{% if opencode %}\nopencode\n{% endif %}\n");
++        source(
++            &r[index % 3],
++            &format!("{kind}/item-{index}.md"),
++            "---\ndescription: fixture\n  user-only: true  \n---\n{% if claude %}\nclaude\n{% endif %}\n{% if codex %}\ncodex\n{% endif %}\n{% if pi %}\npi\n{% endif %}\n{% if opencode %}\nopencode\n{% endif %}\n",
++        );
+     }
+     let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+     let ids = registry.skill_names().unwrap();
+@@ -258,11 +265,13 @@ fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
+             );
+         }
+         for surface in [".agents/skills", ".codex/skills"] {
+-            assert!(workspace
+-                .join(surface)
+-                .join(&id)
+-                .join("agents/openai.yaml")
+-                .is_file());
++            assert!(
++                workspace
++                    .join(surface)
++                    .join(&id)
++                    .join("agents/openai.yaml")
++                    .is_file()
++            );
+         }
+         assert!(
+             fs::read_to_string(workspace.join(".claude/skills").join(&id).join("SKILL.md"))
+@@ -271,3 +280,78 @@ fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
+         );
+     }
+ }
++
++#[test]
++fn watcher_reconciles_file_edits_and_git_pull_candidates() {
++    use curriculum::registry::{SourceConfiguration, workspace::WorkspaceProjectionWatcher};
++    use std::{sync::mpsc, time::Duration};
++    let temp = tempfile::tempdir().unwrap();
++    let roots = roots(temp.path());
++    for (index, root) in roots.iter().enumerate() {
++        fs::create_dir_all(root.join(".git")).unwrap();
++        fs::write(
++            root.join(".git/HEAD"),
++            format!("{}\n", ["a", "b", "c"][index].repeat(40)),
++        )
++        .unwrap();
++    }
++    source(&roots[1], "knowledge/topic.md", "Initial.\n");
++    let refresh = temp.path().join("refresh");
++    fs::write(&refresh, "#!/bin/sh\nexit 0\n").unwrap();
++    use std::os::unix::fs::PermissionsExt;
++    fs::set_permissions(&refresh, fs::Permissions::from_mode(0o700)).unwrap();
++    let configuration = SourceConfiguration {
++        roots: roots.clone(),
++        refresh_program: refresh,
++    };
++    let watcher = WorkspaceProjectionWatcher::new(configuration, temp.path().join("workspace"));
++    let (candidate_tx, candidate_rx) = mpsc::channel();
++    let (cancel_tx, cancel_rx) = tokio::sync::oneshot::channel();
++    let task = std::thread::spawn(move || {
++        let runtime = tokio::runtime::Builder::new_current_thread()
++            .enable_all()
++            .build()
++            .unwrap();
++        runtime.block_on(watcher.run(
++            async move {
++                let _ = cancel_rx.await;
++            },
++            move |candidate| {
++                candidate_tx
++                    .send(candidate)
++                    .map_err(|error| error.to_string())
++            },
++        ))
++    });
++
++    let initial = candidate_rx.recv_timeout(Duration::from_secs(5)).unwrap();
++    fs::write(roots[1].join("knowledge/topic.md"), "Edited module.\n").unwrap();
++    let edited = loop {
++        let candidate = candidate_rx.recv_timeout(Duration::from_secs(5)).unwrap();
++        if candidate.published_content_digest != initial.published_content_digest {
++            break candidate;
++        }
++    };
++    assert_ne!(
++        initial.published_content_digest,
++        edited.published_content_digest
++    );
++    assert_eq!(
++        edited.repository_revision_vector[1].source_revision,
++        "b".repeat(40)
++    );
++
++    fs::write(roots[1].join(".git/HEAD"), format!("{}\n", "d".repeat(40))).unwrap();
++    let pulled = loop {
++        let candidate = candidate_rx.recv_timeout(Duration::from_secs(5)).unwrap();
++        if candidate.repository_revision_vector[1].source_revision == "d".repeat(40) {
++            break candidate;
++        }
++    };
++    assert_eq!(
++        pulled.repository_revision_vector[1].source_revision,
++        "d".repeat(40)
++    );
++    cancel_tx.send(()).unwrap();
++    task.join().unwrap().unwrap();
++}
