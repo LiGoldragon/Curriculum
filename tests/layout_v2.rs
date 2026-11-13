@@ -96,6 +96,7 @@ fn mixed_duplicate_case_nested_and_escape_layouts_refuse() {
             3 => source(&r[1], "knowledge/nested/topic.md", "Nested.\n"),
             4 => {
                 fs::write(temp.path().join("outside.md"), "Outside.").unwrap();
+                fs::create_dir_all(r[1].join("knowledge/escape")).unwrap();
                 std::os::unix::fs::symlink(
                     temp.path().join("outside.md"),
                     r[1].join("knowledge/escape/0.md"),
