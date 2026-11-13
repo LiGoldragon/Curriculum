@@ -218,7 +218,7 @@ fn manifest_distinguishes_authored_and_target_rendered_module_hashes() {
     let tmp = tempfile::tempdir().unwrap();
     let (roots, _, selection) = fixture(tmp.path());
     let text = "{% if claude %}\nCLAUDE_ONLY\n{% else %}\nCODEX_OTHER\n{% endif %}\n";
-    std::write_source(roots[2].join("compensation/user00/0.md"), text).unwrap();
+    write_source(roots[2].join("compensation/user00/0.md"), text).unwrap();
     let registry = SkillRegistry::from_context_repositories(
         &roots,
         &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
