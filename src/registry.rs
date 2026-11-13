@@ -59,10 +59,16 @@ pub fn valid_segment(value: &str) -> bool {
             .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
 }
 
+pub fn valid_version(value: &str) -> bool {
+    !value.is_empty()
+        && (value == "0" || !value.starts_with('0'))
+        && value.bytes().all(|byte| byte.is_ascii_digit())
+}
+
 pub fn valid_id(value: &str) -> bool {
-    value.split_once(':').is_some_and(|(kind, subject)| {
-        MODULE_TYPES.contains(&kind) && valid_segment(subject) && !subject.contains(':')
-    })
+    let fields: Vec<_> = value.split(':').collect();
+    matches!(fields.as_slice(), [kind, topic, version]
+        if MODULE_TYPES.contains(kind) && valid_segment(topic) && valid_version(version))
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceConfiguration {
@@ -207,48 +213,61 @@ impl SkillRegistry {
                     }
                     _ => (),
                 }
-                for entry in fs::read_dir(&directory).map_err(|e| invalid(&directory, e))? {
-                    let path = entry.map_err(|e| invalid(&directory, e))?.path();
-                    let metadata = fs::symlink_metadata(&path).map_err(|e| invalid(&path, e))?;
-                    if !metadata.is_file() || metadata.file_type().is_symlink() {
-                        return Err(invalid(
-                            &path,
-                            "nested directories and symlinks are forbidden",
-                        ));
+                for topic_entry in fs::read_dir(&directory).map_err(|e| invalid(&directory, e))? {
+                    let topic_path = topic_entry.map_err(|e| invalid(&directory, e))?.path();
+                    let metadata =
+                        fs::symlink_metadata(&topic_path).map_err(|e| invalid(&topic_path, e))?;
+                    if !metadata.is_dir() || metadata.file_type().is_symlink() {
+                        return Err(invalid(&topic_path, "topic must be an actual directory"));
                     }
-                    if path.extension().is_none_or(|e| e != "md") {
-                        return Err(invalid(
-                            &path,
-                            "module type folder contains non-Markdown source",
-                        ));
-                    }
-                    let subject = path
-                        .file_stem()
+                    let topic = topic_path
+                        .file_name()
                         .and_then(|s| s.to_str())
                         .unwrap_or_default();
-                    if !valid_segment(subject) {
-                        return Err(invalid(&path, "invalid subject"));
+                    if !valid_segment(topic) {
+                        return Err(invalid(&topic_path, "invalid topic"));
                     }
-                    let name = format!("{kind}:{subject}");
-                    let body = fs::read_to_string(&path).map_err(|e| invalid(&path, e))?;
-                    let text = instructions(&body).map_err(|e| invalid(&path, e))?;
-                    if text.trim().is_empty() {
-                        return Err(invalid(&path, "empty body"));
-                    }
-                    let dependencies = dependencies(&path, &body)?;
-                    if entries
-                        .insert(
-                            name.clone(),
-                            SkillEntry {
-                                path,
-                                name: name.clone(),
-                                body,
-                                dependencies,
-                            },
-                        )
-                        .is_some()
-                    {
-                        return Err(RegistryError::Duplicate(name));
+                    for entry in fs::read_dir(&topic_path).map_err(|e| invalid(&topic_path, e))? {
+                        let path = entry.map_err(|e| invalid(&topic_path, e))?.path();
+                        let metadata =
+                            fs::symlink_metadata(&path).map_err(|e| invalid(&path, e))?;
+                        if !metadata.is_file() || metadata.file_type().is_symlink() {
+                            return Err(invalid(&path, "version must be an actual Markdown file"));
+                        }
+                        if path.extension().is_none_or(|e| e != "md") {
+                            return Err(invalid(
+                                &path,
+                                "topic folder contains non-Markdown source",
+                            ));
+                        }
+                        let version = path
+                            .file_stem()
+                            .and_then(|s| s.to_str())
+                            .unwrap_or_default();
+                        if !valid_version(version) {
+                            return Err(invalid(&path, "invalid explicit version"));
+                        }
+                        let name = format!("{kind}:{topic}:{version}");
+                        let body = fs::read_to_string(&path).map_err(|e| invalid(&path, e))?;
+                        let text = instructions(&body).map_err(|e| invalid(&path, e))?;
+                        if text.trim().is_empty() {
+                            return Err(invalid(&path, "empty body"));
+                        }
+                        let dependencies = dependencies(&path, &body)?;
+                        if entries
+                            .insert(
+                                name.clone(),
+                                SkillEntry {
+                                    path,
+                                    name: name.clone(),
+                                    body,
+                                    dependencies,
+                                },
+                            )
+                            .is_some()
+                        {
+                            return Err(RegistryError::Duplicate(name));
+                        }
                     }
                 }
             }
@@ -330,7 +349,7 @@ impl SkillRegistry {
                 .to_string_lossy()
                 .into_owned(),
             module_type: kind.into(),
-            module_subject: subject.into(),
+            module_subject: subject.split_once(':').unwrap().0.into(),
             declared_placement: declared_placement(&skill.body).into(),
             source_sha256: sha256(skill.body.as_bytes()),
             body_sha256: sha256(text.as_bytes()),
@@ -387,7 +406,7 @@ impl ExpandsSkills for SkillRegistry {
 /// All source text comes from the resolved registry; this code never scans a
 /// second skill repository or follows generated symlinks.
 pub mod workspace {
-    use super::{invalid, sha256, ExpandsSkills, RegistryError, ResolvedSkill, SkillRegistry};
+    use super::{ExpandsSkills, RegistryError, ResolvedSkill, SkillRegistry, invalid, sha256};
     use crate::generated::{ProjectionCandidate, RepositoryRevision};
     use std::{
         collections::BTreeMap,
@@ -731,22 +750,11 @@ fn dependencies(path: &Path, body: &str) -> Result<Vec<String>, RegistryError> {
     let ids: Vec<String> = inner
         .split(|c: char| c == ',' || c.is_whitespace())
         .filter(|s| !s.is_empty())
-        .map(dependency_id)
+        .map(str::to_owned)
         .collect();
     let mut seen = BTreeSet::new();
     if ids.iter().any(|id| !valid_id(id) || !seen.insert(id)) {
         return Err(invalid(path, "invalid or duplicate dependency ID"));
     }
     Ok(ids)
-}
-/// A dependency names a module as `type:subject` or as `type-subject`; both
-/// are the same ID, held as `type:subject`. No module type has a hyphen, so
-/// the first hyphen of a hyphen form separates its type from its subject.
-fn dependency_id(word: &str) -> String {
-    match word.split_once('-') {
-        Some((kind, subject)) if !word.contains(':') && MODULE_TYPES.contains(&kind) => {
-            format!("{kind}:{subject}")
-        }
-        _ => word.to_owned(),
-    }
 }

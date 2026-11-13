@@ -155,12 +155,12 @@ mod tests {
 
     #[test]
     fn signal_decodes_and_answers_only_archived_types() {
-        let query = Query::ResolveSkills(vec!["knowledge:main-flow".into()]);
+        let query = Query::ResolveSkills(vec!["knowledge:main-flow:0".into()]);
         let encoded = rkyv::to_bytes::<rkyv::rancor::Error>(&query).expect("archive query");
         assert_eq!(CurriculumSignal.decode(&encoded), Some(query));
         assert_eq!(
-            CurriculumSignal.answer(Outcome::ResolvedSkills(vec!["spirit:core".into()])),
-            Outcome::ResolvedSkills(vec!["spirit:core".into()])
+            CurriculumSignal.answer(Outcome::ResolvedSkills(vec!["spirit:core:0".into()])),
+            Outcome::ResolvedSkills(vec!["spirit:core:0".into()])
         );
     }
 }

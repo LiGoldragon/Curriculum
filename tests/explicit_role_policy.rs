@@ -7,16 +7,16 @@ fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
     }
     fs::create_dir(roots[2].join("role")).unwrap();
     fs::create_dir(roots[2].join("compensation")).unwrap();
-    fs::write(
-        roots[2].join("role/illustrator-description.md"),
+    write_source(
+        roots[2].join("role/illustrator-description/0.md"),
         "Draw a figure of the same idea.",
     )
     .unwrap();
-    fs::write(roots[2].join("role/illustrator-svg.md"), "SAFE_SVG").unwrap();
-    fs::write(roots[2].join("role/unselected.md"), "UNSELECTED_NOISE").unwrap();
-    fs::write(
-        roots[2].join("compensation/illustration.md"),
-        "---\ndependencies: [ role:unselected ]\nplacement: system\n---\nAUTHORED_RULES\n",
+    write_source(roots[2].join("role/illustrator-svg/0.md"), "SAFE_SVG").unwrap();
+    write_source(roots[2].join("role/unselected/0.md"), "UNSELECTED_NOISE").unwrap();
+    write_source(
+        roots[2].join("compensation/illustration/0.md"),
+        "---\ndependencies: [ role:unselected:0 ]\nplacement: system\n---\nAUTHORED_RULES\n",
     )
     .unwrap();
     let registry = SkillRegistry::from_context_repositories(
@@ -31,10 +31,10 @@ fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
             model_id: "sonnet".into(),
             effort: Effort::Medium,
             permission: Permission::Unrestricted,
-            description_module: "role:illustrator-description".into(),
+            description_module: "role:illustrator-description:0".into(),
             context_modules: vec![
-                "role:illustrator-svg".into(),
-                "compensation:illustration".into(),
+                "role:illustrator-svg:0".into(),
+                "compensation:illustration:0".into(),
             ],
             role_tools: RoleTools::Explicit(vec![]),
             role_callers: RoleCallers::Only(vec![CallerMetaflow {
@@ -69,7 +69,7 @@ fn role_uses_only_selected_authored_ids_and_preserves_policy_through_wire() {
     assert_eq!(result.context_provenance_vector.len(), 3);
     assert_eq!(
         result.context_provenance_vector[2].source_relative_path,
-        "compensation/illustration.md"
+        "compensation/illustration/0.md"
     );
     let outcome = Outcome::RoleComposed(result);
     let bytes = rkyv::to_bytes::<rkyv::rancor::Error>(&outcome).unwrap();
@@ -86,7 +86,7 @@ fn inline_paths_missing_ambiguous_roles_and_invalid_caller_tool_data_refuse() {
     for value in [
         "Inline prose is forbidden",
         "/tmp/source.md",
-        "role:missing",
+        "role:missing:0",
     ] {
         let mut d = data.clone();
         d.role_definition_vector[0].context_modules = vec![value.into()];
@@ -114,15 +114,24 @@ fn a_role_naming_a_module_the_belief_repositories_lack_is_refused_naming_the_mod
     let mut d = data.clone();
     d.role_definition_vector[0]
         .context_modules
-        .push("knowledge:book-making".into());
+        .push("knowledge:book-making:0".into());
     assert_eq!(
         roles::compose(&registry, &d, &selection).unwrap_err(),
-        "missing module knowledge:book-making"
+        "missing module knowledge:book-making:0"
     );
     let mut d = data;
-    d.role_definition_vector[0].description_module = "role:absent-description".into();
+    d.role_definition_vector[0].description_module = "role:absent-description:0".into();
     assert_eq!(
         roles::compose(&registry, &d, &selection).unwrap_err(),
-        "missing module role:absent-description"
+        "missing module role:absent-description:0"
     );
+}
+
+fn write_source(
+    path: impl AsRef<std::path::Path>,
+    contents: impl AsRef<[u8]>,
+) -> std::io::Result<()> {
+    let path = path.as_ref();
+    fs::create_dir_all(path.parent().unwrap())?;
+    fs::write(path, contents)
 }

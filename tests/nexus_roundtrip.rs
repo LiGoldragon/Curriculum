@@ -38,33 +38,33 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         fs::create_dir(root).unwrap();
         fs::create_dir_all(root.join(".git")).unwrap();
         let revision = ["a", "b", "c"][index].repeat(40);
-        fs::write(root.join(".git/HEAD"), format!("{revision}\n")).unwrap();
+        write_source(root.join(".git/HEAD"), format!("{revision}\n")).unwrap();
     }
     fs::create_dir(roots[1].join("role")).unwrap();
-    fs::write(
-        roots[1].join("role/book-description.md"),
+    write_source(
+        roots[1].join("role/book-description/0.md"),
         "Publish a current book.",
     )
     .unwrap();
     let refresh_program = base.join("refresh-contexts");
-    fs::write(&refresh_program, "#!/bin/sh\nexit 0\n").unwrap();
+    write_source(&refresh_program, "#!/bin/sh\nexit 0\n").unwrap();
     use std::os::unix::fs::PermissionsExt;
     fs::set_permissions(&refresh_program, fs::Permissions::from_mode(0o700)).unwrap();
     for kind in ["spirit", "intent"] {
         fs::create_dir(roots[0].join(kind)).unwrap();
     }
     fs::create_dir(roots[2].join("compensation")).unwrap();
-    fs::write(roots[0].join("spirit/core.md"), "SPIRIT_BODY").unwrap();
-    fs::write(roots[0].join("intent/seat.md"), "INTENT_BODY").unwrap();
-    fs::write(
-        roots[2].join("compensation/illustration.md"),
+    write_source(roots[0].join("spirit/core/0.md"), "SPIRIT_BODY").unwrap();
+    write_source(roots[0].join("intent/seat/0.md"), "INTENT_BODY").unwrap();
+    write_source(
+        roots[2].join("compensation/illustration/0.md"),
         "---\ndescription: instruction\ndependencies: []\nplacement: user\n---\nEXACT_USER_BODY",
     )
     .unwrap();
     let roles = base.join("roles.datom");
-    fs::write(
+    write_source(
         &roles,
-        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted role:book-description [ spirit:core intent:seat compensation:illustration ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
+        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted role:book-description:0 [ spirit:core:0 intent:seat:0 compensation:illustration:0 ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
     )
     .unwrap();
     let current_psyche_revision = "a".repeat(40);
@@ -105,7 +105,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     }
     let response = invoke(
         &runtime,
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core intent:seat ] [ compensation:illustration ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core:0 intent:seat:0 ] [ compensation:illustration:0 ] [] }",
     );
     assert!(
         response.status.success(),
@@ -116,11 +116,11 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     assert!(text.starts_with("StartupComposed."));
     assert!(text.contains("EXACT_USER_BODY"));
     assert!(text.contains("field-belief"));
-    let sources = invoke(&runtime, "ResolveSources.[ compensation:illustration ]");
+    let sources = invoke(&runtime, "ResolveSources.[ compensation:illustration:0 ]");
     assert!(sources.status.success());
     let source_text = String::from_utf8_lossy(&sources.stdout);
-    assert!(source_text.contains("compensation/illustration.md"));
-    let psyche_sources = invoke(&runtime, "ResolveSources.[ intent:seat ]");
+    assert!(source_text.contains("compensation/illustration/0.md"));
+    let psyche_sources = invoke(&runtime, "ResolveSources.[ intent:seat:0 ]");
     assert!(psyche_sources.status.success());
     assert!(String::from_utf8_lossy(&psyche_sources.stdout).contains(&current_psyche_revision));
     let role = invoke(&runtime, "ComposeRole.{ book ClaudeAgent }");
@@ -130,21 +130,21 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         "RebuildSkills",
         "CheckSkills",
         "EditSkills.{ [] [] [] }",
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core intent:seat ] [ «/tmp/arbitrary.md» ] [] }",
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core intent:seat ] [ «inline prompt text» ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core:0 intent:seat:0 ] [ «/tmp/arbitrary.md» ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core:0 intent:seat:0 ] [ «inline prompt text» ] [] }",
     ] {
         assert!(!invoke(&runtime, old).status.success(), "accepted {old}");
     }
     assert!(!base.join("tools").exists());
     assert!(!base.join(".claude").exists());
-    fs::write(
-        roots[2].join("compensation/illustration.md"),
+    write_source(
+        roots[2].join("compensation/illustration/0.md"),
         "CHANGED_SOURCE",
     )
     .unwrap();
     let changed = invoke(
         &runtime,
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core intent:seat ] [ compensation:illustration ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core:0 intent:seat:0 ] [ compensation:illustration:0 ] [] }",
     );
     assert!(
         changed.status.success(),
@@ -160,4 +160,13 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let changed_role_text = String::from_utf8(changed_role.stdout).unwrap();
     assert!(changed_role_text.contains("CHANGED_SOURCE"));
     assert!(!changed_role_text.contains("EXACT_USER_BODY"));
+}
+
+fn write_source(
+    path: impl AsRef<std::path::Path>,
+    contents: impl AsRef<[u8]>,
+) -> std::io::Result<()> {
+    let path = path.as_ref();
+    fs::create_dir_all(path.parent().unwrap())?;
+    fs::write(path, contents)
 }

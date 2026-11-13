@@ -17,7 +17,18 @@ pub fn compose(
         || !word(&caller.second_string)
         || !matches!(
             caller.third_string.as_str(),
-            "Primary" | "Secondary" | "Tertiary" | "Quaternary" | "Fable" | "Opus" | "Sonnet" | "Haiku" | "Astra" | "Sol" | "Luna" | "Terra"
+            "Primary"
+                | "Secondary"
+                | "Tertiary"
+                | "Quaternary"
+                | "Fable"
+                | "Opus"
+                | "Sonnet"
+                | "Haiku"
+                | "Astra"
+                | "Sol"
+                | "Luna"
+                | "Terra"
         )
     {
         return Err("invalid metaflow address".into());
@@ -28,7 +39,7 @@ pub fn compose(
         (&selection.user_modules, false),
     ] {
         for name in names {
-            if !identifier(name) || !explicit.insert(name.clone()) {
+            if !crate::registry::valid_id(name) || !explicit.insert(name.clone()) {
                 return Err("invalid, duplicate or cross-placement module ID".into());
             }
             if system != system_module(name) {
@@ -189,25 +200,6 @@ fn render(modules: &[(String, String)]) -> String {
         ));
     }
     text
-}
-fn identifier(value: &str) -> bool {
-    value.split_once(':').is_some_and(|(kind, subject)| {
-        matches!(
-            kind,
-            "spirit"
-                | "intent"
-                | "vision"
-                | "knowledge"
-                | "inquiry"
-                | "compensation"
-                | "role"
-                | "raw"
-        ) && !subject.is_empty()
-            && !subject.contains(':')
-            && subject
-                .bytes()
-                .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
-    })
 }
 fn system_module(value: &str) -> bool {
     value.starts_with("spirit:") || value.starts_with("intent:")

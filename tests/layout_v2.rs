@@ -21,20 +21,20 @@ fn source(root: &std::path::Path, relative: &str, body: &str) {
 fn source_api_exposes_registry_address_and_declared_placement() {
     let temp = tempfile::tempdir().unwrap();
     let r = roots(temp.path());
-    source(&r[0], "vision/book.md", "Book vision.\n");
+    source(&r[0], "vision/book/0.md", "Book vision.\n");
     source(
         &r[2],
-        "compensation/illustration.md",
-        "---\ndependencies: [ vision:book ]\nplacement: system\n---\nExact approved text.\n",
+        "compensation/illustration/0.md",
+        "---\ndependencies: [ vision:book:0 ]\nplacement: system\n---\nExact approved text.\n",
     );
     let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
-    let ids = vec!["compensation:illustration".into()];
+    let ids = vec!["compensation:illustration:0".into()];
     let resolved = registry.resolved_sources(&ids).unwrap();
     assert_eq!(resolved.len(), 2);
     assert_eq!(resolved[1].repository_name, "field-belief");
     assert_eq!(
         resolved[1].source_relative_path,
-        "compensation/illustration.md"
+        "compensation/illustration/0.md"
     );
     assert_eq!(resolved[1].source_revision, "c".repeat(40));
     assert_eq!(resolved[1].declared_placement, "system");
@@ -43,19 +43,19 @@ fn source_api_exposes_registry_address_and_declared_placement() {
 }
 
 #[test]
-fn a_dependency_reads_type_subject_and_type_hyphen_subject_as_one_id() {
+fn dependencies_require_explicit_three_field_ids_and_reject_duplicates() {
     let temp = tempfile::tempdir().unwrap();
     let r = roots(temp.path());
-    source(&r[0], "vision/book-making.md", "Book making.\n");
-    source(&r[0], "spirit/core.md", "Core.\n");
+    source(&r[0], "vision/book-making/0.md", "Book making.\n");
+    source(&r[0], "spirit/core/0.md", "Core.\n");
     source(
         &r[2],
-        "compensation/illustration.md",
-        "---\ndependencies: [vision-book-making, spirit:core]\n---\nIllustrate.\n",
+        "compensation/illustration/0.md",
+        "---\ndependencies: [vision:book-making:0, spirit:core:0]\n---\nIllustrate.\n",
     );
     let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
     let resolved = registry
-        .resolved_sources(&["compensation:illustration".into()])
+        .resolved_sources(&["compensation:illustration:0".into()])
         .unwrap();
     let ids: Vec<&str> = resolved
         .iter()
@@ -63,16 +63,20 @@ fn a_dependency_reads_type_subject_and_type_hyphen_subject_as_one_id() {
         .collect();
     assert_eq!(
         ids,
-        ["vision:book-making", "spirit:core", "compensation:illustration"]
+        [
+            "vision:book-making:0",
+            "spirit:core:0",
+            "compensation:illustration:0"
+        ]
     );
 
     let temp = tempfile::tempdir().unwrap();
     let r = roots(temp.path());
-    source(&r[0], "spirit/core.md", "Core.\n");
+    source(&r[0], "spirit/core/0.md", "Core.\n");
     source(
         &r[2],
-        "compensation/twice.md",
-        "---\ndependencies: [ spirit-core spirit:core ]\n---\nTwice.\n",
+        "compensation/twice/0.md",
+        "---\ndependencies: [ spirit:core:0 spirit:core:0 ]\n---\nTwice.\n",
     );
     assert!(SkillRegistry::from_context_repositories(&r, &revisions()).is_err());
 }
@@ -82,19 +86,19 @@ fn mixed_duplicate_case_nested_and_escape_layouts_refuse() {
     for case in 0..7 {
         let temp = tempfile::tempdir().unwrap();
         let r = roots(temp.path());
-        source(&r[1], "knowledge/topic.md", "Known.\n");
+        source(&r[1], "knowledge/topic/0.md", "Known.\n");
         match case {
             0 => {
                 fs::create_dir(r[2].join("skills")).unwrap();
             }
-            1 => source(&r[2], "knowledge/topic.md", "Duplicate.\n"),
-            2 => source(&r[1], "knowledge/Topic.md", "Wrong case.\n"),
+            1 => source(&r[2], "knowledge/topic/0.md", "Duplicate.\n"),
+            2 => source(&r[1], "knowledge/Topic/0.md", "Wrong case.\n"),
             3 => source(&r[1], "knowledge/nested/topic.md", "Nested.\n"),
             4 => {
                 fs::write(temp.path().join("outside.md"), "Outside.").unwrap();
                 std::os::unix::fs::symlink(
                     temp.path().join("outside.md"),
-                    r[1].join("knowledge/escape.md"),
+                    r[1].join("knowledge/escape/0.md"),
                 )
                 .unwrap();
             }
@@ -105,8 +109,8 @@ fn mixed_duplicate_case_nested_and_escape_layouts_refuse() {
             }
             _ => source(
                 &r[1],
-                "knowledge/missing.md",
-                "---\ndependencies: [ knowledge:absent ]\n---\nMissing.\n",
+                "knowledge/missing/0.md",
+                "---\ndependencies: [ knowledge:absent:0 ]\n---\nMissing.\n",
             ),
         }
         assert!(
@@ -120,12 +124,12 @@ fn mixed_duplicate_case_nested_and_escape_layouts_refuse() {
 fn same_subject_different_types_are_distinct() {
     let temp = tempfile::tempdir().unwrap();
     let r = roots(temp.path());
-    source(&r[1], "knowledge/topic.md", "Knowledge.");
-    source(&r[1], "inquiry/topic.md", "Inquiry.");
+    source(&r[1], "knowledge/topic/0.md", "Knowledge.");
+    source(&r[1], "inquiry/topic/0.md", "Inquiry.");
     let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
     assert_eq!(
         registry.skill_names().unwrap(),
-        vec!["inquiry:topic", "knowledge:topic"]
+        vec!["inquiry:topic:0", "knowledge:topic:0"]
     );
     assert!(registry.resolve_exact(&["topic".into()]).is_err());
 }
@@ -136,10 +140,10 @@ fn registry_workspace_projection_updates_plain_target_directories() {
 
     let temp = tempfile::tempdir().unwrap();
     let r = roots(temp.path());
-    let source_path = r[1].join("knowledge/topic.md");
+    let source_path = r[1].join("knowledge/topic/0.md");
     source(
         &r[1],
-        "knowledge/topic.md",
+        "knowledge/topic/0.md",
         "---\ndescription: topic\nuser-only: true\n---\nBase.\n{% if claude %}\nClaude-only.\n{% else %}\nOther.\n{% endif %}\n{% if pi %}\nPi-only.\n{% endif %}\n{% raw %}\n{% if claude %}\n{% endraw %}\n",
     );
     let workspace = temp.path().join("workspace");
@@ -168,49 +172,54 @@ fn registry_workspace_projection_updates_plain_target_directories() {
     assert_eq!(published.published_content_digest.len(), 64);
 
     assert!(
-        fs::read_to_string(workspace.join(".agents/skills/knowledge:topic/SKILL.md"))
+        fs::read_to_string(workspace.join(".agents/skills/knowledge:topic:0/SKILL.md"))
             .unwrap()
             .contains("Other.\n")
     );
     assert!(
-        fs::read_to_string(workspace.join(".claude/skills/knowledge:topic/SKILL.md"))
+        fs::read_to_string(workspace.join(".claude/skills/knowledge:topic:0/SKILL.md"))
             .unwrap()
             .contains("disable-model-invocation: true\n")
     );
     assert_eq!(
-        fs::read_to_string(workspace.join(".agents/skills/knowledge:topic/agents/openai.yaml"))
+        fs::read_to_string(workspace.join(".agents/skills/knowledge:topic:0/agents/openai.yaml"))
             .unwrap(),
         "policy:\n  allow_implicit_invocation: false\n"
     );
     assert_eq!(
-        fs::read_to_string(workspace.join(".codex/skills/knowledge:topic/agents/openai.yaml"))
+        fs::read_to_string(workspace.join(".codex/skills/knowledge:topic:0/agents/openai.yaml"))
             .unwrap(),
         "policy:\n  allow_implicit_invocation: false\n"
     );
     assert!(
-        fs::read_to_string(workspace.join(".opencode/skills/knowledge:topic/SKILL.md"))
+        fs::read_to_string(workspace.join(".opencode/skills/knowledge:topic:0/SKILL.md"))
             .unwrap()
-            .starts_with("---\nname: knowledge:topic\n")
+            .starts_with("---\nname: knowledge:topic:0\n")
     );
     for surface in [".codex/skills", ".pi/skills"] {
-        assert!(workspace
-            .join(surface)
-            .join("knowledge:topic/SKILL.md")
-            .is_file());
+        assert!(
+            workspace
+                .join(surface)
+                .join("knowledge:topic:0/SKILL.md")
+                .is_file()
+        );
     }
     assert!(
-        fs::read_to_string(workspace.join(".pi/skills/knowledge:topic/SKILL.md"))
+        fs::read_to_string(workspace.join(".pi/skills/knowledge:topic:0/SKILL.md"))
             .unwrap()
             .contains("Pi-only.\n")
     );
     assert!(
-        fs::read_to_string(workspace.join(".pi/skills/knowledge:topic/SKILL.md"))
+        fs::read_to_string(workspace.join(".pi/skills/knowledge:topic:0/SKILL.md"))
             .unwrap()
             .contains("{% if claude %}\n")
     );
     assert_eq!(
         fs::read_to_string(workspace.join("modules")).unwrap(),
-        format!("knowledge:topic {} knowledge/topic.md\n", revisions()[1])
+        format!(
+            "knowledge:topic:0 {} knowledge/topic/0.md\n",
+            revisions()[1]
+        )
     );
 
     let stale = workspace.join(".agents/skills/retired/SKILL.md");
@@ -232,14 +241,14 @@ fn registry_workspace_projection_updates_plain_target_directories() {
         published.published_content_digest
     );
     assert_eq!(
-        fs::read_to_string(workspace.join(".agents/skills/knowledge:topic/SKILL.md")).unwrap(),
+        fs::read_to_string(workspace.join(".agents/skills/knowledge:topic:0/SKILL.md")).unwrap(),
         "Latest module text.\n"
     );
     // A directory not named in the previous generated inventory is user-owned.
     assert_eq!(fs::read_to_string(&stale).unwrap(), "stale");
     assert_eq!(fs::read_to_string(unrelated).unwrap(), "preserve");
     assert!(
-        fs::read_dir(workspace.join(".agents/skills/knowledge:topic"))
+        fs::read_dir(workspace.join(".agents/skills/knowledge:topic:0"))
             .unwrap()
             .all(|entry| !entry
                 .unwrap()
@@ -253,20 +262,25 @@ fn registry_workspace_projection_updates_plain_target_directories() {
     let linked_workspace = temp.path().join("linked-workspace");
     fs::create_dir_all(&linked_workspace).unwrap();
     std::os::unix::fs::symlink(&outside, linked_workspace.join(".agents")).unwrap();
-    assert!(WorkspaceProjector::new(&linked_workspace)
-        .write(&latest)
-        .is_err());
+    assert!(
+        WorkspaceProjector::new(&linked_workspace)
+            .write(&latest)
+            .is_err()
+    );
     assert_eq!(fs::read_dir(outside).unwrap().count(), 0);
 }
 
 #[test]
 fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
-    use curriculum::{registry::workspace::WorkspaceProjector, registry::MODULE_TYPES};
+    use curriculum::{registry::MODULE_TYPES, registry::workspace::WorkspaceProjector};
     let temp = tempfile::tempdir().unwrap();
     let r = roots(temp.path());
     for (index, kind) in MODULE_TYPES.iter().enumerate() {
-        source(&r[index % 3], &format!("{kind}/item-{index}.md"),
-            "---\ndescription: fixture\n  user-only: true  \n---\n{% if claude %}\nclaude\n{% endif %}\n{% if codex %}\ncodex\n{% endif %}\n{% if pi %}\npi\n{% endif %}\n{% if opencode %}\nopencode\n{% endif %}\n");
+        source(
+            &r[index % 3],
+            &format!("{kind}/item-{index}/0.md"),
+            "---\ndescription: fixture\n  user-only: true  \n---\n{% if claude %}\nclaude\n{% endif %}\n{% if codex %}\ncodex\n{% endif %}\n{% if pi %}\npi\n{% endif %}\n{% if opencode %}\nopencode\n{% endif %}\n",
+        );
     }
     let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
     let ids = registry.skill_names().unwrap();
@@ -297,16 +311,136 @@ fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
             );
         }
         for surface in [".agents/skills", ".codex/skills"] {
-            assert!(workspace
-                .join(surface)
-                .join(&id)
-                .join("agents/openai.yaml")
-                .is_file());
+            assert!(
+                workspace
+                    .join(surface)
+                    .join(&id)
+                    .join("agents/openai.yaml")
+                    .is_file()
+            );
         }
         assert!(
             fs::read_to_string(workspace.join(".claude/skills").join(&id).join("SKILL.md"))
                 .unwrap()
                 .contains("disable-model-invocation: true")
+        );
+    }
+}
+
+#[test]
+fn explicit_versions_are_distinct_and_dependencies_select_exactly_one() {
+    let temp = tempfile::tempdir().unwrap();
+    let r = roots(temp.path());
+    source(&r[0], "vision/topic/0.md", "Version zero.\n");
+    source(&r[0], "vision/topic/12.md", "Version twelve.\n");
+    source(
+        &r[1],
+        "knowledge/consumer/0.md",
+        "---\ndependencies: [ vision:topic:0 ]\n---\nConsumer.\n",
+    );
+    let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+    let selected = registry
+        .resolved_sources(&["knowledge:consumer:0".into()])
+        .unwrap();
+    assert_eq!(
+        selected
+            .iter()
+            .map(|m| m.module_identity.as_str())
+            .collect::<Vec<_>>(),
+        ["vision:topic:0", "knowledge:consumer:0"]
+    );
+    assert_eq!(selected[0].source_relative_path, "vision/topic/0.md");
+    assert_eq!(selected[0].module_subject, "topic");
+    assert_eq!(
+        registry.resolve_exact(&["vision:topic:12".into()]).unwrap()[0].body,
+        "Version twelve.\n"
+    );
+    for id in [
+        "vision:topic",
+        "vision-topic",
+        "vision:topic:1",
+        "vision:topic:latest",
+    ] {
+        assert!(registry.resolve_exact(&[id.into()]).is_err(), "{id}");
+    }
+}
+
+#[test]
+fn versioned_identity_validation_has_no_implicit_or_alias_form() {
+    use curriculum::registry::valid_id;
+    for id in ["vision:topic:0", "knowledge:a-b:42", "spirit:core:1"] {
+        assert!(valid_id(id), "{id}");
+    }
+    for id in [
+        "vision:topic",
+        "vision-topic-0",
+        "vision-topic:0",
+        "vision:topic:",
+        "vision:topic:00",
+        "vision:topic:01",
+        "vision:topic:-1",
+        "vision:topic:+1",
+        "vision:topic:latest",
+        "vision:topic:0:1",
+        "vision:Topic:0",
+        "vision::0",
+        "unknown:topic:0",
+        "vision:../topic:0",
+        "vision:topic:١",
+    ] {
+        assert!(!valid_id(id), "{id}");
+    }
+}
+
+#[test]
+fn versioned_layout_refuses_legacy_files_invalid_versions_and_links() {
+    for relative in [
+        "vision/topic.md",
+        "vision/topic/01.md",
+        "vision/topic/-1.md",
+        "vision/topic/latest.md",
+        "vision/topic/0.txt",
+        "vision/topic/0/1.md",
+    ] {
+        let temp = tempfile::tempdir().unwrap();
+        let r = roots(temp.path());
+        source(&r[0], relative, "Invalid source.\n");
+        assert!(
+            SkillRegistry::from_context_repositories(&r, &revisions()).is_err(),
+            "{relative}"
+        );
+    }
+    for relative in ["vision/topic/0.md", "vision/topic"] {
+        let temp = tempfile::tempdir().unwrap();
+        let r = roots(temp.path());
+        let path = r[0].join(relative);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        let outside = temp.path().join("outside");
+        fs::write(&outside, "Outside.\n").unwrap();
+        std::os::unix::fs::symlink(&outside, &path).unwrap();
+        assert!(SkillRegistry::from_context_repositories(&r, &revisions()).is_err());
+    }
+}
+
+#[test]
+fn dependencies_refuse_old_aliases_and_missing_versions() {
+    for dependency in [
+        "vision:topic",
+        "vision-topic",
+        "vision-topic-0",
+        "vision:topic:1",
+    ] {
+        let temp = tempfile::tempdir().unwrap();
+        let r = roots(temp.path());
+        source(&r[0], "vision/topic/0.md", "Topic.\n");
+        source(
+            &r[1],
+            "knowledge/consumer/0.md",
+            &format!("---\ndependencies: [ {dependency} ]\n---\nConsumer.\n"),
+        );
+        assert!(
+            SkillRegistry::from_context_repositories(&r, &revisions()).is_err(),
+            "{dependency}"
         );
     }
 }

@@ -30,26 +30,22 @@ fn composition(role_name: &str) -> RoleComposition {
         fs::create_dir_all(root).unwrap();
     }
     fs::create_dir(roots[2].join("role")).unwrap();
-    fs::write(
-        roots[2].join("role/book-description.md"),
+    write_source(
+        roots[2].join("role/book-description/0.md"),
         "Publish \"whole\" text.\n---\ntools: Evil",
     )
     .unwrap();
-    fs::write(
-        roots[2].join("role/book-body.md"),
+    write_source(
+        roots[2].join("role/book-body/0.md"),
         "EXACT_CURRENT_BODY\nUnicode: » λ\n",
     )
     .unwrap();
     for (kind, name, body) in [
         ("vision", "book", "BOOK_VISION_BODY"),
-        (
-            "compensation",
-            "book-making",
-            "BOOK_CRYSTALLIZATION_BODY",
-        ),
+        ("compensation", "book-making", "BOOK_CRYSTALLIZATION_BODY"),
     ] {
         fs::create_dir_all(roots[0].join(kind)).unwrap();
-        fs::write(roots[0].join(kind).join(format!("{name}.md")), body).unwrap();
+        write_source(roots[0].join(kind).join(format!("{name}/0.md")), body).unwrap();
     }
     let registry = SkillRegistry::from_context_repositories(
         &roots,
@@ -67,15 +63,15 @@ fn composition(role_name: &str) -> RoleComposition {
             },
             effort: Effort::Medium,
             permission: Permission::Unrestricted,
-            description_module: "role:book-description".into(),
+            description_module: "role:book-description:0".into(),
             context_modules: if matches!(role_name, "general-purpose" | "book-author") {
                 vec![
-                    "role:book-body".into(),
-                    "vision:book".into(),
-                    "compensation:book-making".into(),
+                    "role:book-body:0".into(),
+                    "vision:book:0".into(),
+                    "compensation:book-making:0".into(),
                 ]
             } else {
-                vec!["role:book-body".into()]
+                vec!["role:book-body:0".into()]
             },
             role_tools: if matches!(role_name, "general-purpose" | "book-author") {
                 RoleTools::Inherit
@@ -168,7 +164,7 @@ fn book_native_renderers_match_the_declared_role_contracts() {
         .iter()
         .find(|role| role.role_name == "book" && role.surface == Surface::ClaudeAgent)
         .unwrap();
-    assert_eq!(book.description_module, "role:book-description");
+    assert_eq!(book.description_module, "role:book-description:0");
     assert_eq!(book.model_id, "sonnet");
     assert_eq!(
         book.role_tools,
@@ -183,7 +179,7 @@ fn book_native_renderers_match_the_declared_role_contracts() {
         .iter()
         .find(|role| role.role_name == "book-page" && role.surface == Surface::ClaudeAgent)
         .unwrap();
-    assert_eq!(page.description_module, "role:book-page-description");
+    assert_eq!(page.description_module, "role:book-page-description:0");
     assert_eq!(page.model_id, "opus");
     assert_eq!(
         page.role_tools,
@@ -378,7 +374,7 @@ fn book_writing_native_definitions_carry_both_instruction_bodies_once() {
         for expected in ["BOOK_VISION_BODY", "BOOK_CRYSTALLIZATION_BODY"] {
             assert_eq!(body.matches(expected).count(), 1);
         }
-        for id in ["vision:book", "compensation:book-making"] {
+        for id in ["vision:book:0", "compensation:book-making:0"] {
             let provenance: Vec<_> = role
                 .context_provenance_vector
                 .iter()
@@ -388,4 +384,13 @@ fn book_writing_native_definitions_carry_both_instruction_bodies_once() {
             assert_eq!(provenance[0].startup_placement, StartupPlacement::System);
         }
     }
+}
+
+fn write_source(
+    path: impl AsRef<std::path::Path>,
+    contents: impl AsRef<[u8]>,
+) -> std::io::Result<()> {
+    let path = path.as_ref();
+    fs::create_dir_all(path.parent().unwrap())?;
+    fs::write(path, contents)
 }
