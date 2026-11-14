@@ -1,0 +1,8 @@
+; Curriculum's one external call: the program that brings the three belief
+; checkouts to their origin mains before the registry is read.
+Emission
+[]
+[ RefreshContexts.RefreshProgram ]
+[ ContextsRefreshed.RefreshOutcome ]
+[ RefreshProgram.String
+  RefreshOutcome.[ Refreshed Failed Unstarted.String ] ]

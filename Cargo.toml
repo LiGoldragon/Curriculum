@@ -27,7 +27,7 @@ sha2 = "=0.10.9"
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "09a0526", features = ["rkyv"], optional = true }
 nexus = { git = "https://github.com/LiGoldragon/nexus", rev = "ec097e315a3b0b99bc215a72f6c3f6d8b2b060cf" }
 # The wire contract: Input, Output and the Answering capabilities.
-signal-curriculum-nexus = { git = "https://github.com/LiGoldragon/signal-curriculum-nexus", rev = "3e8b5b9" }
+signal-curriculum-nexus = { git = "https://github.com/LiGoldragon/signal-curriculum-nexus", rev = "4358aa1" }
 protos = { git = "https://github.com/LiGoldragon/protos", rev = "c93b598", optional = true }
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 thiserror = "2"
@@ -35,8 +35,8 @@ tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "signa
 # The build base builds mio with its default log feature everywhere; this crate carries that edge.
 mio = "1"
 
-# curriculum.ethos and memory.ethos are generated into src/generated.rs and
-# src/memory.rs by ethos-zero; the build script fails when the committed Rust
+# curriculum.ethos, memory.ethos and emission.ethos are generated into
+# src/generated.rs, src/memory.rs and src/emission.rs by ethos-zero; the build script fails when the committed Rust
 # differs from fresh generation. The rev string is the one Flow and the
 # contract write, so one ethos-zero source stands in every graph.
 [build-dependencies]

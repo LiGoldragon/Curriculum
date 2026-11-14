@@ -1,5 +1,7 @@
 //! The sole authored module registry: three server-configured repository roots, each holding the modules its modules.datom declares.
+use crate::emission::{Emittable, RefreshOutcome, RefreshProgram};
 use crate::generated::{ModuleDeclaration, ModuleKind};
+use crate::refresh::ProcessLauncher;
 use crate::startup_metadata::{declared_placement, instructions, sha256};
 use signal_curriculum_nexus::{
     BodySha256, DeclaredPlacement, ModuleIdentity, ModuleSubject, ModuleType, RepositoryName,
@@ -9,7 +11,6 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
     path::{Path, PathBuf},
-    process::Command,
 };
 use thiserror::Error;
 
@@ -163,7 +164,7 @@ pub fn valid_id(value: &str) -> bool {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceConfiguration {
     pub roots: [PathBuf; 3],
-    pub refresh_program: PathBuf,
+    pub refresh_program: RefreshProgram,
 }
 impl SourceConfiguration {
     pub fn from_environment() -> Result<Self, String> {
@@ -184,22 +185,26 @@ impl SourceConfiguration {
                 .ok_or_else(|| format!("missing {root}"))?;
         }
         let refresh_program = std::env::var_os("CURRICULUM_CONTEXT_REFRESH_PROGRAM")
-            .map(PathBuf::from)
-            .ok_or_else(|| "missing CURRICULUM_CONTEXT_REFRESH_PROGRAM".to_owned())?;
+            .ok_or_else(|| "missing CURRICULUM_CONTEXT_REFRESH_PROGRAM".to_owned())?
+            .into_string()
+            .map(RefreshProgram)
+            .map_err(|_| "CURRICULUM_CONTEXT_REFRESH_PROGRAM is not UTF-8".to_owned())?;
         Ok(Self {
             roots,
             refresh_program,
         })
     }
     pub fn read(&self) -> Result<SkillRegistry, RegistryError> {
-        let refreshed = Command::new(&self.refresh_program).status().map_err(|e| {
-            invalid(
-                &self.refresh_program,
-                format!("refresh current context: {e}"),
-            )
-        })?;
-        if !refreshed.success() {
-            return Err(invalid(&self.refresh_program, "context refresh failed"));
+        let program = Path::new(&self.refresh_program.0);
+        match self.refresh_program.emit(&ProcessLauncher) {
+            RefreshOutcome::Refreshed => {}
+            RefreshOutcome::Failed => return Err(invalid(program, "context refresh failed")),
+            RefreshOutcome::Unstarted(error) => {
+                return Err(invalid(
+                    program,
+                    format!("refresh current context: {error}"),
+                ));
+            }
         }
         let revisions = self
             .roots

@@ -188,10 +188,10 @@ mod tests {
         let encoded = rkyv::to_bytes::<rkyv::rancor::Error>(&input).expect("archive input");
         assert_eq!(CurriculumSignal.decode(&encoded), Some(input));
         assert_eq!(
-            CurriculumSignal.answer(Output::ResolvedSkills(vec![ModuleIdentity(
+            CurriculumSignal.answer(Output::SkillsResolved(vec![ModuleIdentity(
                 "spirit:core:0".into()
             )])),
-            Output::ResolvedSkills(vec![ModuleIdentity("spirit:core:0".into())])
+            Output::SkillsResolved(vec![ModuleIdentity("spirit:core:0".into())])
         );
     }
 }

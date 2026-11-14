@@ -1,6 +1,6 @@
-//! Curriculum's own file formats and its Memory are generated from
-//! curriculum.ethos and memory.ethos by ethos-zero; the committed Rust must
-//! equal fresh generation.
+//! Curriculum's own file formats, its Memory and its Emission are generated
+//! from curriculum.ethos, memory.ethos and emission.ethos by ethos-zero; the
+//! committed Rust must equal fresh generation.
 
 use ethos_zero::{Actualizing, File, Generating, Potential};
 
@@ -9,6 +9,7 @@ fn main() {
     for (source_path, generated_path) in [
         ("curriculum.ethos", "src/generated.rs"),
         ("memory.ethos", "src/memory.rs"),
+        ("emission.ethos", "src/emission.rs"),
     ] {
         println!("cargo:rerun-if-changed={source_path}");
         println!("cargo:rerun-if-changed={generated_path}");
