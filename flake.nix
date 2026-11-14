@@ -15,6 +15,9 @@
               # surface; the Nexus binary is checked as a plain build below.
               curriculum = check "curriculum" [ "default" "datom" ];
             };
+            extraChecks = { check, ... }: {
+              curriculum-plain = check "curriculum" [ "default" ];
+            };
           };
           plainNexus = workspace.binaries "curriculum" [ "default" ];
           datomCli = workspace.binaries "curriculum" [ "default" "datom" ];
