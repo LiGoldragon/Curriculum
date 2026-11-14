@@ -3,14 +3,19 @@
 
   inputs.base.url = "github:LiGoldragon/build-base";
 
-  outputs = { self, base }:
+  outputs =
+    { self, base }:
     let
-      perContext = context:
+      perContext =
+        context:
         let
           system = context.pkgs.system;
           lib = context.pkgs.lib;
           plainFeatures = [ "default" ];
-          datomFeatures = [ "default" "datom" ];
+          datomFeatures = [
+            "default"
+            "datom"
+          ];
           workspace = base.lib.workspace.${system} {
             cargoNix = ./Cargo.nix;
             memberChecks = { check, ... }: {
@@ -28,12 +33,23 @@
           datomTestBuild = workspace.checks.curriculum.tests;
           # Normal dependencies describe linked code. Build dependencies,
           # including ethos-zero, generate it and are a separate graph.
-          linkedCrates = root: builtins.genericClosure {
-            startSet = [ { key = root.drvPath; crate = root; } ];
-            operator = node: map (crate: { key = crate.drvPath; inherit crate; }) node.crate.dependencies;
-          };
-          hasDatom = root: builtins.any
-            (node: node.crate.crateName == "datom-codec") (linkedCrates root);
+          linkedCrates =
+            root:
+            builtins.genericClosure {
+              startSet = [
+                {
+                  key = root.drvPath;
+                  crate = root;
+                }
+              ];
+              operator =
+                node:
+                map (crate: {
+                  key = crate.drvPath;
+                  inherit crate;
+                }) node.crate.dependencies;
+            };
+          hasDatom = root: builtins.any (node: node.crate.crateName == "datom-codec") (linkedCrates root);
           nexusClosure = context.pkgs.closureInfo { rootPaths = [ plainNexus ]; };
           cliOnly = context.pkgs.runCommand "curriculum-cli" { } ''
             mkdir -p $out/bin
@@ -58,14 +74,18 @@
             binary-feature-separation = binaryChecks;
           };
         in
-        assert lib.assertMsg (!(builtins.elem "datom" plainNexus.crateFeatures) && !(hasDatom plainNexus))
-          "The plain Nexus links datom";
-        assert lib.assertMsg (builtins.elem "datom" datomCli.crateFeatures && hasDatom datomCli)
-          "The CLI must link datom";
-        assert lib.assertMsg (plainTestBuild.crateFeatures == plainNexus.crateFeatures && !(hasDatom plainTestBuild))
-          "The plain check must exercise the plain Nexus feature graph";
-        assert lib.assertMsg (datomTestBuild.crateFeatures == datomCli.crateFeatures && hasDatom datomTestBuild)
-          "The CLI check must exercise the datom feature graph";
+        assert lib.assertMsg (
+          !(builtins.elem "datom" plainNexus.crateFeatures) && !(hasDatom plainNexus)
+        ) "The plain Nexus links datom";
+        assert lib.assertMsg (
+          builtins.elem "datom" datomCli.crateFeatures && hasDatom datomCli
+        ) "The CLI must link datom";
+        assert lib.assertMsg (
+          plainTestBuild.crateFeatures == plainNexus.crateFeatures && !(hasDatom plainTestBuild)
+        ) "The plain check must exercise the plain Nexus feature graph";
+        assert lib.assertMsg (
+          datomTestBuild.crateFeatures == datomCli.crateFeatures && hasDatom datomTestBuild
+        ) "The CLI check must exercise the datom feature graph";
         {
           packages = workspace.packages // {
             # The default package is the plain Nexus; the datom CLI is
