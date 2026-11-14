@@ -385,3 +385,6 @@ fn dependencies_refuse_old_aliases_and_missing_versions() {
         assert!(support::registry(&r, &revisions()).is_err(), "{dependency}");
     }
 }
+
+#[test]
+fn test_only_witness() { assert!(std::hint::black_box(true)); }
