@@ -547,14 +547,14 @@ rec {
       };
       "ethos-zero" = rec {
         crateName = "ethos-zero";
-        version = "27.0.0";
+        version = "28.0.0";
         edition = "2024";
         crateBin = [];
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/LiGoldragon/ethos-zero";
-          rev = "8c95310c4c372cfe115cdebc3e85021b98cf2974";
-          sha256 = "1nqshn23ibbnnadi10wj79dn6wcjjkgfav6qkwsa7jg6r9m87v76";
+          rev = "970459d100ddee5f62a76c05642ecfabefba6329";
+          sha256 = "1iymm3vjsxslkfp1gih72shiav8gk0bkrra1ix3ka9iyg578ldcf";
         };
         libName = "ethos_zero";
         dependencies = [
@@ -1988,8 +1988,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/LiGoldragon/signal-curriculum-nexus";
-          rev = "4358aa1c2bcba273fe18037ab7e99ebb117a9a47";
-          sha256 = "1awfjf2vcs09vyhyc2x259wvwzd1dnn6a8c3pqbfvdc97n5znnj3";
+          rev = "4202d8bade73179be646b588498ae55e5687d1e8";
+          sha256 = "0911rq0kmmm4p6gw5xzak74lgi7zh41ai7phz1frmp913spwcp74";
         };
         libName = "signal_curriculum_nexus";
         dependencies = [
