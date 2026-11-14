@@ -35,10 +35,7 @@ pub(crate) fn instructions(source: &str) -> Result<&str, String> {
             "description" | "dependencies" => (),
             "placement" if matches!(value.trim(), "system" | "user" | "on-demand") => (),
             "user-only" | "disable-model-invocation"
-                if matches!(value.trim(), "true" | "false") =>
-            {
-                ()
-            }
+                if matches!(value.trim(), "true" | "false") => {}
             "user-invocable" if value.trim() == "true" => (),
             _ => return Err(format!("unsupported startup execution metadata: {key}")),
         }

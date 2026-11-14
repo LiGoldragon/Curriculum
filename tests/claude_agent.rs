@@ -9,9 +9,7 @@ fn declared_roles() -> Roles {
         Potential::<RolesDocument>::from(include_str!("../roles.datom"))
             .actualize(&mut Budget {
                 remaining: 1_048_576,
-                reader: ReaderBudget {
-                    remaining: 1_048_576,
-                },
+                reader: ReaderBudget::try_from(1_048_576).expect("a constant reader budget"),
                 depth: 0,
                 maximum_depth: 1024,
             })

@@ -170,9 +170,7 @@ pub fn read_declared() -> Result<Option<Roles>, String> {
         Potential::<crate::generated::RolesDocument>::from(text)
             .actualize(&mut Budget {
                 remaining: 1_048_576,
-                reader: ReaderBudget {
-                    remaining: 1_048_576,
-                },
+                reader: ReaderBudget::try_from(1_048_576).expect("a constant reader budget"),
                 depth: 0,
                 maximum_depth: 1024,
             })

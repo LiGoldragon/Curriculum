@@ -3,7 +3,7 @@ use crate::{
     registry::{ExpandsSkills, SourceConfiguration},
 };
 use nexus::{Admission, Changed, MemoryHandle, Nexus, Operating, Remembering, Signaling};
-use std::{future::Future, path::PathBuf};
+use std::path::PathBuf;
 
 #[derive(Clone)]
 pub struct SkillSnapshot {
@@ -42,48 +42,42 @@ pub struct CurriculumOperation;
 impl Operating<SkillMemory> for CurriculumOperation {
     type Operation = Query;
     type Outcome = Outcome;
-    fn perform(
-        &mut self,
-        query: Query,
-        memory: &MemoryHandle<SkillMemory>,
-    ) -> impl Future<Output = Outcome> + Send {
-        async move {
-            let Some(snapshot) = memory.read(()).await else {
-                return Outcome::Rejected("Curriculum memory unavailable".into());
-            };
-            let registry = match SourceConfiguration::from_environment()
-                .and_then(|configuration| configuration.read().map_err(|e| e.to_string()))
-            {
-                Ok(registry) => registry,
-                Err(error) => return Outcome::Rejected(error),
-            };
-            match query {
-                Query::ResolveSkills(ids) => match registry.expand_skills(&ids) {
-                    Ok(s) => Outcome::ResolvedSkills(s.into_iter().map(|m| m.name).collect()),
-                    Err(e) => Outcome::Rejected(e.to_string()),
-                },
-                Query::ResolveSources(ids) => match registry.resolved_sources(&ids) {
-                    Ok(s) => Outcome::ResolvedSources(s),
-                    Err(e) => Outcome::Rejected(e.to_string()),
-                },
-                Query::ComposeStartup(selection) => {
-                    let records_root = match std::env::var_os("CURRICULUM_RECORDS_DIR") {
-                        Some(root) => PathBuf::from(root),
-                        None => return Outcome::Rejected("missing CURRICULUM_RECORDS_DIR".into()),
-                    };
-                    match crate::startup::compose(&registry, &records_root, &selection) {
-                        Ok(s) => Outcome::StartupComposed(s),
-                        Err(e) => Outcome::Rejected(e),
-                    }
+    async fn perform(&mut self, query: Query, memory: &MemoryHandle<SkillMemory>) -> Outcome {
+        let Some(snapshot) = memory.read(()).await else {
+            return Outcome::Rejected("Curriculum memory unavailable".into());
+        };
+        let registry = match SourceConfiguration::from_environment()
+            .and_then(|configuration| configuration.read().map_err(|e| e.to_string()))
+        {
+            Ok(registry) => registry,
+            Err(error) => return Outcome::Rejected(error),
+        };
+        match query {
+            Query::ResolveSkills(ids) => match registry.expand_skills(&ids) {
+                Ok(s) => Outcome::ResolvedSkills(s.into_iter().map(|m| m.name).collect()),
+                Err(e) => Outcome::Rejected(e.to_string()),
+            },
+            Query::ResolveSources(ids) => match registry.resolved_sources(&ids) {
+                Ok(s) => Outcome::ResolvedSources(s),
+                Err(e) => Outcome::Rejected(e.to_string()),
+            },
+            Query::ComposeStartup(selection) => {
+                let records_root = match std::env::var_os("CURRICULUM_RECORDS_DIR") {
+                    Some(root) => PathBuf::from(root),
+                    None => return Outcome::Rejected("missing CURRICULUM_RECORDS_DIR".into()),
+                };
+                match crate::startup::compose(&registry, &records_root, &selection) {
+                    Ok(s) => Outcome::StartupComposed(s),
+                    Err(e) => Outcome::Rejected(e),
                 }
-                Query::ComposeRole(selection) => match snapshot.roles {
-                    Some(roles) => match crate::roles::compose(&registry, &roles, &selection) {
-                        Ok(s) => Outcome::RoleComposed(s),
-                        Err(e) => Outcome::Rejected(e),
-                    },
-                    None => Outcome::Rejected("no server-declared ID-only roles metadata".into()),
-                },
             }
+            Query::ComposeRole(selection) => match snapshot.roles {
+                Some(roles) => match crate::roles::compose(&registry, &roles, &selection) {
+                    Ok(s) => Outcome::RoleComposed(s),
+                    Err(e) => Outcome::Rejected(e),
+                },
+                None => Outcome::Rejected("no server-declared ID-only roles metadata".into()),
+            },
         }
     }
 }
