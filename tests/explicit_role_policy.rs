@@ -155,14 +155,16 @@ fn role_binding_composes_all_actual_spans_once_with_actual_provenance() {
         fs::create_dir_all(root).unwrap();
         fs::write(root.join("modules.datom"), "[]\n").unwrap();
     }
-    write_source(roots[2].join("description.md"), "Description.").unwrap();
-    write_source(roots[2].join("single.md"), "Single.").unwrap();
-    write_source(roots[2].join("span.md"), "Span.").unwrap();
+    write_source(roots[2].join("descriptions/0.md"), "Description.").unwrap();
+    write_source(roots[2].join("descriptions/0-2.md"), "Second.").unwrap();
+    write_source(roots[2].join("context/1.md"), "Single.").unwrap();
+    write_source(roots[2].join("context/0-2.md"), "Span.").unwrap();
     fs::write(
         roots[2].join("modules.datom"),
-        "[ { Role description Single.0 «description.md» }
-  { Role context Single.1 «single.md» }
-  { Role context Span.{ 0 2 } «span.md» } ]\n",
+        "[ { Role description Single.0 «descriptions/0.md» }
+  { Role description Span.{ 0 2 } «descriptions/0-2.md» }
+  { Role context Single.1 «context/1.md» }
+  { Role context Span.{ 0 2 } «context/0-2.md» } ]\n",
     )
     .unwrap();
     let registry = SkillRegistry::from_context_repositories(
@@ -202,8 +204,14 @@ fn role_binding_composes_all_actual_spans_once_with_actual_provenance() {
             .iter()
             .map(|module| module.module_identity.0.as_str())
             .collect::<Vec<_>>(),
-        ["role:description:0", "role:context:1", "role:context:0-2"]
+        [
+            "role:description:0",
+            "role:description:0-2",
+            "role:context:1",
+            "role:context:0-2"
+        ]
     );
+    assert_eq!(result.description_text.0, "Description.\n\nSecond.");
     assert!(
         result
             .context_text

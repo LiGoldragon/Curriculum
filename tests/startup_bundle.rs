@@ -323,13 +323,18 @@ fn write_source(
 fn startup_uses_actual_span_provenance_and_deduplicates_a_shared_span() {
     let tmp = tempfile::tempdir().unwrap();
     let (roots, _, mut selection) = fixture(tmp.path());
+    write_source(
+        roots[2].join("compensation/user00/0-1.md"),
+        "---\ndependencies: [ vision:core:0 ]\nplacement: user\n---\nBODY_00_SPAN\n",
+    )
+    .unwrap();
     let manifest = roots[2].join("modules.datom");
     let declarations = fs::read_to_string(&manifest).unwrap();
     let declarations = declarations.strip_suffix(" ]\n").unwrap();
     fs::write(
         &manifest,
         format!(
-            "{declarations}\n  {{ Compensation user00 Span.{{ 0 1 }} «compensation/user00/0.md» }} ]\n"
+            "{declarations}\n  {{ Compensation user00 Span.{{ 0 1 }} «compensation/user00/0-1.md» }} ]\n"
         ),
     )
     .unwrap();
@@ -350,5 +355,34 @@ fn startup_uses_actual_span_provenance_and_deduplicates_a_shared_span() {
         .map(|module| module.module_identity.0.as_str())
         .collect::<Vec<_>>();
     assert_eq!(actual, ["compensation:user00:0", "compensation:user00:0-1"]);
-    assert_eq!(result.user_text.0.matches("BODY_00_EXACT").count(), 2);
+    assert_eq!(result.user_text.0.matches("BODY_00_EXACT").count(), 1);
+    assert_eq!(result.user_text.0.matches("BODY_00_SPAN").count(), 1);
+}
+
+#[test]
+fn user_dependency_on_explicit_system_modules_is_deduplicated_by_actual_identity() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (roots, _, selection) = fixture(tmp.path());
+    write_source(
+        roots[2].join("compensation/user00/0.md"),
+        "---\ndependencies: [ spirit:core:0 intent:seat:0 ]\nplacement: user\n---\nUSER_WITH_SYSTEM_DEPS\n",
+    )
+    .unwrap();
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
+    let result = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
+    for identity in ["spirit:core:0", "intent:seat:0"] {
+        assert_eq!(
+            result
+                .context_provenance_vector
+                .iter()
+                .filter(|module| module.module_identity.0 == identity)
+                .count(),
+            1
+        );
+    }
+    assert_eq!(
+        result.user_text.0.matches("USER_WITH_SYSTEM_DEPS").count(),
+        1
+    );
 }

@@ -131,7 +131,8 @@ pub fn compose(
         .zip(&rendered)
         .filter(|(module, _)| description_identities.contains(&module.module_identity.0))
         .map(|(_, body)| body.as_str())
-        .collect::<String>();
+        .collect::<Vec<_>>()
+        .join("\n\n");
     let context_modules = modules
         .iter()
         .zip(&rendered)

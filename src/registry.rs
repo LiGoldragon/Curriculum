@@ -199,6 +199,51 @@ impl CoversVersion for BoundVersion {
     }
 }
 
+trait NamesModuleVersion {
+    fn version_name(&self) -> Result<String, String>;
+    fn names_span(&self) -> bool;
+}
+
+impl NamesModuleVersion for Versions {
+    fn version_name(&self) -> Result<String, String> {
+        match self {
+            Self::Single(version) if version.0 >= 0 => Ok(version.0.to_string()),
+            Self::Single(version) => Err(format!("version {} must be nonnegative", version.0)),
+            Self::Span(bounds)
+                if bounds.first.0.0 >= 0
+                    && bounds.last.0.0 >= 0
+                    && bounds.first.0.0 < bounds.last.0.0 =>
+            {
+                Ok(format!("{}-{}", bounds.first.0.0, bounds.last.0.0))
+            }
+            Self::Span(bounds) => Err(format!(
+                "span {}-{} must have nonnegative increasing bounds",
+                bounds.first.0.0, bounds.last.0.0
+            )),
+        }
+    }
+
+    fn names_span(&self) -> bool {
+        matches!(self, Self::Span(_))
+    }
+}
+
+trait DeclaresModuleIdentity {
+    fn declared_identity(&self) -> Result<String, String>;
+}
+
+impl DeclaresModuleIdentity for ModuleDeclaration {
+    fn declared_identity(&self) -> Result<String, String> {
+        self.versions.version_name().map(|version| {
+            format!(
+                "{}:{}:{version}",
+                self.module_kind.word(),
+                self.module_subject.0
+            )
+        })
+    }
+}
+
 pub fn valid_id(value: &str) -> bool {
     value.parsed_identity().is_some()
 }
@@ -314,8 +359,7 @@ impl SkillRegistry {
             canonical(&input[1])?,
             canonical(&input[2])?,
         ];
-        let mut entries = BTreeMap::new();
-        let mut reports = Vec::new();
+        let mut declarations = Vec::new();
         for (i, root) in roots.iter().enumerate() {
             if revisions[i].len() != 40
                 || !revisions[i]
@@ -334,9 +378,33 @@ impl SkillRegistry {
             {
                 return Err(invalid(root, "repository roots overlap"));
             }
-            for declaration in read_declarations(root)? {
-                admit(root, declaration, &mut entries, &mut reports)?;
+            declarations.extend(
+                read_declarations(root)?
+                    .into_iter()
+                    .map(|declaration| (i, declaration)),
+            );
+        }
+        let mut identities = BTreeSet::new();
+        let mut declared_files = BTreeMap::new();
+        for (root_index, declaration) in &declarations {
+            let identity = declaration
+                .declared_identity()
+                .map_err(|message| invalid(&roots[*root_index].join(DECLARATIONS_FILE), message))?;
+            if valid_id(&identity) && !identities.insert(identity.clone()) {
+                return Err(RegistryError::Duplicate(identity));
             }
+            let file = (*root_index, declaration.module_file.0.clone());
+            if let Some(first) = declared_files.insert(file, identity.clone()) {
+                return Err(invalid(
+                    &roots[*root_index].join(DECLARATIONS_FILE),
+                    format!("{first} and {identity} declare the same source file"),
+                ));
+            }
+        }
+        let mut entries = BTreeMap::new();
+        let mut reports = Vec::new();
+        for (root_index, declaration) in declarations {
+            admit(&roots[root_index], declaration, &mut entries, &mut reports)?;
         }
         let registry = Self {
             entries,
@@ -444,11 +512,14 @@ impl SkillRegistry {
             .ok_or_else(|| RegistryError::Missing(identity.into()))?;
         for dependency in &source.dependencies {
             for actual in self.resolve_binding(dependency)? {
-                // A numeric binding can contain the module that declares it.
-                // That module is already being visited; the other containing
-                // modules remain dependencies and are traversed normally.
+                // A numeric binding can incidentally contain the span module
+                // that declares it. That candidate is already being visited;
+                // a dependency naming the actual identity itself remains a
+                // genuine cycle, and every other candidate is traversed.
                 if actual.name != identity {
                     self.visit(&actual.name, visiting, seen, output)?;
+                } else if dependency == identity {
+                    return Err(RegistryError::Cycle(identity.into()));
                 }
             }
         }
@@ -916,9 +987,9 @@ fn read_declarations(root: &Path) -> Result<Vec<ModuleDeclaration>, RegistryErro
     ))
 }
 
-/// Gives the declaration's identity to its file. Recoverable placement and
-/// name findings on singleton declarations are reported; malformed spans,
-/// duplicate identities and absent span files refuse the registry.
+/// Gives the declaration's identity to its correspondingly named file.
+/// Recoverable singleton findings are reported; malformed declarations,
+/// duplicate identities and every inadmissible span file refuse the registry.
 fn admit(
     root: &Path,
     declaration: ModuleDeclaration,
@@ -926,11 +997,6 @@ fn admit(
     reports: &mut Vec<DeclarationReport>,
 ) -> Result<(), RegistryError> {
     let declarations = root.join(DECLARATIONS_FILE);
-    let stem = format!(
-        "{}:{}",
-        declaration.module_kind.word(),
-        declaration.module_subject.0
-    );
     let mut report = |name: String, finding| {
         reports.push(DeclarationReport {
             declarations: declarations.clone(),
@@ -938,35 +1004,25 @@ fn admit(
             finding,
         })
     };
-    let (name, span) = match declaration.versions {
-        Versions::Single(version) if version.0 >= 0 => (format!("{stem}:{}", version.0), false),
-        Versions::Single(version) => {
-            return Err(invalid(
-                &declarations,
-                format!("module version {stem}:{} must be nonnegative", version.0),
-            ));
-        }
-        Versions::Span(bounds)
-            if bounds.first.0.0 >= 0
-                && bounds.last.0.0 >= 0
-                && bounds.first.0.0 < bounds.last.0.0 =>
-        {
-            (
-                format!("{stem}:{}-{}", bounds.first.0.0, bounds.last.0.0),
-                true,
-            )
-        }
-        Versions::Span(bounds) => {
-            return Err(invalid(
-                &declarations,
-                format!(
-                    "malformed module span {stem}:{}-{}; span bounds must be nonnegative and increasing",
-                    bounds.first.0.0, bounds.last.0.0
-                ),
-            ));
-        }
-    };
+    let name = declaration
+        .declared_identity()
+        .map_err(|message| invalid(&declarations, message))?;
+    let version_name = declaration
+        .versions
+        .version_name()
+        .map_err(|message| invalid(&declarations, message))?;
+    let span = declaration.versions.names_span();
     let relative = Path::new(&declaration.module_file.0);
+    let expected_file_name = format!("{version_name}.md");
+    if relative.file_name().and_then(|file| file.to_str()) != Some(expected_file_name.as_str()) {
+        return Err(invalid(
+            &declarations,
+            format!(
+                "{name}: declared file {} must be named {expected_file_name}",
+                relative.display()
+            ),
+        ));
+    }
     let path = root.join(relative);
     let placeable = !declaration.module_file.0.is_empty()
         && relative
@@ -991,6 +1047,15 @@ fn admit(
                 format!("{name}: no file {}", file.display()),
             ));
         }
+        Err(DeclarationFinding::Unplaceable(file)) if span => {
+            return Err(invalid(
+                &declarations,
+                format!(
+                    "{name}: {} is not a plain file inside the source",
+                    file.display()
+                ),
+            ));
+        }
         Err(finding) => {
             report(name, finding);
             return Ok(());
@@ -1002,6 +1067,12 @@ fn admit(
     }
     if entries.contains_key(&name) {
         return Err(RegistryError::Duplicate(name));
+    }
+    if let Some(held) = entries.values().find(|entry| entry.path == path) {
+        return Err(invalid(
+            &declarations,
+            format!("{} and {name} declare the same source file", held.name),
+        ));
     }
     let text = fs::read_to_string(&path).map_err(|e| invalid(&path, e))?;
     let content = instructions(&text).map_err(|e| invalid(&path, e))?;
