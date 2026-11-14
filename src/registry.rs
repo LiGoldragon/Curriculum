@@ -758,7 +758,7 @@ pub mod workspace {
 #[cfg(feature = "datom")]
 fn read_declarations(root: &Path) -> Result<Vec<ModuleDeclaration>, RegistryError> {
     use datom_codec::{Actualizing, Budget, Datomizable, Potential};
-    use protos::ReaderBudget;
+    use protos::{Protosizable, ReaderBudget, Textualizable};
     let path = root.join(DECLARATIONS_FILE);
     let metadata = fs::symlink_metadata(&path).map_err(|e| invalid(&path, e))?;
     if !metadata.is_file() {
