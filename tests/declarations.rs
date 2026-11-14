@@ -39,7 +39,7 @@ fn the_declaration_names_the_module_whatever_its_file_is_called() {
         .resolved_sources(&["spirit:core:0".into()])
         .unwrap();
     assert_eq!(resolved[0].string, "Core.\n");
-    assert_eq!(resolved[0].source_relative_path, "anywhere/at all.md");
+    assert_eq!(resolved[0].source_relative_path.0, "anywhere/at all.md");
     assert!(registry.reports().is_empty());
 }
 
@@ -64,7 +64,7 @@ fn one_declaration_holds_for_every_version_it_names() {
         .resolved_sources(&["knowledge:consumer:0".into()])
         .unwrap()
         .into_iter()
-        .map(|module| module.module_identity)
+        .map(|module| module.module_identity.0)
         .collect();
     assert_eq!(ids, ["vision:ethos:1", "knowledge:consumer:0"]);
 }

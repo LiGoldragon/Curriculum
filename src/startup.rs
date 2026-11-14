@@ -1,7 +1,11 @@
 //! In-memory startup composition from the server's three authored repositories.
 //! Callers supply module IDs and a metaflow address, never paths or text.
 use crate::{
-    generated::{ContextProvenance, StartupComposition, StartupPlacement, StartupSelection},
+    generated::{
+        ContextProvenance, FlowId, RecordsPayloadSha256, RecordsText, RenderedSha256,
+        StartupComposition, StartupPlacement, StartupSelection, SystemPayloadSha256, SystemText,
+        UserPayloadSha256, UserText,
+    },
     registry::{ExpandsSkills, SkillRegistry},
     startup_metadata::{instructions, sha256},
 };
@@ -35,10 +39,11 @@ pub fn compose(
     }
     let mut explicit = BTreeSet::new();
     for (names, system) in [
-        (&selection.system_modules, true),
-        (&selection.user_modules, false),
+        (&selection.system_modules.0, true),
+        (&selection.user_modules.0, false),
     ] {
         for name in names {
+            let name = &name.0;
             if !crate::registry::valid_id(name) || !explicit.insert(name.clone()) {
                 return Err("invalid, duplicate or cross-placement module ID".into());
             }
@@ -50,11 +55,12 @@ pub fn compose(
     if explicit.is_empty() {
         return Err("startup requires at least one authored module".into());
     }
-    let roots: Vec<_> = selection
+    let roots: Vec<String> = selection
         .system_modules
+        .0
         .iter()
-        .chain(&selection.user_modules)
-        .cloned()
+        .chain(&selection.user_modules.0)
+        .map(|id| id.0.clone())
         .collect();
     let resolved = registry
         .resolved_sources(&roots)
@@ -76,7 +82,7 @@ pub fn compose(
         let output = if is_system { &mut system } else { &mut user };
         let ordinal = output.len() as i64;
         let rendered = crate::context_render::render(&selection.target, body)?;
-        let rendered_sha256 = sha256(rendered.as_bytes());
+        let rendered_sha256 = RenderedSha256(sha256(rendered.as_bytes()));
         output.push((source.name, rendered));
         provenance.push(ContextProvenance {
             module_identity: module.module_identity,
@@ -103,21 +109,22 @@ pub fn compose(
     let user_text = render(&user);
     let records_text = records(records_root, &selection.flow_id_vector)?;
     Ok(StartupComposition {
-        system_payload_sha256: sha256(system_text.as_bytes()),
-        user_payload_sha256: sha256(user_text.as_bytes()),
-        records_payload_sha256: sha256(records_text.as_bytes()),
-        system_text,
-        user_text,
-        records_text,
+        system_payload_sha256: SystemPayloadSha256(sha256(system_text.as_bytes())),
+        user_payload_sha256: UserPayloadSha256(sha256(user_text.as_bytes())),
+        records_payload_sha256: RecordsPayloadSha256(sha256(records_text.as_bytes())),
+        system_text: SystemText(system_text),
+        user_text: UserText(user_text),
+        records_text: RecordsText(records_text),
         context_provenance_vector: provenance,
     })
 }
 
-fn records(root: &Path, flows: &[String]) -> Result<String, String> {
+fn records(root: &Path, flows: &[FlowId]) -> Result<String, String> {
     let root =
         std::fs::canonicalize(root).map_err(|_| "record missing: records root".to_owned())?;
     let mut output = String::new();
     for flow in flows {
+        let flow = flow.0.as_str();
         if !flow_id(flow) {
             return Err(format!("record missing: {flow}"));
         }

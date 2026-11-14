@@ -16,13 +16,13 @@ impl RendersClaudeAgent for RoleComposition {
         if self.permission == Permission::Restricted && self.role_tools == RoleTools::Inherit {
             return Err("a restricted Claude role names its tools".into());
         }
-        if sha256(self.description_text.as_bytes()) != self.description_payload_sha256
-            || sha256(self.context_text.as_bytes()) != self.context_payload_sha256
+        if sha256(self.description_text.0.as_bytes()) != self.description_payload_sha256.0
+            || sha256(self.context_text.0.as_bytes()) != self.context_payload_sha256.0
             || self.context_provenance_vector.is_empty()
         {
             return Err("composed role payload verification failed".into());
         }
-        let model = self.model_id.plain_name()?;
+        let model = self.model_id.0.plain_name()?;
         let effort = self.effort.claude_effort();
         let tools_header = match &self.role_tools {
             RoleTools::Inherit => String::new(),
@@ -35,11 +35,11 @@ impl RendersClaudeAgent for RoleComposition {
                     .join(", ")
             ),
         };
-        let description = self.description_text.yaml_string();
+        let description = self.description_text.0.yaml_string();
         Ok(format!(
             "---\nname: {}\ndescription: {description}\nmodel: {model}\neffort: {effort}\n{tools_header}---\n\n{}",
-            self.role_name.plain_name()?,
-            self.context_text,
+            self.role_name.0.plain_name()?,
+            self.context_text.0,
         ))
     }
 }

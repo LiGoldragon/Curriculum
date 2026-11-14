@@ -32,7 +32,7 @@ fn main() -> ExitCode {
             ExitCode::FAILURE
         }
         Ok(Outcome::RoleComposed(role))
-            if render_agent && requested_role.as_deref() != Some(role.role_name.as_str()) =>
+            if render_agent && requested_role.as_deref() != Some(role.role_name.0.as_str()) =>
         {
             eprintln!("Curriculum Nexus returned a different role from the requested role");
             ExitCode::FAILURE

@@ -7,6 +7,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/LiGoldragon/Curriculum"
 description = "Curriculum skill registry and Nexus."
 publish = false
+build = "build.rs"
 
 [features]
 default = []
@@ -31,6 +32,12 @@ thiserror = "2"
 tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "signal"] }
 # The build base builds mio with its default log feature everywhere; this crate carries that edge.
 mio = "1"
+
+# curriculum.ethos is generated into src/generated.rs by ethos-zero; the build
+# script fails when the committed Rust differs from fresh generation. The rev
+# string is the one Flow writes, so one ethos-zero source stands in both graphs.
+[build-dependencies]
+ethos-zero = { git = "https://github.com/LiGoldragon/ethos-zero", rev = "1976e45" }
 
 [dev-dependencies]
 tempfile = "3"

@@ -32,13 +32,13 @@ fn source_api_exposes_registry_address_and_declared_placement() {
     let ids = vec!["compensation:illustration:0".into()];
     let resolved = registry.resolved_sources(&ids).unwrap();
     assert_eq!(resolved.len(), 2);
-    assert_eq!(resolved[1].repository_name, "field-belief");
+    assert_eq!(resolved[1].repository_name.0, "field-belief");
     assert_eq!(
-        resolved[1].source_relative_path,
+        resolved[1].source_relative_path.0,
         "compensation/illustration/0.md"
     );
-    assert_eq!(resolved[1].source_revision, "c".repeat(40));
-    assert_eq!(resolved[1].declared_placement, "system");
+    assert_eq!(resolved[1].source_revision.0, "c".repeat(40));
+    assert_eq!(resolved[1].declared_placement.0, "system");
     assert_eq!(resolved[1].string, "Exact approved text.\n");
     assert_eq!(registry.resolve_exact(&ids).unwrap().len(), 1);
 }
@@ -60,7 +60,7 @@ fn dependencies_require_explicit_three_field_ids_and_reject_duplicates() {
         .unwrap();
     let ids: Vec<&str> = resolved
         .iter()
-        .map(|module| module.module_identity.as_str())
+        .map(|module| module.module_identity.0.as_str())
         .collect();
     assert_eq!(
         ids,
@@ -126,24 +126,24 @@ fn registry_workspace_projection_updates_plain_target_directories() {
     let first = support::registry(&r, &revisions()).unwrap();
     let published = projector.project(&first).unwrap();
     assert_eq!(
-        published.deployment_destination,
+        published.deployment_destination.0,
         fs::canonicalize(&workspace).unwrap().to_string_lossy()
     );
     assert_eq!(published.repository_revision_vector.len(), 3);
     assert_eq!(
-        published.repository_revision_vector[0].repository_name,
+        published.repository_revision_vector[0].repository_name.0,
         "psyche-context"
     );
     assert_eq!(
-        published.repository_revision_vector[0].source_revision,
+        published.repository_revision_vector[0].source_revision.0,
         revisions()[0]
     );
     assert_eq!(
-        published.renderer_version,
+        published.renderer_version.0,
         "curriculum-workspace-projector-v1"
     );
-    assert_eq!(published.published_inventory_digest.len(), 64);
-    assert_eq!(published.published_content_digest.len(), 64);
+    assert_eq!(published.published_inventory_digest.0.len(), 64);
+    assert_eq!(published.published_content_digest.0.len(), 64);
 
     assert!(
         fs::read_to_string(workspace.join(".agents/skills/knowledge:topic:0/SKILL.md"))
@@ -319,12 +319,12 @@ fn explicit_versions_are_distinct_and_dependencies_select_exactly_one() {
     assert_eq!(
         selected
             .iter()
-            .map(|m| m.module_identity.as_str())
+            .map(|m| m.module_identity.0.as_str())
             .collect::<Vec<_>>(),
         ["vision:topic:0", "knowledge:consumer:0"]
     );
-    assert_eq!(selected[0].source_relative_path, "vision/topic/0.md");
-    assert_eq!(selected[0].module_subject, "topic");
+    assert_eq!(selected[0].source_relative_path.0, "vision/topic/0.md");
+    assert_eq!(selected[0].module_subject.0, "topic");
     assert_eq!(
         registry.resolve_exact(&["vision:topic:12".into()]).unwrap()[0].body,
         "Version twelve.\n"

@@ -1,5 +1,8 @@
 //! The sole authored module registry: three server-configured repository roots, each holding the modules its modules.datom declares.
-use crate::generated::{ModuleDeclaration, ModuleKind};
+use crate::generated::{
+    BodySha256, DeclaredPlacement, ModuleDeclaration, ModuleIdentity, ModuleKind, ModuleSubject,
+    ModuleType, RepositoryName, SourceRelativePath, SourceRevision, SourceRoot, SourceSha256,
+};
 use crate::startup_metadata::{declared_placement, instructions, sha256};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -359,21 +362,25 @@ impl SkillRegistry {
             .ok_or_else(|| invalid(&skill.path, "invalid identity"))?;
         let text = instructions(&skill.body).map_err(|e| invalid(&skill.path, e))?;
         Ok(crate::generated::ResolvedModule {
-            module_identity: skill.name.clone(),
-            repository_name: ["psyche-belief", "mind-belief", "field-belief"][i].into(),
-            source_revision: self.revisions[i].clone(),
-            source_root: self.roots[i].to_string_lossy().into_owned(),
-            source_relative_path: skill
-                .path
-                .strip_prefix(&self.roots[i])
-                .unwrap()
-                .to_string_lossy()
-                .into_owned(),
-            module_type: kind.into(),
-            module_subject: subject.split_once(':').unwrap().0.into(),
-            declared_placement: declared_placement(&skill.body).into(),
-            source_sha256: sha256(skill.body.as_bytes()),
-            body_sha256: sha256(text.as_bytes()),
+            module_identity: ModuleIdentity(skill.name.clone()),
+            repository_name: RepositoryName(
+                ["psyche-belief", "mind-belief", "field-belief"][i].into(),
+            ),
+            source_revision: SourceRevision(self.revisions[i].clone()),
+            source_root: SourceRoot(self.roots[i].to_string_lossy().into_owned()),
+            source_relative_path: SourceRelativePath(
+                skill
+                    .path
+                    .strip_prefix(&self.roots[i])
+                    .unwrap()
+                    .to_string_lossy()
+                    .into_owned(),
+            ),
+            module_type: ModuleType(kind.into()),
+            module_subject: ModuleSubject(subject.split_once(':').unwrap().0.into()),
+            declared_placement: DeclaredPlacement(declared_placement(&skill.body).into()),
+            source_sha256: SourceSha256(sha256(skill.body.as_bytes())),
+            body_sha256: BodySha256(sha256(text.as_bytes())),
             string: text.to_owned(),
             string_vector: skill.dependencies,
         })
@@ -428,7 +435,11 @@ impl ExpandsSkills for SkillRegistry {
 /// second skill repository or follows generated symlinks.
 pub mod workspace {
     use super::{ExpandsSkills, RegistryError, ResolvedSkill, SkillRegistry, invalid, sha256};
-    use crate::generated::{ProjectionCandidate, RepositoryRevision};
+    use crate::generated::{
+        DeploymentDestination, ProjectionCandidate, PublishedContentDigest,
+        PublishedInventoryDigest, RendererVersion, RepositoryName, RepositoryRevision,
+        SourceRevision,
+    };
     use std::{
         collections::BTreeMap,
         fs,
@@ -608,7 +619,7 @@ pub mod workspace {
                 .map(|m| {
                     format!(
                         "{} {} {}\n",
-                        m.module_identity, m.source_revision, m.source_relative_path
+                        m.module_identity.0, m.source_revision.0, m.source_relative_path.0
                     )
                 })
                 .collect::<String>();
@@ -634,17 +645,22 @@ pub mod workspace {
                 .zip(registry.revisions.iter())
                 .enumerate()
                 .map(|(index, (_root, revision))| RepositoryRevision {
-                    repository_name: ["psyche-context", "mind-context", "field-context"][index]
-                        .into(),
-                    source_revision: revision.clone(),
+                    repository_name: RepositoryName(
+                        ["psyche-context", "mind-context", "field-context"][index].into(),
+                    ),
+                    source_revision: SourceRevision(revision.clone()),
                 })
                 .collect();
             Ok(ProjectionCandidate {
-                deployment_destination: destination.to_string_lossy().into_owned(),
+                deployment_destination: DeploymentDestination(
+                    destination.to_string_lossy().into_owned(),
+                ),
                 repository_revision_vector: repositories,
-                published_inventory_digest: sha256(inventory.as_bytes()),
-                published_content_digest: sha256(content_manifest.as_bytes()),
-                renderer_version: RENDERER_VERSION.into(),
+                published_inventory_digest: PublishedInventoryDigest(sha256(inventory.as_bytes())),
+                published_content_digest: PublishedContentDigest(sha256(
+                    content_manifest.as_bytes(),
+                )),
+                renderer_version: RendererVersion(RENDERER_VERSION.into()),
             })
         }
 
@@ -772,6 +788,7 @@ fn read_declarations(root: &Path) -> Result<Vec<ModuleDeclaration>, RegistryErro
             depth: 0,
             maximum_depth: 1024,
         })
+        .map(|crate::generated::ModuleDeclarations(declarations)| declarations)
         .map_err(|e| invalid(&path, e.datomize(vec![]).protosize().textualize()))
 }
 #[cfg(not(feature = "datom"))]
@@ -794,7 +811,7 @@ fn admit(
     let stem = format!(
         "{}:{}",
         declaration.module_kind.word(),
-        declaration.module_subject
+        declaration.module_subject.0
     );
     let mut report = |name: String, finding| {
         reports.push(DeclarationReport {
@@ -803,18 +820,19 @@ fn admit(
             finding,
         })
     };
-    if declaration.module_versions.is_empty() {
+    if declaration.module_versions.0.is_empty() {
         report(stem, DeclarationFinding::NoVersion);
         return Ok(());
     }
-    let relative = Path::new(&declaration.module_file);
+    let relative = Path::new(&declaration.module_file.0);
     let path = root.join(relative);
     let names: Vec<String> = declaration
         .module_versions
+        .0
         .iter()
         .map(|version| format!("{stem}:{version}"))
         .collect();
-    let placeable = !declaration.module_file.is_empty()
+    let placeable = !declaration.module_file.0.is_empty()
         && relative
             .components()
             .all(|component| matches!(component, std::path::Component::Normal(_)));

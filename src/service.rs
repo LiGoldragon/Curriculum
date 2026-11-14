@@ -1,5 +1,5 @@
 use crate::{
-    generated::{Outcome, Query, Roles},
+    generated::{ModuleIdentity, Outcome, Query, Roles},
     registry::{ExpandsSkills, SourceConfiguration},
 };
 use nexus::{Admission, Changed, MemoryHandle, Nexus, Operating, Remembering, Signaling};
@@ -59,11 +59,13 @@ impl Operating<SkillMemory> for CurriculumOperation {
             Err(error) => return Outcome::Rejected(error),
         };
         match query {
-            Query::ResolveSkills(ids) => match registry.expand_skills(&ids) {
-                Ok(s) => Outcome::ResolvedSkills(s.into_iter().map(|m| m.name).collect()),
+            Query::ResolveSkills(ids) => match registry.expand_skills(&identities(ids)) {
+                Ok(s) => {
+                    Outcome::ResolvedSkills(s.into_iter().map(|m| ModuleIdentity(m.name)).collect())
+                }
                 Err(e) => Outcome::Rejected(e.to_string()),
             },
-            Query::ResolveSources(ids) => match registry.resolved_sources(&ids) {
+            Query::ResolveSources(ids) => match registry.resolved_sources(&identities(ids)) {
                 Ok(s) => Outcome::ResolvedSources(s),
                 Err(e) => Outcome::Rejected(e.to_string()),
             },
@@ -86,6 +88,11 @@ impl Operating<SkillMemory> for CurriculumOperation {
             },
         }
     }
+}
+
+/// The registry names a module by its identity's text.
+fn identities(ids: Vec<ModuleIdentity>) -> Vec<String> {
+    ids.into_iter().map(|ModuleIdentity(id)| id).collect()
 }
 
 pub struct CurriculumSignal;
@@ -148,19 +155,21 @@ impl Nexus for CurriculumNexus {
 
 #[cfg(test)]
 mod tests {
-    use crate::generated::{Outcome, Query};
+    use crate::generated::{ModuleIdentity, Outcome, Query};
 
     use super::CurriculumSignal;
     use nexus::Signaling;
 
     #[test]
     fn signal_decodes_and_answers_only_archived_types() {
-        let query = Query::ResolveSkills(vec!["knowledge:main-flow:0".into()]);
+        let query = Query::ResolveSkills(vec![ModuleIdentity("knowledge:main-flow:0".into())]);
         let encoded = rkyv::to_bytes::<rkyv::rancor::Error>(&query).expect("archive query");
         assert_eq!(CurriculumSignal.decode(&encoded), Some(query));
         assert_eq!(
-            CurriculumSignal.answer(Outcome::ResolvedSkills(vec!["spirit:core:0".into()])),
-            Outcome::ResolvedSkills(vec!["spirit:core:0".into()])
+            CurriculumSignal.answer(Outcome::ResolvedSkills(vec![ModuleIdentity(
+                "spirit:core:0".into()
+            )])),
+            Outcome::ResolvedSkills(vec![ModuleIdentity("spirit:core:0".into())])
         );
     }
 }

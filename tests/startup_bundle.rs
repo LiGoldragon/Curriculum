@@ -46,8 +46,16 @@ fn fixture(base: &std::path::Path) -> ([PathBuf; 3], SkillRegistry, StartupSelec
                 second_string: "Publisher".into(),
                 third_string: "Quaternary".into(),
             },
-            system_modules: vec!["spirit:core:0".into(), "intent:seat:0".into()],
-            user_modules: std::iter::once("vision:core:0".into()).chain(ids).collect(),
+            system_modules: SystemModules(vec![
+                ModuleIdentity("spirit:core:0".into()),
+                ModuleIdentity("intent:seat:0".into()),
+            ]),
+            user_modules: UserModules(
+                std::iter::once("vision:core:0".to_owned())
+                    .chain(ids)
+                    .map(ModuleIdentity)
+                    .collect(),
+            ),
             flow_id_vector: vec![],
         },
     )
@@ -62,13 +70,13 @@ fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
         .context_provenance_vector
         .iter()
         .filter(|row| row.startup_placement == StartupPlacement::System)
-        .map(|row| row.module_identity.as_str())
+        .map(|row| row.module_identity.0.as_str())
         .collect::<Vec<_>>();
     let user_ids = result
         .context_provenance_vector
         .iter()
         .filter(|row| row.startup_placement == StartupPlacement::User)
-        .map(|row| row.module_identity.as_str())
+        .map(|row| row.module_identity.0.as_str())
         .collect::<Vec<_>>();
     assert_eq!(system_ids, ["spirit:core:0", "intent:seat:0"]);
     assert_eq!(user_ids.first(), Some(&"vision:core:0"));
@@ -77,13 +85,14 @@ fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
             .iter()
             .all(|id| { !id.starts_with("spirit:") && !id.starts_with("intent:") })
     );
-    assert!(!result.system_text.contains("SYSTEM_ONLY"));
-    assert_eq!(result.user_text.matches("SYSTEM_ONLY").count(), 1);
-    assert!(!result.system_text.contains("BODY_"));
+    assert!(!result.system_text.0.contains("SYSTEM_ONLY"));
+    assert_eq!(result.user_text.0.matches("SYSTEM_ONLY").count(), 1);
+    assert!(!result.system_text.0.contains("BODY_"));
     for i in 0..22 {
         assert_eq!(
             result
                 .user_text
+                .0
                 .matches(&format!("BODY_{i:02}_EXACT\n"))
                 .count(),
             1
@@ -92,10 +101,14 @@ fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
     assert!(
         result
             .user_text
+            .0
             .starts_with("These are your skills, given here; do not reload them.")
     );
-    assert_eq!(result.system_payload_sha256, digest(&result.system_text));
-    assert_eq!(result.user_payload_sha256, digest(&result.user_text));
+    assert_eq!(
+        result.system_payload_sha256.0,
+        digest(&result.system_text.0)
+    );
+    assert_eq!(result.user_payload_sha256.0, digest(&result.user_text.0));
     let ordinals: Vec<_> = result
         .context_provenance_vector
         .iter()
@@ -103,8 +116,8 @@ fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
         .map(|m| m.integer)
         .collect();
     assert_eq!(ordinals, (0..23).collect::<Vec<i64>>());
-    assert!(result.records_text.is_empty());
-    assert_eq!(result.records_payload_sha256, digest(""));
+    assert!(result.records_text.0.is_empty());
+    assert_eq!(result.records_payload_sha256.0, digest(""));
     assert!(!tmp.path().join("tools").exists());
     assert!(!tmp.path().join(".claude").exists());
     let outcome = Outcome::StartupComposed(result);
@@ -129,18 +142,20 @@ fn caller_paths_inline_text_unknown_duplicates_wrong_placement_and_changed_sourc
         "vision:core:0:1",
     ] {
         let mut s = selection.clone();
-        s.user_modules = vec![bad.into()];
+        s.user_modules = UserModules(vec![ModuleIdentity(bad.into())]);
         assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     }
     let mut s = selection.clone();
-    s.user_modules.push(s.user_modules[0].clone());
+    s.user_modules.0.push(s.user_modules.0[0].clone());
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     let mut s = selection.clone();
-    s.user_modules.push("vision:core:0".into());
+    s.user_modules
+        .0
+        .push(ModuleIdentity("vision:core:0".into()));
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     let mut s = selection.clone();
-    s.system_modules = vec!["compensation:user00:0".into()];
-    s.user_modules.clear();
+    s.system_modules = SystemModules(vec![ModuleIdentity("compensation:user00:0".into())]);
+    s.user_modules.0.clear();
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     write_source(roots[2].join("compensation/user00/0.md"), "Changed").unwrap();
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &selection).is_err());
@@ -164,8 +179,8 @@ fn undeclared_shared_dependency_placement_refuses_instead_of_duplicate_injection
             second_string: "Publisher".into(),
             third_string: "Quaternary".into(),
         },
-        system_modules: vec!["vision:system:0".into()],
-        user_modules: vec!["compensation:user00:0".into()],
+        system_modules: SystemModules(vec![ModuleIdentity("vision:system:0".into())]),
+        user_modules: UserModules(vec![ModuleIdentity("compensation:user00:0".into())]),
         flow_id_vector: vec![],
     };
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &selection).is_err());
@@ -199,12 +214,12 @@ fn spirit_intent_cannot_be_user_even_without_frontmatter_placement() {
     let (_, registry, selection) = fixture(tmp.path());
     for id in ["spirit:core:0", "intent:seat:0"] {
         let mut s = selection.clone();
-        s.system_modules.retain(|m| m != id);
-        s.user_modules.push(id.into());
+        s.system_modules.0.retain(|m| m.0 != id);
+        s.user_modules.0.push(ModuleIdentity(id.into()));
         assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     }
     let mut s = selection;
-    s.system_modules.clear();
+    s.system_modules.0.clear();
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
 }
 
@@ -220,13 +235,13 @@ fn manifest_distinguishes_authored_and_target_rendered_module_hashes() {
     let module = result
         .context_provenance_vector
         .iter()
-        .find(|m| m.module_identity == "compensation:user00:0")
+        .find(|m| m.module_identity.0 == "compensation:user00:0")
         .unwrap();
-    assert_eq!(module.body_sha256, digest(text));
-    assert_eq!(module.rendered_sha256, digest("CLAUDE_ONLY\n"));
-    assert!(result.user_text.contains("CLAUDE_ONLY"));
-    assert!(!result.user_text.contains("CODEX_OTHER"));
-    assert!(!result.user_text.contains("{%"));
+    assert_eq!(module.body_sha256.0, digest(text));
+    assert_eq!(module.rendered_sha256.0, digest("CLAUDE_ONLY\n"));
+    assert!(result.user_text.0.contains("CLAUDE_ONLY"));
+    assert!(!result.user_text.0.contains("CODEX_OTHER"));
+    assert!(!result.user_text.0.contains("{%"));
 }
 
 #[test]
@@ -243,14 +258,20 @@ fn selected_raw_records_are_verified_in_flow_vision_notion_and_file_order() {
     write_source(first.join("vision/archive-old.md"), "ARCHIVED\n").unwrap();
     write_source(first.join("notion/c.md"), "FIRST-C\n").unwrap();
     write_source(second.join("vision/a.md"), "SECOND-A\n").unwrap();
-    selection.flow_id_vector = vec!["first".into(), "second".into()];
+    selection.flow_id_vector = vec![FlowId("first".into()), FlowId("second".into())];
 
     let result = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
-    assert_eq!(result.records_text, "FIRST-A\nFIRST-B\nFIRST-C\nSECOND-A\n");
-    assert!(!result.records_text.contains("ARCHIVED"));
-    assert_eq!(result.records_payload_sha256, digest(&result.records_text));
+    assert_eq!(
+        result.records_text.0,
+        "FIRST-A\nFIRST-B\nFIRST-C\nSECOND-A\n"
+    );
+    assert!(!result.records_text.0.contains("ARCHIVED"));
+    assert_eq!(
+        result.records_payload_sha256.0,
+        digest(&result.records_text.0)
+    );
 
-    selection.flow_id_vector = vec!["missing".into()];
+    selection.flow_id_vector = vec![FlowId("missing".into())];
     assert_eq!(
         startup::compose(&registry, &tmp.path().join("flows"), &selection),
         Err("record missing: missing".into())
@@ -266,11 +287,11 @@ fn selected_flow_with_no_nonarchive_records_contributes_empty_context() {
     fs::create_dir_all(flow.join("notion")).unwrap();
     write_source(flow.join("vision/archive-old.md"), "ARCHIVED\n").unwrap();
     write_source(flow.join("notion/note.txt"), "NOT A RECORD\n").unwrap();
-    selection.flow_id_vector = vec!["empty".into()];
+    selection.flow_id_vector = vec![FlowId("empty".into())];
 
     let result = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
-    assert!(result.records_text.is_empty());
-    assert_eq!(result.records_payload_sha256, digest(""));
+    assert!(result.records_text.0.is_empty());
+    assert_eq!(result.records_payload_sha256.0, digest(""));
 }
 
 #[test]
@@ -280,7 +301,7 @@ fn malformed_selected_record_retains_a_typed_failure() {
     let flow = tmp.path().join("flows/malformed/vision");
     fs::create_dir_all(&flow).unwrap();
     write_source(flow.join("record.md"), [0xff]).unwrap();
-    selection.flow_id_vector = vec!["malformed".into()];
+    selection.flow_id_vector = vec![FlowId("malformed".into())];
 
     assert_eq!(
         startup::compose(&registry, &tmp.path().join("flows"), &selection),

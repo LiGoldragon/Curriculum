@@ -60,7 +60,7 @@ impl NamesRequestedRole for CurriculumClient {
             CliRequest::ComposeRole(RoleSelection {
                 role_name,
                 surface: Surface::ClaudeAgent,
-            }) => Some(role_name),
+            }) => Some(role_name.0),
             _ => None,
         }
     }
