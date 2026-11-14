@@ -1,4 +1,3 @@
-pub mod claude_agent;
 #[cfg(feature = "datom")]
 pub mod client;
 pub mod generated;
