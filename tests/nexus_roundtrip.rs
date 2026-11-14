@@ -1,3 +1,4 @@
+mod support;
 use std::{
     fs,
     process::{Child, Command, Stdio},
@@ -67,6 +68,9 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted role:book-description:0 [ spirit:core:0 intent:seat:0 compensation:illustration:0 ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
     )
     .unwrap();
+    for root in &roots {
+        support::declare(root);
+    }
     let current_psyche_revision = "a".repeat(40);
     let child = Command::new(env!("CARGO_BIN_EXE_curriculum-nexus"))
         .env("XDG_RUNTIME_DIR", &runtime)

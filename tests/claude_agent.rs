@@ -1,5 +1,5 @@
 mod support;
-use curriculum::{claude_agent::RendersClaudeAgent, generated::*, registry::SkillRegistry, roles};
+use curriculum::{claude_agent::RendersClaudeAgent, generated::*, roles};
 use std::fs;
 
 #[cfg(feature = "datom")]

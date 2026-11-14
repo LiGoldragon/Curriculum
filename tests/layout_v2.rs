@@ -1,5 +1,5 @@
 mod support;
-use curriculum::registry::{ExpandsSkills, SkillRegistry};
+use curriculum::registry::ExpandsSkills;
 use std::{fs, path::PathBuf};
 
 fn roots(base: &std::path::Path) -> [PathBuf; 3] {
