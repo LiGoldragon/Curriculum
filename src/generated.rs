@@ -24,6 +24,34 @@ pub type RenderedSha256 = String;
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub enum ModuleKind {
+    Spirit,
+    Intent,
+    Vision,
+    Knowledge,
+    Inquiry,
+    Compensation,
+    Role,
+    Raw,
+}
+#[rustfmt::skip]
+pub type ModuleVersions = std::vec::Vec<i64>;
+#[rustfmt::skip]
+pub type ModuleFile = String;
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub struct ModuleDeclaration {
+    pub module_kind: ModuleKind,
+    pub module_subject: ModuleSubject,
+    pub module_versions: ModuleVersions,
+    pub module_file: ModuleFile,
+}
+#[rustfmt::skip]
+pub type ModuleDeclarations = std::vec::Vec<ModuleDeclaration>;
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub enum Target {
     Claude,
     Codex,

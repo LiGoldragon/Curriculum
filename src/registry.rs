@@ -1,4 +1,5 @@
-//! The sole authored module registry: three server-configured repository roots.
+//! The sole authored module registry: three server-configured repository roots, each holding the modules its modules.datom declares.
+use crate::generated::{ModuleDeclaration, ModuleKind};
 use crate::startup_metadata::{declared_placement, instructions, sha256};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -8,16 +9,98 @@ use std::{
 };
 use thiserror::Error;
 
-pub const MODULE_TYPES: &[&str] = &[
-    "vision",
-    "intent",
-    "spirit",
-    "knowledge",
-    "inquiry",
-    "compensation",
-    "role",
-    "raw",
+/// Every module kind, in the order the kinds are declared.
+pub const MODULE_KINDS: [ModuleKind; 8] = [
+    ModuleKind::Spirit,
+    ModuleKind::Intent,
+    ModuleKind::Vision,
+    ModuleKind::Knowledge,
+    ModuleKind::Inquiry,
+    ModuleKind::Compensation,
+    ModuleKind::Role,
+    ModuleKind::Raw,
 ];
+
+/// The file at a source's root that declares the modules the source holds.
+pub const DECLARATIONS_FILE: &str = "modules.datom";
+
+/// A module kind as it is written in a module's name.
+pub trait Worded {
+    fn word(&self) -> &'static str;
+}
+impl Worded for ModuleKind {
+    fn word(&self) -> &'static str {
+        match self {
+            ModuleKind::Spirit => "spirit",
+            ModuleKind::Intent => "intent",
+            ModuleKind::Vision => "vision",
+            ModuleKind::Knowledge => "knowledge",
+            ModuleKind::Inquiry => "inquiry",
+            ModuleKind::Compensation => "compensation",
+            ModuleKind::Role => "role",
+            ModuleKind::Raw => "raw",
+        }
+    }
+}
+
+/// A declaration that put no module in the registry, or a name it could not give.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DeclarationReport {
+    pub declarations: PathBuf,
+    pub name: String,
+    pub finding: DeclarationFinding,
+}
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum DeclarationFinding {
+    /// The name was already given by an earlier declaration, whose file is kept.
+    HeldBefore(PathBuf),
+    /// The declared file does not exist.
+    Absent(PathBuf),
+    /// The declared file is not a plain file inside the source, reached through no link.
+    Unplaceable(PathBuf),
+    /// The declared kind, subject and version make no valid name.
+    InvalidName,
+    /// The declaration holds for no version.
+    NoVersion,
+}
+impl std::fmt::Display for DeclarationReport {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let declarations = self.declarations.display();
+        let name = &self.name;
+        match &self.finding {
+            DeclarationFinding::HeldBefore(kept) => write!(
+                formatter,
+                "{declarations}: {name} is declared again; the first declaration, {}, is kept",
+                kept.display()
+            ),
+            DeclarationFinding::Absent(file) => {
+                write!(
+                    formatter,
+                    "{declarations}: {name}: no file {}",
+                    file.display()
+                )
+            }
+            DeclarationFinding::Unplaceable(file) => write!(
+                formatter,
+                "{declarations}: {name}: {} is not a plain file inside the source",
+                file.display()
+            ),
+            DeclarationFinding::InvalidName => {
+                write!(
+                    formatter,
+                    "{declarations}: {name} is not a valid module name"
+                )
+            }
+            DeclarationFinding::NoVersion => {
+                write!(
+                    formatter,
+                    "{declarations}: {name} is declared for no version"
+                )
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SkillEntry {
     pub path: PathBuf,
@@ -31,6 +114,7 @@ pub struct SkillRegistry {
     entries: BTreeMap<String, SkillEntry>,
     roots: [PathBuf; 3],
     revisions: [String; 3],
+    reports: Vec<DeclarationReport>,
 }
 #[derive(Debug, Error)]
 pub enum RegistryError {
@@ -68,7 +152,9 @@ pub fn valid_version(value: &str) -> bool {
 pub fn valid_id(value: &str) -> bool {
     let fields: Vec<_> = value.split(':').collect();
     matches!(fields.as_slice(), [kind, topic, version]
-        if MODULE_TYPES.contains(kind) && valid_segment(topic) && valid_version(version))
+        if MODULE_KINDS.iter().any(|known| known.word() == *kind)
+            && valid_segment(topic)
+            && valid_version(version))
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceConfiguration {
@@ -179,6 +265,7 @@ impl SkillRegistry {
             canonical(&input[2])?,
         ];
         let mut entries = BTreeMap::new();
+        let mut reports = Vec::new();
         for (i, root) in roots.iter().enumerate() {
             if revisions[i].len() != 40
                 || !revisions[i]
@@ -197,88 +284,22 @@ impl SkillRegistry {
             {
                 return Err(invalid(root, "repository roots overlap"));
             }
-            if fs::symlink_metadata(root.join("skills")).is_ok() {
-                return Err(invalid(root, "legacy skills directory forbidden"));
-            }
-            for kind in MODULE_TYPES {
-                let directory = root.join(kind);
-                match fs::symlink_metadata(&directory) {
-                    Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
-                    Err(e) => return Err(invalid(&directory, e)),
-                    Ok(m) if !m.is_dir() || m.file_type().is_symlink() => {
-                        return Err(invalid(
-                            &directory,
-                            "type folder must be an actual directory",
-                        ));
-                    }
-                    _ => (),
-                }
-                for topic_entry in fs::read_dir(&directory).map_err(|e| invalid(&directory, e))? {
-                    let topic_path = topic_entry.map_err(|e| invalid(&directory, e))?.path();
-                    let metadata =
-                        fs::symlink_metadata(&topic_path).map_err(|e| invalid(&topic_path, e))?;
-                    if !metadata.is_dir() || metadata.file_type().is_symlink() {
-                        return Err(invalid(&topic_path, "topic must be an actual directory"));
-                    }
-                    let topic = topic_path
-                        .file_name()
-                        .and_then(|s| s.to_str())
-                        .unwrap_or_default();
-                    if !valid_segment(topic) {
-                        return Err(invalid(&topic_path, "invalid topic"));
-                    }
-                    for entry in fs::read_dir(&topic_path).map_err(|e| invalid(&topic_path, e))? {
-                        let path = entry.map_err(|e| invalid(&topic_path, e))?.path();
-                        let metadata =
-                            fs::symlink_metadata(&path).map_err(|e| invalid(&path, e))?;
-                        if !metadata.is_file() || metadata.file_type().is_symlink() {
-                            return Err(invalid(&path, "version must be an actual Markdown file"));
-                        }
-                        if path.extension().is_none_or(|e| e != "md") {
-                            return Err(invalid(
-                                &path,
-                                "topic folder contains non-Markdown source",
-                            ));
-                        }
-                        let version = path
-                            .file_stem()
-                            .and_then(|s| s.to_str())
-                            .unwrap_or_default();
-                        if !valid_version(version) {
-                            return Err(invalid(&path, "invalid explicit version"));
-                        }
-                        let name = format!("{kind}:{topic}:{version}");
-                        let body = fs::read_to_string(&path).map_err(|e| invalid(&path, e))?;
-                        let text = instructions(&body).map_err(|e| invalid(&path, e))?;
-                        if text.trim().is_empty() {
-                            return Err(invalid(&path, "empty body"));
-                        }
-                        let dependencies = dependencies(&path, &body)?;
-                        if entries
-                            .insert(
-                                name.clone(),
-                                SkillEntry {
-                                    path,
-                                    name: name.clone(),
-                                    body,
-                                    dependencies,
-                                },
-                            )
-                            .is_some()
-                        {
-                            return Err(RegistryError::Duplicate(name));
-                        }
-                    }
-                }
+            for declaration in read_declarations(root)? {
+                admit(root, declaration, &mut entries, &mut reports)?;
             }
         }
         let registry = Self {
             entries,
             roots,
             revisions: revisions.clone(),
+            reports,
         };
         registry.expand_skills(&registry.skill_names()?)?;
         Ok(registry)
+    }
+    /// The declarations that put no module in the registry, as reported when the sources were read.
+    pub fn reports(&self) -> &[DeclarationReport] {
+        &self.reports
     }
     pub fn resolve_exact(&self, ids: &[String]) -> Result<Vec<ResolvedSkill>, RegistryError> {
         let mut seen = BTreeSet::new();
@@ -733,6 +754,124 @@ pub mod workspace {
             })
     }
 }
+/// Reads the declarations of the source at this root: its modules.datom, whole.
+#[cfg(feature = "datom")]
+fn read_declarations(root: &Path) -> Result<Vec<ModuleDeclaration>, RegistryError> {
+    use datom_codec::{Actualizing, Budget, Datomizable, Potential};
+    use protos::ReaderBudget;
+    let path = root.join(DECLARATIONS_FILE);
+    let metadata = fs::symlink_metadata(&path).map_err(|e| invalid(&path, e))?;
+    if !metadata.is_file() {
+        return Err(invalid(&path, "declarations must be a plain file"));
+    }
+    let text = fs::read_to_string(&path).map_err(|e| invalid(&path, e))?;
+    Potential::<crate::generated::ModuleDeclarations>::from(text)
+        .actualize(&mut Budget {
+            remaining: 1_048_576,
+            reader: ReaderBudget {
+                remaining: 1_048_576,
+            },
+            depth: 0,
+            maximum_depth: 1024,
+        })
+        .map_err(|e| invalid(&path, e.datomize(vec![]).protosize().textualize()))
+}
+#[cfg(not(feature = "datom"))]
+fn read_declarations(root: &Path) -> Result<Vec<ModuleDeclaration>, RegistryError> {
+    Err(invalid(
+        &root.join(DECLARATIONS_FILE),
+        "source declarations require the datom package feature",
+    ))
+}
+
+/// Gives each name a declaration holds to the file it declares, unless the
+/// name is already given or the file cannot be placed; each such name is reported.
+fn admit(
+    root: &Path,
+    declaration: ModuleDeclaration,
+    entries: &mut BTreeMap<String, SkillEntry>,
+    reports: &mut Vec<DeclarationReport>,
+) -> Result<(), RegistryError> {
+    let declarations = root.join(DECLARATIONS_FILE);
+    let stem = format!(
+        "{}:{}",
+        declaration.module_kind.word(),
+        declaration.module_subject
+    );
+    let mut report = |name: String, finding| {
+        reports.push(DeclarationReport {
+            declarations: declarations.clone(),
+            name,
+            finding,
+        })
+    };
+    if declaration.module_versions.is_empty() {
+        report(stem, DeclarationFinding::NoVersion);
+        return Ok(());
+    }
+    let relative = Path::new(&declaration.module_file);
+    let path = root.join(relative);
+    let names: Vec<String> = declaration
+        .module_versions
+        .iter()
+        .map(|version| format!("{stem}:{version}"))
+        .collect();
+    let placeable = !declaration.module_file.is_empty()
+        && relative
+            .components()
+            .all(|component| matches!(component, std::path::Component::Normal(_)));
+    let placed = match fs::canonicalize(&path) {
+        _ if !placeable => Err(DeclarationFinding::Unplaceable(relative.into())),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            Err(DeclarationFinding::Absent(relative.into()))
+        }
+        Err(e) => return Err(invalid(&path, e)),
+        Ok(actual) if actual != path || !actual.is_file() => {
+            Err(DeclarationFinding::Unplaceable(relative.into()))
+        }
+        Ok(actual) => Ok(actual),
+    };
+    let path = match placed {
+        Ok(path) => path,
+        Err(finding) => {
+            for name in names {
+                report(name, finding.clone());
+            }
+            return Ok(());
+        }
+    };
+    let mut body = None;
+    for name in names {
+        if !valid_id(&name) {
+            report(name, DeclarationFinding::InvalidName);
+            continue;
+        }
+        if let Some(kept) = entries.get(&name) {
+            report(name, DeclarationFinding::HeldBefore(kept.path.clone()));
+            continue;
+        }
+        if body.is_none() {
+            let text = fs::read_to_string(&path).map_err(|e| invalid(&path, e))?;
+            let content = instructions(&text).map_err(|e| invalid(&path, e))?;
+            if content.trim().is_empty() {
+                return Err(invalid(&path, "empty body"));
+            }
+            body = Some((dependencies(&path, &text)?, text));
+        }
+        let (dependencies, text) = body.clone().expect("read above");
+        entries.insert(
+            name.clone(),
+            SkillEntry {
+                path: path.clone(),
+                name,
+                body: text,
+                dependencies,
+            },
+        );
+    }
+    Ok(())
+}
+
 fn dependencies(path: &Path, body: &str) -> Result<Vec<String>, RegistryError> {
     let Some((header, _)) = body
         .strip_prefix("---\n")

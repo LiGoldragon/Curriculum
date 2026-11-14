@@ -1,3 +1,4 @@
+mod support;
 use curriculum::registry::{ExpandsSkills, SkillRegistry};
 use std::{fs, path::PathBuf};
 
@@ -27,7 +28,7 @@ fn source_api_exposes_registry_address_and_declared_placement() {
         "compensation/illustration/0.md",
         "---\ndependencies: [ vision:book:0 ]\nplacement: system\n---\nExact approved text.\n",
     );
-    let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+    let registry = support::registry(&r, &revisions()).unwrap();
     let ids = vec!["compensation:illustration:0".into()];
     let resolved = registry.resolved_sources(&ids).unwrap();
     assert_eq!(resolved.len(), 2);
@@ -53,7 +54,7 @@ fn dependencies_require_explicit_three_field_ids_and_reject_duplicates() {
         "compensation/illustration/0.md",
         "---\ndependencies: [vision:book-making:0, spirit:core:0]\n---\nIllustrate.\n",
     );
-    let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+    let registry = support::registry(&r, &revisions()).unwrap();
     let resolved = registry
         .resolved_sources(&["compensation:illustration:0".into()])
         .unwrap();
@@ -78,47 +79,19 @@ fn dependencies_require_explicit_three_field_ids_and_reject_duplicates() {
         "compensation/twice/0.md",
         "---\ndependencies: [ spirit:core:0 spirit:core:0 ]\n---\nTwice.\n",
     );
-    assert!(SkillRegistry::from_context_repositories(&r, &revisions()).is_err());
+    assert!(support::registry(&r, &revisions()).is_err());
 }
 
 #[test]
-fn mixed_duplicate_case_nested_and_escape_layouts_refuse() {
-    for case in 0..7 {
-        let temp = tempfile::tempdir().unwrap();
-        let r = roots(temp.path());
-        source(&r[1], "knowledge/topic/0.md", "Known.\n");
-        match case {
-            0 => {
-                fs::create_dir(r[2].join("skills")).unwrap();
-            }
-            1 => source(&r[2], "knowledge/topic/0.md", "Duplicate.\n"),
-            2 => source(&r[1], "knowledge/Topic/0.md", "Wrong case.\n"),
-            3 => source(&r[1], "knowledge/nested/topic.md", "Nested.\n"),
-            4 => {
-                fs::write(temp.path().join("outside.md"), "Outside.").unwrap();
-                fs::create_dir_all(r[1].join("knowledge/escape")).unwrap();
-                std::os::unix::fs::symlink(
-                    temp.path().join("outside.md"),
-                    r[1].join("knowledge/escape/0.md"),
-                )
-                .unwrap();
-            }
-            5 => {
-                fs::create_dir(temp.path().join("outside")).unwrap();
-                std::os::unix::fs::symlink(temp.path().join("outside"), r[2].join("compensation"))
-                    .unwrap();
-            }
-            _ => source(
-                &r[1],
-                "knowledge/missing/0.md",
-                "---\ndependencies: [ knowledge:absent:0 ]\n---\nMissing.\n",
-            ),
-        }
-        assert!(
-            SkillRegistry::from_context_repositories(&r, &revisions()).is_err(),
-            "case {case}"
-        );
-    }
+fn a_missing_dependency_still_refuses() {
+    let temp = tempfile::tempdir().unwrap();
+    let r = roots(temp.path());
+    source(
+        &r[1],
+        "knowledge/missing/0.md",
+        "---\ndependencies: [ knowledge:absent:0 ]\n---\nMissing.\n",
+    );
+    assert!(support::registry(&r, &revisions()).is_err());
 }
 
 #[test]
@@ -127,7 +100,7 @@ fn same_subject_different_types_are_distinct() {
     let r = roots(temp.path());
     source(&r[1], "knowledge/topic/0.md", "Knowledge.");
     source(&r[1], "inquiry/topic/0.md", "Inquiry.");
-    let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+    let registry = support::registry(&r, &revisions()).unwrap();
     assert_eq!(
         registry.skill_names().unwrap(),
         vec!["inquiry:topic:0", "knowledge:topic:0"]
@@ -150,7 +123,7 @@ fn registry_workspace_projection_updates_plain_target_directories() {
     let workspace = temp.path().join("workspace");
     let projector = WorkspaceProjector::new(&workspace);
 
-    let first = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+    let first = support::registry(&r, &revisions()).unwrap();
     let published = projector.project(&first).unwrap();
     assert_eq!(
         published.deployment_destination,
@@ -231,7 +204,7 @@ fn registry_workspace_projection_updates_plain_target_directories() {
     fs::write(&unrelated, "preserve").unwrap();
 
     fs::write(&source_path, "Latest module text.\n").unwrap();
-    let latest = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+    let latest = support::registry(&r, &revisions()).unwrap();
     let refreshed = projector.project(&latest).unwrap();
     assert_eq!(
         refreshed.published_inventory_digest,
@@ -273,17 +246,17 @@ fn registry_workspace_projection_updates_plain_target_directories() {
 
 #[test]
 fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
-    use curriculum::{registry::MODULE_TYPES, registry::workspace::WorkspaceProjector};
+    use curriculum::registry::{MODULE_KINDS, Worded, workspace::WorkspaceProjector};
     let temp = tempfile::tempdir().unwrap();
     let r = roots(temp.path());
-    for (index, kind) in MODULE_TYPES.iter().enumerate() {
+    for (index, kind) in MODULE_KINDS.iter().enumerate() {
         source(
             &r[index % 3],
-            &format!("{kind}/item-{index}/0.md"),
+            &format!("{}/item-{index}/0.md", kind.word()),
             "---\ndescription: fixture\n  user-only: true  \n---\n{% if claude %}\nclaude\n{% endif %}\n{% if codex %}\ncodex\n{% endif %}\n{% if pi %}\npi\n{% endif %}\n{% if opencode %}\nopencode\n{% endif %}\n",
         );
     }
-    let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+    let registry = support::registry(&r, &revisions()).unwrap();
     let ids = registry.skill_names().unwrap();
     assert_eq!(ids.len(), 8);
     let workspace = temp.path().join("workspace");
@@ -339,7 +312,7 @@ fn explicit_versions_are_distinct_and_dependencies_select_exactly_one() {
         "knowledge/consumer/0.md",
         "---\ndependencies: [ vision:topic:0 ]\n---\nConsumer.\n",
     );
-    let registry = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap();
+    let registry = support::registry(&r, &revisions()).unwrap();
     let selected = registry
         .resolved_sources(&["knowledge:consumer:0".into()])
         .unwrap();
@@ -394,36 +367,6 @@ fn versioned_identity_validation_has_no_implicit_or_alias_form() {
 }
 
 #[test]
-fn versioned_layout_refuses_legacy_files_invalid_versions_and_links() {
-    for relative in [
-        "vision/topic.md",
-        "vision/topic/01.md",
-        "vision/topic/-1.md",
-        "vision/topic/latest.md",
-        "vision/topic/0.txt",
-        "vision/topic/0/1.md",
-    ] {
-        let temp = tempfile::tempdir().unwrap();
-        let r = roots(temp.path());
-        source(&r[0], relative, "Invalid source.\n");
-        assert!(
-            SkillRegistry::from_context_repositories(&r, &revisions()).is_err(),
-            "{relative}"
-        );
-    }
-    for relative in ["vision/topic/0.md", "vision/topic"] {
-        let temp = tempfile::tempdir().unwrap();
-        let r = roots(temp.path());
-        let path = r[0].join(relative);
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        let outside = temp.path().join("outside");
-        fs::write(&outside, "Outside.\n").unwrap();
-        std::os::unix::fs::symlink(&outside, &path).unwrap();
-        assert!(SkillRegistry::from_context_repositories(&r, &revisions()).is_err());
-    }
-}
-
-#[test]
 fn dependencies_refuse_old_aliases_and_missing_versions() {
     for dependency in [
         "vision:topic",
@@ -439,9 +382,6 @@ fn dependencies_refuse_old_aliases_and_missing_versions() {
             "knowledge/consumer/0.md",
             &format!("---\ndependencies: [ {dependency} ]\n---\nConsumer.\n"),
         );
-        assert!(
-            SkillRegistry::from_context_repositories(&r, &revisions()).is_err(),
-            "{dependency}"
-        );
+        assert!(support::registry(&r, &revisions()).is_err(), "{dependency}");
     }
 }

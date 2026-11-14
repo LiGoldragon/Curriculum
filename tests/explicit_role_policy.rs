@@ -1,3 +1,4 @@
+mod support;
 use curriculum::{generated::*, registry::SkillRegistry, roles};
 use std::fs;
 fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
@@ -19,11 +20,8 @@ fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
         "---\ndependencies: [ role:unselected:0 ]\nplacement: system\n---\nAUTHORED_RULES\n",
     )
     .unwrap();
-    let registry = SkillRegistry::from_context_repositories(
-        &roots,
-        &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
-    )
-    .unwrap();
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
     let roles = Roles {
         role_definition_vector: vec![RoleDefinition {
             role_name: "illustrator".into(),

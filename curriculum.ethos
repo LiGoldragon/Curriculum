@@ -1,4 +1,5 @@
 ; ID-only in-memory composition. No caller paths, source bodies or file projection.
+; A source's modules.datom is a ModuleDeclarations: each module's kind, subject and versions, and the file holding its text.
 Library
 []
 [ ModuleIdentity.String
@@ -12,6 +13,11 @@ Library
   SourceSha256.String
   BodySha256.String
   RenderedSha256.String
+  ModuleKind.[ Spirit Intent Vision Knowledge Inquiry Compensation Role Raw ]
+  ModuleVersions.Vector<Integer>
+  ModuleFile.String
+  ModuleDeclaration.{ ModuleKind ModuleSubject ModuleVersions ModuleFile }
+  ModuleDeclarations.Vector<ModuleDeclaration>
   Target.[ Claude Codex Pi OpenCode ]
   CallerMetaflow.{ String String String }
   StartupPlacement.[ System User ]

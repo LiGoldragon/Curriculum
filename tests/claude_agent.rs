@@ -1,3 +1,4 @@
+mod support;
 use curriculum::{claude_agent::RendersClaudeAgent, generated::*, registry::SkillRegistry, roles};
 use std::fs;
 
@@ -45,11 +46,8 @@ fn composition(role_name: &str) -> RoleComposition {
         fs::create_dir_all(roots[0].join(kind)).unwrap();
         write_source(roots[0].join(kind).join(format!("{name}/0.md")), body).unwrap();
     }
-    let registry = SkillRegistry::from_context_repositories(
-        &roots,
-        &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
-    )
-    .unwrap();
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
     let data = Roles {
         role_definition_vector: vec![RoleDefinition {
             role_name: role_name.into(),

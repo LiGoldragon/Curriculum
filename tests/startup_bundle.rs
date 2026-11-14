@@ -1,3 +1,4 @@
+mod support;
 use curriculum::{generated::*, registry::SkillRegistry, startup};
 use sha2::{Digest, Sha256};
 use std::{fs, path::PathBuf};
@@ -33,11 +34,8 @@ fn fixture(base: &std::path::Path) -> ([PathBuf; 3], SkillRegistry, StartupSelec
         )
         .unwrap();
     }
-    let registry = SkillRegistry::from_context_repositories(
-        &roots,
-        &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
-    )
-    .unwrap();
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
     (
         roots,
         registry,
@@ -157,11 +155,8 @@ fn undeclared_shared_dependency_placement_refuses_instead_of_duplicate_injection
         "---\ndependencies: [ vision:core:0 ]\n---\nSYSTEM\n",
     )
     .unwrap();
-    let registry = SkillRegistry::from_context_repositories(
-        &roots,
-        &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
-    )
-    .unwrap();
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
     let selection = StartupSelection {
         target: Target::Claude,
         caller_metaflow: CallerMetaflow {
@@ -219,11 +214,8 @@ fn manifest_distinguishes_authored_and_target_rendered_module_hashes() {
     let (roots, _, selection) = fixture(tmp.path());
     let text = "{% if claude %}\nCLAUDE_ONLY\n{% else %}\nCODEX_OTHER\n{% endif %}\n";
     write_source(roots[2].join("compensation/user00/0.md"), text).unwrap();
-    let registry = SkillRegistry::from_context_repositories(
-        &roots,
-        &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
-    )
-    .unwrap();
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
     let result = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
     let module = result
         .context_provenance_vector

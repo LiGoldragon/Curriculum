@@ -20,10 +20,13 @@ impl Remembering for SkillMemory {
         if admission.directory() != CurriculumNexus::directory() {
             return None;
         }
-        SourceConfiguration::from_environment()
+        let registry = SourceConfiguration::from_environment()
             .and_then(|c| c.read().map_err(|e| e.to_string()))
             .map_err(|e| eprintln!("{e}"))
             .ok()?;
+        for report in registry.reports() {
+            eprintln!("{report}");
+        }
         let roles = crate::roles::read_declared()
             .map_err(|e| eprintln!("{e}"))
             .ok()?;
