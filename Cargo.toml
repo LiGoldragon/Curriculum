@@ -50,6 +50,26 @@ name = "nexus_roundtrip"
 path = "tests/nexus_roundtrip.rs"
 required-features = ["datom"]
 
+[[test]]
+name = "declarations"
+path = "tests/declarations.rs"
+required-features = ["datom"]
+
+[[test]]
+name = "layout_v2"
+path = "tests/layout_v2.rs"
+required-features = ["datom"]
+
+[[test]]
+name = "explicit_role_policy"
+path = "tests/explicit_role_policy.rs"
+required-features = ["datom"]
+
+[[test]]
+name = "startup_bundle"
+path = "tests/startup_bundle.rs"
+required-features = ["datom"]
+
 [lints.rust]
 unsafe_code = "forbid"
 unused = { level = "warn", priority = -1 }
