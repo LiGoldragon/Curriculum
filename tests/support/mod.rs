@@ -30,7 +30,7 @@ pub fn declare(root: &Path) {
                     continue;
                 };
                 declarations.push(format!(
-                    "{{ {:?} {} [ {version} ] «{}» }}",
+                    "{{ {:?} {} Single.{version} «{}» }}",
                     kind,
                     topic.file_name().unwrap().to_str().unwrap(),
                     file.strip_prefix(root).unwrap().display()

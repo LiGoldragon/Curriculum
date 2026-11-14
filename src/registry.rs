@@ -1,6 +1,6 @@
 //! The sole authored module registry: three server-configured repository roots, each holding the modules its modules.datom declares.
 use crate::emission::{Emittable, RefreshOutcome, RefreshProgram};
-use crate::generated::{ModuleDeclaration, ModuleKind};
+use crate::generated::{ModuleDeclaration, ModuleKind, Versions};
 use crate::refresh::ProcessLauncher;
 use crate::startup_metadata::{declared_placement, instructions, sha256};
 use signal_curriculum_nexus::{
@@ -57,27 +57,18 @@ pub struct DeclarationReport {
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DeclarationFinding {
-    /// The name was already given by an earlier declaration, whose file is kept.
-    HeldBefore(PathBuf),
     /// The declared file does not exist.
     Absent(PathBuf),
     /// The declared file is not a plain file inside the source, reached through no link.
     Unplaceable(PathBuf),
     /// The declared kind, subject and version make no valid name.
     InvalidName,
-    /// The declaration holds for no version.
-    NoVersion,
 }
 impl std::fmt::Display for DeclarationReport {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let declarations = self.declarations.display();
         let name = &self.name;
         match &self.finding {
-            DeclarationFinding::HeldBefore(kept) => write!(
-                formatter,
-                "{declarations}: {name} is declared again; the first declaration, {}, is kept",
-                kept.display()
-            ),
             DeclarationFinding::Absent(file) => {
                 write!(
                     formatter,
@@ -94,12 +85,6 @@ impl std::fmt::Display for DeclarationReport {
                 write!(
                     formatter,
                     "{declarations}: {name} is not a valid module name"
-                )
-            }
-            DeclarationFinding::NoVersion => {
-                write!(
-                    formatter,
-                    "{declarations}: {name} is declared for no version"
                 )
             }
         }
@@ -121,7 +106,7 @@ pub struct SkillRegistry {
     revisions: [String; 3],
     reports: Vec<DeclarationReport>,
 }
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Eq, PartialEq)]
 pub enum RegistryError {
     #[error("invalid context source {path}: {message}")]
     InvalidSource { path: PathBuf, message: String },
@@ -154,12 +139,68 @@ pub fn valid_version(value: &str) -> bool {
         && value.bytes().all(|byte| byte.is_ascii_digit())
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum BoundVersion {
+    Single(i64),
+    Span { first: i64, last: i64 },
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct ParsedIdentity<'a> {
+    kind: &'a str,
+    topic: &'a str,
+    version: BoundVersion,
+}
+
+trait ParsesModuleIdentity {
+    fn parsed_identity(&self) -> Option<ParsedIdentity<'_>>;
+}
+
+impl ParsesModuleIdentity for str {
+    fn parsed_identity(&self) -> Option<ParsedIdentity<'_>> {
+        let fields: Vec<_> = self.split(':').collect();
+        let [kind, topic, version] = fields.as_slice() else {
+            return None;
+        };
+        if !MODULE_KINDS.iter().any(|known| known.word() == *kind) || !valid_segment(topic) {
+            return None;
+        }
+        let version = if let Some((first, last)) = version.split_once('-') {
+            if !valid_version(first) || !valid_version(last) {
+                return None;
+            }
+            let first = first.parse().ok()?;
+            let last = last.parse().ok()?;
+            (first < last).then_some(BoundVersion::Span { first, last })?
+        } else {
+            if !valid_version(version) {
+                return None;
+            }
+            BoundVersion::Single(version.parse().ok()?)
+        };
+        Some(ParsedIdentity {
+            kind,
+            topic,
+            version,
+        })
+    }
+}
+
+trait CoversVersion {
+    fn covers(&self, version: i64) -> bool;
+}
+
+impl CoversVersion for BoundVersion {
+    fn covers(&self, version: i64) -> bool {
+        match self {
+            Self::Single(single) => *single == version,
+            Self::Span { first, last } => *first <= version && version <= *last,
+        }
+    }
+}
+
 pub fn valid_id(value: &str) -> bool {
-    let fields: Vec<_> = value.split(':').collect();
-    matches!(fields.as_slice(), [kind, topic, version]
-        if MODULE_KINDS.iter().any(|known| known.word() == *kind)
-            && valid_segment(topic)
-            && valid_version(version))
+    value.parsed_identity().is_some()
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceConfiguration {
@@ -311,21 +352,20 @@ impl SkillRegistry {
         &self.reports
     }
     pub fn resolve_exact(&self, ids: &[String]) -> Result<Vec<ResolvedSkill>, RegistryError> {
-        let mut seen = BTreeSet::new();
-        ids.iter()
-            .map(|id| {
-                if !valid_id(id) {
-                    return Err(RegistryError::Missing(id.clone()));
+        let mut seen_bindings = BTreeSet::new();
+        let mut seen_modules = BTreeSet::new();
+        let mut resolved = Vec::new();
+        for id in ids {
+            if !seen_bindings.insert(id) {
+                return Err(RegistryError::Duplicate(id.clone()));
+            }
+            for module in self.resolve_binding(id)? {
+                if seen_modules.insert(module.name.clone()) {
+                    resolved.push(module.clone());
                 }
-                if !seen.insert(id) {
-                    return Err(RegistryError::Duplicate(id.clone()));
-                }
-                self.entries
-                    .get(id)
-                    .cloned()
-                    .ok_or_else(|| RegistryError::Missing(id.clone()))
-            })
-            .collect()
+            }
+        }
+        Ok(resolved)
     }
     pub fn resolved_exact_sources(
         &self,
@@ -387,33 +427,81 @@ impl SkillRegistry {
     }
     fn visit(
         &self,
-        id: &str,
+        identity: &str,
         visiting: &mut BTreeSet<String>,
         seen: &mut BTreeSet<String>,
         output: &mut Vec<ResolvedSkill>,
     ) -> Result<(), RegistryError> {
-        if seen.contains(id) {
+        if seen.contains(identity) {
             return Ok(());
         }
-        if !visiting.insert(id.into()) {
-            return Err(RegistryError::Cycle(id.into()));
+        if !visiting.insert(identity.into()) {
+            return Err(RegistryError::Cycle(identity.into()));
         }
         let source = self
             .entries
-            .get(id)
-            .ok_or_else(|| RegistryError::Missing(id.into()))?;
+            .get(identity)
+            .ok_or_else(|| RegistryError::Missing(identity.into()))?;
         for dependency in &source.dependencies {
-            self.visit(dependency, visiting, seen, output)?;
+            for actual in self.resolve_binding(dependency)? {
+                // A numeric binding can contain the module that declares it.
+                // That module is already being visited; the other containing
+                // modules remain dependencies and are traversed normally.
+                if actual.name != identity {
+                    self.visit(&actual.name, visiting, seen, output)?;
+                }
+            }
         }
-        visiting.remove(id);
-        seen.insert(id.into());
+        visiting.remove(identity);
+        seen.insert(identity.into());
         output.push(source.clone());
         Ok(())
     }
 }
+
+trait ResolvesBindings {
+    fn resolve_binding(&self, binding: &str) -> Result<Vec<&SkillEntry>, RegistryError>;
+}
+
+impl ResolvesBindings for SkillRegistry {
+    fn resolve_binding(&self, binding: &str) -> Result<Vec<&SkillEntry>, RegistryError> {
+        let requested = binding
+            .parsed_identity()
+            .ok_or_else(|| RegistryError::Missing(binding.into()))?;
+        if matches!(requested.version, BoundVersion::Span { .. }) {
+            return self
+                .entries
+                .get(binding)
+                .map(|module| vec![module])
+                .ok_or_else(|| RegistryError::Missing(binding.into()));
+        }
+        let BoundVersion::Single(version) = requested.version else {
+            unreachable!("span returned above")
+        };
+        let mut modules = self
+            .entries
+            .values()
+            .filter(|module| {
+                module.name.parsed_identity().is_some_and(|actual| {
+                    actual.kind == requested.kind
+                        && actual.topic == requested.topic
+                        && actual.version.covers(version)
+                })
+            })
+            .collect::<Vec<_>>();
+        modules.sort_by_key(|module| (module.name != binding, module.name.as_str()));
+        if modules.is_empty() {
+            Err(RegistryError::Missing(binding.into()))
+        } else {
+            Ok(modules)
+        }
+    }
+}
+
 pub trait ExpandsSkills {
     fn expand_skills(&self, roots: &[String]) -> Result<Vec<ResolvedSkill>, RegistryError>;
     fn skill_names(&self) -> Result<Vec<String>, RegistryError>;
+    fn actual_skills(&self) -> Vec<ResolvedSkill>;
 }
 impl ExpandsSkills for SkillRegistry {
     fn expand_skills(&self, roots: &[String]) -> Result<Vec<ResolvedSkill>, RegistryError> {
@@ -421,12 +509,17 @@ impl ExpandsSkills for SkillRegistry {
         let mut seen = BTreeSet::new();
         let mut output = Vec::new();
         for root in roots {
-            self.visit(root, &mut visiting, &mut seen, &mut output)?;
+            for actual in self.resolve_binding(root)? {
+                self.visit(&actual.name, &mut visiting, &mut seen, &mut output)?;
+            }
         }
         Ok(output)
     }
     fn skill_names(&self) -> Result<Vec<String>, RegistryError> {
         Ok(self.entries.keys().cloned().collect())
+    }
+    fn actual_skills(&self) -> Vec<ResolvedSkill> {
+        self.entries.values().cloned().collect()
     }
 }
 
@@ -603,8 +696,12 @@ pub mod workspace {
         ) -> Result<ProjectionCandidate, RegistryError> {
             fs::create_dir_all(&self.root).map_err(|e| invalid(&self.root, e))?;
             let ids = registry.skill_names()?;
-            let skills = registry.resolve_exact(&ids)?;
-            let modules = registry.resolved_exact_sources(&ids)?;
+            let skills = registry.actual_skills();
+            let modules = skills
+                .iter()
+                .cloned()
+                .map(|skill| registry.describe(skill))
+                .collect::<Result<Vec<_>, _>>()?;
             let mut outputs = BTreeMap::<PathBuf, String>::new();
             for directory in &SKILL_DIRECTORIES {
                 self.remove_stale(directory, &ids)?;
@@ -819,8 +916,9 @@ fn read_declarations(root: &Path) -> Result<Vec<ModuleDeclaration>, RegistryErro
     ))
 }
 
-/// Gives each name a declaration holds to the file it declares, unless the
-/// name is already given or the file cannot be placed; each such name is reported.
+/// Gives the declaration's identity to its file. Recoverable placement and
+/// name findings on singleton declarations are reported; malformed spans,
+/// duplicate identities and absent span files refuse the registry.
 fn admit(
     root: &Path,
     declaration: ModuleDeclaration,
@@ -840,18 +938,36 @@ fn admit(
             finding,
         })
     };
-    if declaration.module_versions.0.is_empty() {
-        report(stem, DeclarationFinding::NoVersion);
-        return Ok(());
-    }
+    let (name, span) = match declaration.versions {
+        Versions::Single(version) if version.0 >= 0 => (format!("{stem}:{}", version.0), false),
+        Versions::Single(version) => {
+            return Err(invalid(
+                &declarations,
+                format!("module version {stem}:{} must be nonnegative", version.0),
+            ));
+        }
+        Versions::Span(bounds)
+            if bounds.first.0.0 >= 0
+                && bounds.last.0.0 >= 0
+                && bounds.first.0.0 < bounds.last.0.0 =>
+        {
+            (
+                format!("{stem}:{}-{}", bounds.first.0.0, bounds.last.0.0),
+                true,
+            )
+        }
+        Versions::Span(bounds) => {
+            return Err(invalid(
+                &declarations,
+                format!(
+                    "malformed module span {stem}:{}-{}; span bounds must be nonnegative and increasing",
+                    bounds.first.0.0, bounds.last.0.0
+                ),
+            ));
+        }
+    };
     let relative = Path::new(&declaration.module_file.0);
     let path = root.join(relative);
-    let names: Vec<String> = declaration
-        .module_versions
-        .0
-        .iter()
-        .map(|version| format!("{stem}:{version}"))
-        .collect();
     let placeable = !declaration.module_file.0.is_empty()
         && relative
             .components()
@@ -869,42 +985,39 @@ fn admit(
     };
     let path = match placed {
         Ok(path) => path,
+        Err(DeclarationFinding::Absent(file)) if span => {
+            return Err(invalid(
+                &declarations,
+                format!("{name}: no file {}", file.display()),
+            ));
+        }
         Err(finding) => {
-            for name in names {
-                report(name, finding.clone());
-            }
+            report(name, finding);
             return Ok(());
         }
     };
-    let mut body = None;
-    for name in names {
-        if !valid_id(&name) {
-            report(name, DeclarationFinding::InvalidName);
-            continue;
-        }
-        if let Some(kept) = entries.get(&name) {
-            report(name, DeclarationFinding::HeldBefore(kept.path.clone()));
-            continue;
-        }
-        if body.is_none() {
-            let text = fs::read_to_string(&path).map_err(|e| invalid(&path, e))?;
-            let content = instructions(&text).map_err(|e| invalid(&path, e))?;
-            if content.trim().is_empty() {
-                return Err(invalid(&path, "empty body"));
-            }
-            body = Some((dependencies(&path, &text)?, text));
-        }
-        let (dependencies, text) = body.clone().expect("read above");
-        entries.insert(
-            name.clone(),
-            SkillEntry {
-                path: path.clone(),
-                name,
-                body: text,
-                dependencies,
-            },
-        );
+    if !valid_id(&name) {
+        report(name, DeclarationFinding::InvalidName);
+        return Ok(());
     }
+    if entries.contains_key(&name) {
+        return Err(RegistryError::Duplicate(name));
+    }
+    let text = fs::read_to_string(&path).map_err(|e| invalid(&path, e))?;
+    let content = instructions(&text).map_err(|e| invalid(&path, e))?;
+    if content.trim().is_empty() {
+        return Err(invalid(&path, "empty body"));
+    }
+    let dependencies = dependencies(&path, &text)?;
+    entries.insert(
+        name.clone(),
+        SkillEntry {
+            path,
+            name,
+            body: text,
+            dependencies,
+        },
+    );
     Ok(())
 }
 

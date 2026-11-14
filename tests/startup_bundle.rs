@@ -318,3 +318,37 @@ fn write_source(
     fs::create_dir_all(path.parent().unwrap())?;
     fs::write(path, contents)
 }
+
+#[test]
+fn startup_uses_actual_span_provenance_and_deduplicates_a_shared_span() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (roots, _, mut selection) = fixture(tmp.path());
+    let manifest = roots[2].join("modules.datom");
+    let declarations = fs::read_to_string(&manifest).unwrap();
+    let declarations = declarations.strip_suffix(" ]\n").unwrap();
+    fs::write(
+        &manifest,
+        format!(
+            "{declarations}\n  {{ Compensation user00 Span.{{ 0 1 }} «compensation/user00/0.md» }} ]\n"
+        ),
+    )
+    .unwrap();
+    let registry = SkillRegistry::from_context_repositories(
+        &roots,
+        &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
+    )
+    .unwrap();
+    selection
+        .user_modules
+        .0
+        .push(ModuleIdentity("compensation:user00:1".into()));
+    let result = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
+    let actual = result
+        .context_provenance_vector
+        .iter()
+        .filter(|module| module.module_identity.0.starts_with("compensation:user00:"))
+        .map(|module| module.module_identity.0.as_str())
+        .collect::<Vec<_>>();
+    assert_eq!(actual, ["compensation:user00:0", "compensation:user00:0-1"]);
+    assert_eq!(result.user_text.0.matches("BODY_00_EXACT").count(), 2);
+}

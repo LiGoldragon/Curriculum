@@ -142,3 +142,73 @@ fn write_source(
     fs::create_dir_all(path.parent().unwrap())?;
     fs::write(path, contents)
 }
+
+#[test]
+fn role_binding_composes_all_actual_spans_once_with_actual_provenance() {
+    let tmp = tempfile::tempdir().unwrap();
+    let roots = [
+        tmp.path().join("psyche"),
+        tmp.path().join("mind"),
+        tmp.path().join("field"),
+    ];
+    for root in &roots {
+        fs::create_dir_all(root).unwrap();
+        fs::write(root.join("modules.datom"), "[]\n").unwrap();
+    }
+    write_source(roots[2].join("description.md"), "Description.").unwrap();
+    write_source(roots[2].join("single.md"), "Single.").unwrap();
+    write_source(roots[2].join("span.md"), "Span.").unwrap();
+    fs::write(
+        roots[2].join("modules.datom"),
+        "[ { Role description Single.0 «description.md» }
+  { Role context Single.1 «single.md» }
+  { Role context Span.{ 0 2 } «span.md» } ]\n",
+    )
+    .unwrap();
+    let registry = SkillRegistry::from_context_repositories(
+        &roots,
+        &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
+    )
+    .unwrap();
+    let roles = Roles {
+        role_definition_vector: vec![RoleDefinition {
+            role_name: RoleName("witness".into()),
+            surface: Surface::CodexAgent,
+            model_id: ModelId("luna".into()),
+            effort: Effort::Medium,
+            permission: Permission::Unrestricted,
+            description_module: DescriptionModule(ModuleIdentity("role:description:0".into())),
+            context_modules: ContextModules(vec![ModuleIdentity("role:context:1".into())]),
+            role_tools: RoleTools::Explicit(vec![]),
+            role_callers: RoleCallers::Only(vec![CallerMetaflow {
+                first_string: "Mind".into(),
+                second_string: "Curriculum".into(),
+                third_string: "Tertiary".into(),
+            }]),
+        }],
+    };
+    let result = roles::compose(
+        &registry,
+        &roles,
+        &RoleSelection {
+            role_name: RoleName("witness".into()),
+            surface: Surface::CodexAgent,
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        result
+            .context_provenance_vector
+            .iter()
+            .map(|module| module.module_identity.0.as_str())
+            .collect::<Vec<_>>(),
+        ["role:description:0", "role:context:1", "role:context:0-2"]
+    );
+    assert!(
+        result
+            .context_text
+            .0
+            .contains("Module IDs: role:context:1, role:context:0-2")
+    );
+    assert_eq!(result.context_text.0.matches("Span.").count(), 1);
+}

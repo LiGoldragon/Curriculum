@@ -55,17 +55,44 @@ pub fn compose(
     if explicit.is_empty() {
         return Err("startup requires at least one authored module".into());
     }
-    let roots: Vec<String> = selection
+    let system_roots: Vec<String> = selection
         .system_modules
         .0
         .iter()
-        .chain(&selection.user_modules.0)
         .map(|id| id.0.clone())
         .collect();
-    let resolved = registry
-        .resolved_sources(&roots)
+    let user_roots: Vec<String> = selection
+        .user_modules
+        .0
+        .iter()
+        .map(|id| id.0.clone())
+        .collect();
+    let system_snapshot = registry
+        .expand_skills(&system_roots)
         .map_err(|e| e.to_string())?;
-    let snapshot = registry.expand_skills(&roots).map_err(|e| e.to_string())?;
+    let user_snapshot = registry
+        .expand_skills(&user_roots)
+        .map_err(|e| e.to_string())?;
+    let system_identities = system_snapshot
+        .iter()
+        .map(|module| module.name.as_str())
+        .collect::<BTreeSet<_>>();
+    if user_snapshot
+        .iter()
+        .any(|module| system_identities.contains(module.name.as_str()))
+    {
+        return Err("module selected for both startup placements".into());
+    }
+    let resolved = registry
+        .resolved_sources(&system_roots)
+        .and_then(|mut system| {
+            registry.resolved_sources(&user_roots).map(|user| {
+                system.extend(user);
+                system
+            })
+        })
+        .map_err(|e| e.to_string())?;
+    let snapshot = system_snapshot.into_iter().chain(user_snapshot);
     let mut system = Vec::new();
     let mut user = Vec::new();
     let mut provenance = Vec::new();

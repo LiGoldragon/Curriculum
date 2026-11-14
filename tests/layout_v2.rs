@@ -342,7 +342,13 @@ fn explicit_versions_are_distinct_and_dependencies_select_exactly_one() {
 #[test]
 fn versioned_identity_validation_has_no_implicit_or_alias_form() {
     use curriculum::registry::valid_id;
-    for id in ["vision:topic:0", "knowledge:a-b:42", "spirit:core:1"] {
+    for id in [
+        "vision:topic:0",
+        "knowledge:a-b:42",
+        "spirit:core:1",
+        "vision:topic:0-1",
+        "knowledge:a-b:2-42",
+    ] {
         assert!(valid_id(id), "{id}");
     }
     for id in [
@@ -352,6 +358,11 @@ fn versioned_identity_validation_has_no_implicit_or_alias_form() {
         "vision:topic:",
         "vision:topic:00",
         "vision:topic:01",
+        "vision:topic:0-0",
+        "vision:topic:2-1",
+        "vision:topic:00-1",
+        "vision:topic:0-01",
+        "vision:topic:0-1-2",
         "vision:topic:-1",
         "vision:topic:+1",
         "vision:topic:latest",

@@ -106,10 +106,17 @@ pub fn compose(
         .chain(&role.context_modules.0)
         .map(|id| id.0.clone())
         .collect();
-    // Deliberately exact: no dependency closure, universal module or ambient file.
+    // Deliberately binding-only: no dependency closure, universal module or
+    // ambient file. A numeric binding can select several actual modules.
     let modules = registry
         .resolved_exact_sources(&ids)
         .map_err(|e| e.to_string())?;
+    let description_identities = registry
+        .resolved_exact_sources(std::slice::from_ref(&role.description_module.0.0))
+        .map_err(|e| e.to_string())?
+        .into_iter()
+        .map(|module| module.module_identity.0)
+        .collect::<std::collections::BTreeSet<_>>();
     let target = match role.surface {
         Surface::ClaudeAgent => Target::Claude,
         Surface::CodexAgent => Target::Codex,
@@ -119,17 +126,26 @@ pub fn compose(
         .iter()
         .map(|m| crate::context_render::render(&target, &m.string))
         .collect::<Result<_, _>>()?;
-    let description_text = rendered[0].clone();
+    let description_text = modules
+        .iter()
+        .zip(&rendered)
+        .filter(|(module, _)| description_identities.contains(&module.module_identity.0))
+        .map(|(_, body)| body.as_str())
+        .collect::<String>();
+    let context_modules = modules
+        .iter()
+        .zip(&rendered)
+        .filter(|(module, _)| !description_identities.contains(&module.module_identity.0))
+        .collect::<Vec<_>>();
     let mut context_text = format!(
         "These are your skills, given here; do not reload them.\n\nModule IDs: {}\n",
-        role.context_modules
-            .0
+        context_modules
             .iter()
-            .map(|id| id.0.as_str())
+            .map(|(module, _)| module.module_identity.0.as_str())
             .collect::<Vec<_>>()
             .join(", ")
     );
-    for (module, body) in modules.iter().zip(&rendered).skip(1) {
+    for (module, body) in context_modules {
         context_text.push_str(&format!(
             "\n<!-- module: {} -->\n{}\n<!-- end-module: {} -->\n",
             module.module_identity.0, body, module.module_identity.0
