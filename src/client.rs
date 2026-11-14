@@ -8,7 +8,7 @@ use datom_codec::{Actualizing, Budget, Composing, Datomizable, Potential};
 use protos::{Protosizable, ReaderBudget, Textualizable};
 use thiserror::Error;
 
-use crate::generated::{CliRequest, Outcome, Query, RoleSelection, Surface};
+use signal_curriculum_nexus::{Input, Output, RoleSelection, Surface};
 
 #[derive(Debug, Error)]
 pub enum ClientError {
@@ -57,7 +57,7 @@ impl NamesRequestedRole for CurriculumClient {
             return None;
         };
         match actualize_request(argument).ok()? {
-            CliRequest::ComposeRole(RoleSelection {
+            Input::ComposeRole(RoleSelection {
                 role_name,
                 surface: Surface::ClaudeAgent,
             }) => Some(role_name.0),
@@ -67,20 +67,19 @@ impl NamesRequestedRole for CurriculumClient {
 }
 
 pub trait RunsClient {
-    fn run(&self) -> Result<Outcome, ClientError>;
+    fn run(&self) -> Result<Output, ClientError>;
 }
 
 impl RunsClient for CurriculumClient {
-    fn run(&self) -> Result<Outcome, ClientError> {
+    fn run(&self) -> Result<Output, ClientError> {
         let [argument] = self.arguments.as_slice() else {
             return Err(ClientError::Arguments);
         };
         if argument.starts_with('-') {
             return Err(ClientError::Arguments);
         }
-        let request = actualize_request(argument)?;
-        let query = prepare_query(request)?;
-        let request = rkyv::to_bytes::<rkyv::rancor::Error>(&query)
+        let input = actualize_request(argument)?;
+        let request = rkyv::to_bytes::<rkyv::rancor::Error>(&input)
             .map_err(|error| ClientError::Encode(error.to_string()))?;
         let socket = socket_path();
         let mut stream = UnixStream::connect(&socket).map_err(|source| ClientError::Connect {
@@ -89,15 +88,15 @@ impl RunsClient for CurriculumClient {
         })?;
         write_frame(&mut stream, &request)?;
         let response = read_frame(&mut stream)?;
-        rkyv::from_bytes::<Outcome, rkyv::rancor::Error>(&response).map_err(|_| ClientError::Decode)
+        rkyv::from_bytes::<Output, rkyv::rancor::Error>(&response).map_err(|_| ClientError::Decode)
     }
 }
 
-pub trait PresentsOutcome {
+pub trait PresentsOutput {
     fn datom_text(&self) -> String;
 }
 
-impl PresentsOutcome for Outcome {
+impl PresentsOutput for Output {
     fn datom_text(&self) -> String {
         self.datomize(vec![]).protosize().textualize()
     }
@@ -129,19 +128,10 @@ impl<T: Composing> BudgetedActualizing<T> for Potential<T> {
     }
 }
 
-fn actualize_request(text: &str) -> Result<CliRequest, ClientError> {
-    Potential::<CliRequest>::from(text)
+fn actualize_request(text: &str) -> Result<Input, ClientError> {
+    Potential::<Input>::from(text)
         .actualize_with_limit(1_048_576)
         .map_err(DatomFaulting::datom_fault)
-}
-
-fn prepare_query(request: CliRequest) -> Result<Query, ClientError> {
-    Ok(match request {
-        CliRequest::ResolveSkills(ids) => Query::ResolveSkills(ids),
-        CliRequest::ResolveSources(ids) => Query::ResolveSources(ids),
-        CliRequest::ComposeStartup(selection) => Query::ComposeStartup(selection),
-        CliRequest::ComposeRole(selection) => Query::ComposeRole(selection),
-    })
 }
 
 fn socket_path() -> PathBuf {

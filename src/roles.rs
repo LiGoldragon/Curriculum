@@ -1,12 +1,13 @@
 //! Role metadata contains IDs only. Authored text is resolved by the same registry.
 use crate::{
-    generated::{
-        ContextPayloadSha256, ContextProvenance, ContextText, DescriptionPayloadSha256,
-        DescriptionText, RenderedSha256, RoleCallers, RoleComposition, RoleDefinition,
-        RoleSelection, RoleTools, Roles, StartupPlacement,
-    },
+    generated::{RoleDefinition, Roles},
     registry::{SkillRegistry, valid_id, valid_segment},
     startup_metadata::sha256,
+};
+use signal_curriculum_nexus::{
+    ContextPayloadSha256, ContextProvenance, ContextText, DescriptionPayloadSha256,
+    DescriptionText, RenderedSha256, RoleCallers, RoleComposition, RoleSelection, RoleTools,
+    StartupPlacement, Surface, Target,
 };
 
 pub fn validate(roles: &Roles) -> Result<(), String> {
@@ -110,9 +111,9 @@ pub fn compose(
         .resolved_exact_sources(&ids)
         .map_err(|e| e.to_string())?;
     let target = match role.surface {
-        crate::generated::Surface::ClaudeAgent => crate::generated::Target::Claude,
-        crate::generated::Surface::CodexAgent => crate::generated::Target::Codex,
-        crate::generated::Surface::PiAgent => crate::generated::Target::Pi,
+        Surface::ClaudeAgent => Target::Claude,
+        Surface::CodexAgent => Target::Codex,
+        Surface::PiAgent => Target::Pi,
     };
     let rendered: Vec<String> = modules
         .iter()

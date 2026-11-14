@@ -1,0 +1,6 @@
+; What Curriculum remembers: the roles its roles file declared when it
+; opened, or none where no roles file is configured. Nothing is stored; the
+; memory is read again from the roles file whenever the Nexus starts.
+Memory
+[ :crate:generated:[ Roles ] ]
+[ SkillMemory.{ Option<Roles> } ]

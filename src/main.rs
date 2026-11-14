@@ -3,11 +3,11 @@ use std::process::ExitCode;
 use curriculum::{
     claude_agent::RendersClaudeAgent,
     client::{
-        ConstructsCurriculumClient, CurriculumClient, NamesRequestedRole, PresentsOutcome,
+        ConstructsCurriculumClient, CurriculumClient, NamesRequestedRole, PresentsOutput,
         RunsClient,
     },
-    generated::Outcome,
 };
+use signal_curriculum_nexus::Output;
 
 fn main() -> ExitCode {
     let mut arguments: Vec<String> = std::env::args().skip(1).collect();
@@ -27,17 +27,17 @@ fn main() -> ExitCode {
     }
 
     match client.run() {
-        Ok(Outcome::Rejected(error)) => {
+        Ok(Output::Rejected(error)) => {
             eprintln!("{error}");
             ExitCode::FAILURE
         }
-        Ok(Outcome::RoleComposed(role))
+        Ok(Output::RoleComposed(role))
             if render_agent && requested_role.as_deref() != Some(role.role_name.0.as_str()) =>
         {
             eprintln!("Curriculum Nexus returned a different role from the requested role");
             ExitCode::FAILURE
         }
-        Ok(Outcome::RoleComposed(role)) if render_agent => match role.claude_agent_markdown() {
+        Ok(Output::RoleComposed(role)) if render_agent => match role.claude_agent_markdown() {
             Ok(markdown) => {
                 print!("{markdown}");
                 ExitCode::SUCCESS

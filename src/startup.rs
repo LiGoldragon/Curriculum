@@ -1,13 +1,13 @@
 //! In-memory startup composition from the server's three authored repositories.
 //! Callers supply module IDs and a metaflow address, never paths or text.
 use crate::{
-    generated::{
-        ContextProvenance, FlowId, RecordsPayloadSha256, RecordsText, RenderedSha256,
-        StartupComposition, StartupPlacement, StartupSelection, SystemPayloadSha256, SystemText,
-        UserPayloadSha256, UserText,
-    },
     registry::{ExpandsSkills, SkillRegistry},
     startup_metadata::{instructions, sha256},
+};
+use signal_curriculum_nexus::{
+    ContextProvenance, FlowId, RecordsPayloadSha256, RecordsText, RenderedSha256,
+    StartupComposition, StartupPlacement, StartupSelection, SystemPayloadSha256, SystemText,
+    UserPayloadSha256, UserText,
 };
 use std::{collections::BTreeSet, path::Path};
 

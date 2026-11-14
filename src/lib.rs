@@ -2,6 +2,7 @@ pub mod claude_agent;
 #[cfg(feature = "datom")]
 pub mod client;
 pub mod generated;
+pub mod memory;
 pub mod registry;
 pub mod roles;
 pub mod service;

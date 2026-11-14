@@ -1,6 +1,6 @@
 Get explicit psyche approval before changing a skill or role.
 
-Curriculum owns the typed registry CLI/Nexus, `curriculum.ethos`, `roles.datom`,
+Curriculum owns the typed registry CLI/Nexus, `curriculum.ethos`, `memory.ethos`, `roles.datom`,
 and repository documentation. Authored skill Markdown lives in the Psyche,
 Mind, and Field skill repositories. Do not add generated consumer output or a
 parallel legacy representation here.

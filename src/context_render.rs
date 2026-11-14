@@ -1,5 +1,5 @@
 //! Existing target/raw syntax, now strict about malformed and unknown directives.
-use crate::generated::Target;
+use signal_curriculum_nexus::Target;
 pub fn render(target: &Target, body: &str) -> Result<String, String> {
     let mut output = String::new();
     let mut conditions = Vec::<(bool, bool)>::new();

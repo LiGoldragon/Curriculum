@@ -1,5 +1,6 @@
 mod support;
 use curriculum::{claude_agent::RendersClaudeAgent, generated::*, roles};
+use signal_curriculum_nexus::*;
 use std::fs;
 
 #[cfg(feature = "datom")]
@@ -320,14 +321,13 @@ fn cli_fetches_only_the_id_query_and_emits_verified_matching_definition() {
             let mut bytes = vec![0; u32::from_be_bytes(size) as usize];
             peer.read_exact(&mut bytes).unwrap();
             assert_eq!(
-                rkyv::from_bytes::<Query, rkyv::rancor::Error>(&bytes).unwrap(),
-                Query::ComposeRole(RoleSelection {
+                rkyv::from_bytes::<Input, rkyv::rancor::Error>(&bytes).unwrap(),
+                Input::ComposeRole(RoleSelection {
                     role_name: RoleName(requested.into()),
                     surface: Surface::ClaudeAgent
                 })
             );
-            let reply =
-                rkyv::to_bytes::<rkyv::rancor::Error>(&Outcome::RoleComposed(role)).unwrap();
+            let reply = rkyv::to_bytes::<rkyv::rancor::Error>(&Output::RoleComposed(role)).unwrap();
             peer.write_all(&(reply.len() as u32).to_be_bytes()).unwrap();
             peer.write_all(&reply).unwrap();
         });

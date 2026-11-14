@@ -1,5 +1,6 @@
 mod support;
 use curriculum::{generated::*, registry::SkillRegistry, roles};
+use signal_curriculum_nexus::*;
 use std::fs;
 fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
     let roots = [base.join("psyche"), base.join("mind"), base.join("field")];
@@ -71,10 +72,10 @@ fn role_uses_only_selected_authored_ids_and_preserves_policy_through_wire() {
         result.context_provenance_vector[2].source_relative_path.0,
         "compensation/illustration/0.md"
     );
-    let outcome = Outcome::RoleComposed(result);
+    let outcome = Output::RoleComposed(result);
     let bytes = rkyv::to_bytes::<rkyv::rancor::Error>(&outcome).unwrap();
     assert_eq!(
-        rkyv::from_bytes::<Outcome, rkyv::rancor::Error>(&bytes).unwrap(),
+        rkyv::from_bytes::<Output, rkyv::rancor::Error>(&bytes).unwrap(),
         outcome
     );
     assert!(!tmp.path().join(".claude").exists());

@@ -1,6 +1,7 @@
 mod support;
-use curriculum::{generated::*, registry::SkillRegistry, startup};
+use curriculum::{registry::SkillRegistry, startup};
 use sha2::{Digest, Sha256};
+use signal_curriculum_nexus::*;
 use std::{fs, path::PathBuf};
 fn digest(text: &str) -> String {
     format!("{:x}", Sha256::digest(text.as_bytes()))
@@ -120,10 +121,10 @@ fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
     assert_eq!(result.records_payload_sha256.0, digest(""));
     assert!(!tmp.path().join("tools").exists());
     assert!(!tmp.path().join(".claude").exists());
-    let outcome = Outcome::StartupComposed(result);
+    let outcome = Output::StartupComposed(result);
     let bytes = rkyv::to_bytes::<rkyv::rancor::Error>(&outcome).unwrap();
     assert_eq!(
-        rkyv::from_bytes::<Outcome, rkyv::rancor::Error>(&bytes).unwrap(),
+        rkyv::from_bytes::<Output, rkyv::rancor::Error>(&bytes).unwrap(),
         outcome
     );
 }

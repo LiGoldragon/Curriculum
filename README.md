@@ -1,6 +1,6 @@
 # Curriculum
 
-A versioned context registry and Nexus for psyche-belief, mind-belief and field-belief. It resolves module IDs and composes startup and role prompts in memory. See ARCHITECTURE.md for the declared roots, wire contract, placement, hashes and guard boundaries; curriculum.ethos is the authoritative typed schema.
+A versioned context registry and Nexus for psyche-belief, mind-belief and field-belief. It resolves module IDs and composes startup and role prompts in memory. See ARCHITECTURE.md for the declared roots, wire contract, placement, hashes and guard boundaries; signal-curriculum-nexus is the wire contract, and curriculum.ethos and memory.ethos the authoritative schema of Curriculum's own files and memory.
 
 
 A module is named `kind:topic:number` and stored as `kind/topic/number.md`. Every caller and dependency supplies the explicit version, including `0`; resolution selects exactly that version. Generated skill names retain the complete three-field ID.

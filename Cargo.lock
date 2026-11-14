@@ -88,6 +88,7 @@ dependencies = [
  "protos",
  "rkyv",
  "sha2",
+ "signal-curriculum-nexus",
  "tempfile",
  "thiserror",
  "tokio",
@@ -153,8 +154,8 @@ dependencies = [
 
 [[package]]
 name = "ethos-zero"
-version = "22.0.0"
-source = "git+https://github.com/LiGoldragon/ethos-zero?rev=1976e45#1976e45fe1edfd5676cb33919dba1ec20c785a02"
+version = "27.0.0"
+source = "git+https://github.com/LiGoldragon/ethos-zero?rev=8c95310#8c95310c4c372cfe115cdebc3e85021b98cf2974"
 dependencies = [
  "datom-codec",
  "prettyplease",
@@ -587,6 +588,17 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
+]
+
+[[package]]
+name = "signal-curriculum-nexus"
+version = "0.1.0"
+source = "git+https://github.com/LiGoldragon/signal-curriculum-nexus?rev=3e8b5b9#3e8b5b9a8cb7523ab205a74c9bbe828dc9f31cdc"
+dependencies = [
+ "datom-codec",
+ "ethos-zero",
+ "protos",
+ "rkyv",
 ]
 
 [[package]]

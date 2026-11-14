@@ -1,8 +1,6 @@
 //! Native output from registry composition, never caller-authored prose.
-use crate::{
-    generated::{Effort, Permission, RoleComposition, RoleTools, Surface},
-    startup_metadata::sha256,
-};
+use crate::startup_metadata::sha256;
+use signal_curriculum_nexus::{Effort, Permission, RoleComposition, RoleTools, Surface};
 
 pub trait RendersClaudeAgent {
     fn claude_agent_markdown(&self) -> Result<String, String>;

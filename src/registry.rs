@@ -1,9 +1,10 @@
 //! The sole authored module registry: three server-configured repository roots, each holding the modules its modules.datom declares.
-use crate::generated::{
-    BodySha256, DeclaredPlacement, ModuleDeclaration, ModuleIdentity, ModuleKind, ModuleSubject,
-    ModuleType, RepositoryName, SourceRelativePath, SourceRevision, SourceRoot, SourceSha256,
-};
+use crate::generated::{ModuleDeclaration, ModuleKind};
 use crate::startup_metadata::{declared_placement, instructions, sha256};
+use signal_curriculum_nexus::{
+    BodySha256, DeclaredPlacement, ModuleIdentity, ModuleSubject, ModuleType, RepositoryName,
+    ResolvedModule, SourceRelativePath, SourceRevision, SourceRoot, SourceSha256,
+};
 use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
@@ -324,25 +325,19 @@ impl SkillRegistry {
     pub fn resolved_exact_sources(
         &self,
         ids: &[String],
-    ) -> Result<Vec<crate::generated::ResolvedModule>, RegistryError> {
+    ) -> Result<Vec<ResolvedModule>, RegistryError> {
         self.resolve_exact(ids)?
             .into_iter()
             .map(|s| self.describe(s))
             .collect()
     }
-    pub fn resolved_sources(
-        &self,
-        ids: &[String],
-    ) -> Result<Vec<crate::generated::ResolvedModule>, RegistryError> {
+    pub fn resolved_sources(&self, ids: &[String]) -> Result<Vec<ResolvedModule>, RegistryError> {
         self.expand_skills(ids)?
             .into_iter()
             .map(|s| self.describe(s))
             .collect()
     }
-    fn describe(
-        &self,
-        skill: ResolvedSkill,
-    ) -> Result<crate::generated::ResolvedModule, RegistryError> {
+    fn describe(&self, skill: ResolvedSkill) -> Result<ResolvedModule, RegistryError> {
         if canonical(&skill.path)? != skill.path
             || fs::read(&skill.path).map_err(|e| invalid(&skill.path, e))? != skill.body.as_bytes()
         {
@@ -361,7 +356,7 @@ impl SkillRegistry {
             .split_once(':')
             .ok_or_else(|| invalid(&skill.path, "invalid identity"))?;
         let text = instructions(&skill.body).map_err(|e| invalid(&skill.path, e))?;
-        Ok(crate::generated::ResolvedModule {
+        Ok(ResolvedModule {
             module_identity: ModuleIdentity(skill.name.clone()),
             repository_name: RepositoryName(
                 ["psyche-belief", "mind-belief", "field-belief"][i].into(),
@@ -437,9 +432,9 @@ pub mod workspace {
     use super::{ExpandsSkills, RegistryError, ResolvedSkill, SkillRegistry, invalid, sha256};
     use crate::generated::{
         DeploymentDestination, ProjectionCandidate, PublishedContentDigest,
-        PublishedInventoryDigest, RendererVersion, RepositoryName, RepositoryRevision,
-        SourceRevision,
+        PublishedInventoryDigest, RendererVersion, RepositoryRevision, SkillDirectory,
     };
+    use signal_curriculum_nexus::{RepositoryName, SourceRevision, Target};
     use std::{
         collections::BTreeMap,
         fs,
@@ -451,37 +446,50 @@ pub mod workspace {
     static NEXT_TEMP: AtomicU64 = AtomicU64::new(0);
     pub const RENDERER_VERSION: &str = "curriculum-workspace-projector-v1";
 
-    /// Typed identity of a fully materialized workspace generation. This is
-    /// returned only after all projection writes and the canonical inventory.
-    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-    enum Target {
-        Claude,
-        Codex,
-        CodexAlt,
-        Pi,
-        OpenCode,
+    /// Every directory a projection writes each module into.
+    const SKILL_DIRECTORIES: [SkillDirectory; 5] = [
+        SkillDirectory::Claude,
+        SkillDirectory::Agents,
+        SkillDirectory::Codex,
+        SkillDirectory::Pi,
+        SkillDirectory::OpenCode,
+    ];
+
+    /// A skill directory sits at its path under the workspace, and the
+    /// harness reading it is the target its modules are rendered for.
+    trait PlacesSkills {
+        fn path(&self) -> &'static str;
+        fn target(&self) -> Target;
     }
 
-    impl Target {
-        const ALL: [Self; 5] = [
-            Self::Claude,
-            Self::Codex,
-            Self::CodexAlt,
-            Self::Pi,
-            Self::OpenCode,
-        ];
-
-        fn directory(self) -> &'static str {
+    impl PlacesSkills for SkillDirectory {
+        fn path(&self) -> &'static str {
             match self {
-                Self::Claude => ".claude/skills",
-                Self::Codex => ".agents/skills",
-                Self::CodexAlt => ".codex/skills",
-                Self::Pi => ".pi/skills",
-                Self::OpenCode => ".opencode/skills",
+                SkillDirectory::Claude => ".claude/skills",
+                SkillDirectory::Agents => ".agents/skills",
+                SkillDirectory::Codex => ".codex/skills",
+                SkillDirectory::Pi => ".pi/skills",
+                SkillDirectory::OpenCode => ".opencode/skills",
             }
         }
 
-        fn render(self, skill: &ResolvedSkill) -> Result<String, RegistryError> {
+        fn target(&self) -> Target {
+            match self {
+                SkillDirectory::Claude => Target::Claude,
+                SkillDirectory::Agents | SkillDirectory::Codex => Target::Codex,
+                SkillDirectory::Pi => Target::Pi,
+                SkillDirectory::OpenCode => Target::OpenCode,
+            }
+        }
+    }
+
+    /// A module's whole source, frontmatter included, rendered for a target.
+    trait RendersSkill {
+        fn render(&self, skill: &ResolvedSkill) -> Result<String, RegistryError>;
+    }
+
+    impl RendersSkill for Target {
+        fn render(&self, skill: &ResolvedSkill) -> Result<String, RegistryError> {
             let mut rendered = String::new();
             let mut branches = Vec::<(bool, bool)>::new();
             let mut raw = false;
@@ -499,10 +507,10 @@ pub mod workspace {
                 }
 
                 let selected = match directive {
-                    "{% if claude %}" => Some(self == Self::Claude),
-                    "{% if codex %}" => Some(matches!(self, Self::Codex | Self::CodexAlt)),
-                    "{% if opencode %}" => Some(self == Self::OpenCode),
-                    "{% if pi %}" => Some(self == Self::Pi),
+                    "{% if claude %}" => Some(*self == Target::Claude),
+                    "{% if codex %}" => Some(*self == Target::Codex),
+                    "{% if opencode %}" => Some(*self == Target::OpenCode),
+                    "{% if pi %}" => Some(*self == Target::Pi),
                     "{% raw %}" => {
                         raw = true;
                         continue;
@@ -546,7 +554,7 @@ pub mod workspace {
                     continue;
                 }
                 if branches.iter().all(|(selected, _)| *selected) {
-                    if self == Self::Claude && directive == "user-only: true" {
+                    if *self == Target::Claude && directive == "user-only: true" {
                         rendered.push_str("disable-model-invocation: true\n");
                     } else {
                         rendered.push_str(line);
@@ -560,7 +568,7 @@ pub mod workspace {
                     "unclosed target conditional or raw block",
                 ));
             }
-            if self == Self::OpenCode {
+            if *self == Target::OpenCode {
                 let name = format!("name: {}\n", skill.name);
                 rendered = match rendered.strip_prefix("---\n") {
                     Some(rest) => format!("---\n{name}{rest}"),
@@ -593,20 +601,23 @@ pub mod workspace {
             let skills = registry.resolve_exact(&ids)?;
             let modules = registry.resolved_exact_sources(&ids)?;
             let mut outputs = BTreeMap::<PathBuf, String>::new();
-            for target in Target::ALL {
-                self.remove_stale(target, &ids)?;
+            for directory in &SKILL_DIRECTORIES {
+                self.remove_stale(directory, &ids)?;
             }
             for skill in &skills {
-                for target in Target::ALL {
-                    let relative = Path::new(target.directory())
+                for directory in &SKILL_DIRECTORIES {
+                    let relative = Path::new(directory.path())
                         .join(&skill.name)
                         .join("SKILL.md");
-                    outputs.insert(relative, target.render(skill)?);
+                    outputs.insert(relative, directory.target().render(skill)?);
                 }
                 if user_only(&skill.body) {
-                    for surface in [".agents/skills", ".codex/skills"] {
+                    for directory in SKILL_DIRECTORIES
+                        .iter()
+                        .filter(|directory| directory.target() == Target::Codex)
+                    {
                         outputs.insert(
-                            Path::new(surface)
+                            Path::new(directory.path())
                                 .join(&skill.name)
                                 .join("agents/openai.yaml"),
                             "policy:\n  allow_implicit_invocation: false\n".into(),
@@ -664,7 +675,11 @@ pub mod workspace {
             })
         }
 
-        fn remove_stale(&self, target: Target, current: &[String]) -> Result<(), RegistryError> {
+        fn remove_stale(
+            &self,
+            directory: &SkillDirectory,
+            current: &[String],
+        ) -> Result<(), RegistryError> {
             // A prior inventory is the ownership receipt. Without one, existing
             // directories may belong to the user and are left untouched.
             let inventory = self.safe(Path::new("modules"))?;
@@ -676,7 +691,7 @@ pub mod workspace {
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
                 Err(error) => return Err(invalid(&inventory, error)),
             };
-            let surface = self.safe(Path::new(target.directory()))?;
+            let surface = self.safe(Path::new(directory.path()))?;
             let entries = match fs::read_dir(&surface) {
                 Ok(entries) => entries,
                 Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),

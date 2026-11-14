@@ -348,6 +348,10 @@ rec {
             packageId = "sha2";
           }
           {
+            name = "signal-curriculum-nexus";
+            packageId = "signal-curriculum-nexus";
+          }
+          {
             name = "thiserror";
             packageId = "thiserror";
           }
@@ -370,7 +374,7 @@ rec {
           }
         ];
         features = {
-          "datom" = [ "dep:datom-codec" "dep:protos" ];
+          "datom" = [ "dep:datom-codec" "dep:protos" "signal-curriculum-nexus/datom" ];
         };
         resolvedDefaultFeatures = [ "datom" "default" ];
       };
@@ -543,14 +547,14 @@ rec {
       };
       "ethos-zero" = rec {
         crateName = "ethos-zero";
-        version = "22.0.0";
+        version = "27.0.0";
         edition = "2024";
         crateBin = [];
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/LiGoldragon/ethos-zero";
-          rev = "1976e45fe1edfd5676cb33919dba1ec20c785a02";
-          sha256 = "12b6np5n8knlpv2rb98g0m04n6xxaprd8n5hy4wgw658h5vg216j";
+          rev = "8c95310c4c372cfe115cdebc3e85021b98cf2974";
+          sha256 = "1nqshn23ibbnnadi10wj79dn6wcjjkgfav6qkwsa7jg6r9m87v76";
         };
         libName = "ethos_zero";
         dependencies = [
@@ -1976,6 +1980,46 @@ rec {
           "std" = [ "digest/std" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
+      };
+      "signal-curriculum-nexus" = rec {
+        crateName = "signal-curriculum-nexus";
+        version = "0.1.0";
+        edition = "2024";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/LiGoldragon/signal-curriculum-nexus";
+          rev = "3e8b5b9a8cb7523ab205a74c9bbe828dc9f31cdc";
+          sha256 = "139qjyp4i8w0928z8i5400pybchr6s320gwgvjxgjrq7v4xmsvyy";
+        };
+        libName = "signal_curriculum_nexus";
+        dependencies = [
+          {
+            name = "datom-codec";
+            packageId = "datom-codec";
+            optional = true;
+          }
+          {
+            name = "protos";
+            packageId = "protos";
+            optional = true;
+          }
+          {
+            name = "rkyv";
+            packageId = "rkyv";
+            usesDefaultFeatures = false;
+            features = [ "std" "bytecheck" "little_endian" "pointer_width_32" "unaligned" ];
+          }
+        ];
+        buildDependencies = [
+          {
+            name = "ethos-zero";
+            packageId = "ethos-zero";
+          }
+        ];
+        features = {
+          "datom" = [ "dep:datom-codec" "dep:protos" ];
+        };
+        resolvedDefaultFeatures = [ "datom" "default" ];
       };
       "signal-hook-registry" = rec {
         crateName = "signal-hook-registry";
