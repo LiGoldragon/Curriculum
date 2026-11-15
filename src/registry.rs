@@ -714,7 +714,9 @@ impl ExpandsSkills for SkillRegistry {
 /// All source text comes from the resolved registry; this code never scans a
 /// second skill repository or follows generated symlinks.
 pub mod workspace {
-    use super::{ExpandsSkills, RegistryError, ResolvedSkill, SkillRegistry, invalid, sha256};
+    use super::{
+        ExpandsSkills, IdentityText, RegistryError, ResolvedSkill, SkillRegistry, invalid, sha256,
+    };
     use crate::generated::{
         DeploymentDestination, ProjectionCandidate, PublishedContentDigest,
         PublishedInventoryDigest, RendererVersion, RepositoryRevision, SkillDirectory,
