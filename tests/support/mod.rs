@@ -7,7 +7,10 @@ use std::{fs, path::Path, path::PathBuf};
 
 pub fn identity(text: &str) -> signal_curriculum_nexus::ModuleIdentity {
     let mut fields = text.split(':');
-    let module_kind = match fields.next().unwrap() {
+    let Some(kind) = fields.next() else {
+        return invalid_identity(text);
+    };
+    let module_kind = match kind {
         "spirit" => signal_curriculum_nexus::ModuleKind::Spirit,
         "intent" => signal_curriculum_nexus::ModuleKind::Intent,
         "vision" => signal_curriculum_nexus::ModuleKind::Vision,
@@ -16,16 +19,29 @@ pub fn identity(text: &str) -> signal_curriculum_nexus::ModuleIdentity {
         "compensation" => signal_curriculum_nexus::ModuleKind::Compensation,
         "role" => signal_curriculum_nexus::ModuleKind::Role,
         "raw" => signal_curriculum_nexus::ModuleKind::Raw,
-        _ => panic!(),
+        _ => return invalid_identity(text),
     };
-    let module_subject = signal_curriculum_nexus::ModuleSubject(fields.next().unwrap().into());
-    let version: i64 = fields.next().unwrap().parse().unwrap();
+    let Some(subject) = fields.next() else {
+        return invalid_identity(text);
+    };
+    let Some(version) = fields.next().and_then(|value| value.parse().ok()) else {
+        return invalid_identity(text);
+    };
+    let module_subject = signal_curriculum_nexus::ModuleSubject(subject.into());
     signal_curriculum_nexus::ModuleIdentity {
         module_kind,
         module_subject,
         versions: signal_curriculum_nexus::Versions::Single(signal_curriculum_nexus::Version(
             version,
         )),
+    }
+}
+
+fn invalid_identity(text: &str) -> signal_curriculum_nexus::ModuleIdentity {
+    signal_curriculum_nexus::ModuleIdentity {
+        module_kind: signal_curriculum_nexus::ModuleKind::Vision,
+        module_subject: signal_curriculum_nexus::ModuleSubject(text.into()),
+        versions: signal_curriculum_nexus::Versions::Single(signal_curriculum_nexus::Version(0)),
     }
 }
 
