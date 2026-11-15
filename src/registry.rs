@@ -926,7 +926,7 @@ pub mod workspace {
                         identity, m.source_revision.0, m.source_relative_path.0
                     )
                 })
-                .collect::<Result<String, RegistryError>>()?;
+                .collect::<String>();
             outputs.insert(PathBuf::from("modules"), inventory.clone());
             let mut content_manifest = String::new();
             for (relative, contents) in &outputs {
@@ -1128,6 +1128,7 @@ fn admit(
         .declared_identity()
         .map_err(|message| invalid(&declarations, message))?;
     let version_name = declaration
+        .module_identity
         .versions
         .version_name()
         .map_err(|message| invalid(&declarations, message))?;

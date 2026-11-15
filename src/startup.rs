@@ -47,7 +47,7 @@ pub fn compose(
             if !crate::registry::valid_id(&name) || !explicit.insert(name.clone()) {
                 return Err("invalid, duplicate or cross-placement module ID".into());
             }
-            if system != system_module(name) {
+            if system != system_module(&name) {
                 return Err(format!("module has the wrong startup placement: {name}"));
             }
         }
