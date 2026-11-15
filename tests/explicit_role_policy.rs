@@ -36,8 +36,8 @@ fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
                 "role:illustrator-description:0".into(),
             )),
             context_modules: ContextModules(vec![
-                identity("role:illustrator-svg:0".into()),
-                identity("compensation:illustration:0".into()),
+                identity("role:illustrator-svg:0"),
+                identity("compensation:illustration:0"),
             ]),
             role_tools: RoleTools::Explicit(vec![]),
             role_callers: RoleCallers::Only(vec![CallerMetaflow {
@@ -92,7 +92,7 @@ fn inline_paths_missing_ambiguous_roles_and_invalid_caller_tool_data_refuse() {
         "role:missing:0",
     ] {
         let mut d = data.clone();
-        d.role_definition_vector[0].context_modules = ContextModules(vec![identity(value.into())]);
+        d.role_definition_vector[0].context_modules = ContextModules(vec![identity(value)]);
         assert!(roles::compose(&registry, &d, &selection).is_err());
     }
     let mut d = data.clone();
@@ -121,14 +121,14 @@ fn a_role_naming_a_module_the_belief_repositories_lack_is_refused_naming_the_mod
     d.role_definition_vector[0]
         .context_modules
         .0
-        .push(identity("knowledge:book-making:0".into()));
+        .push(identity("knowledge:book-making:0"));
     assert_eq!(
         roles::compose(&registry, &d, &selection).unwrap_err(),
         "missing module knowledge:book-making:0"
     );
     let mut d = data;
     d.role_definition_vector[0].description_module =
-        DescriptionModule(identity("role:absent-description:0".into()));
+        DescriptionModule(identity("role:absent-description:0"));
     assert_eq!(
         roles::compose(&registry, &d, &selection).unwrap_err(),
         "missing module role:absent-description:0"
@@ -180,8 +180,8 @@ fn role_binding_composes_all_actual_spans_once_with_actual_provenance() {
             model_id: ModelId("luna".into()),
             effort: Effort::Medium,
             permission: Permission::Unrestricted,
-            description_module: DescriptionModule(identity("role:description:0".into())),
-            context_modules: ContextModules(vec![identity("role:context:1".into())]),
+            description_module: DescriptionModule(identity("role:description:0")),
+            context_modules: ContextModules(vec![identity("role:context:1")]),
             role_tools: RoleTools::Explicit(vec![]),
             role_callers: RoleCallers::Only(vec![CallerMetaflow {
                 first_string: "Mind".into(),
@@ -213,9 +213,11 @@ fn role_binding_composes_all_actual_spans_once_with_actual_provenance() {
         ]
     );
     assert_eq!(result.description_text.0, "Description.\n\nSecond.");
-    assert!(result
-        .context_text
-        .0
-        .contains("Module IDs: role:context:1, role:context:0-2"));
+    assert!(
+        result
+            .context_text
+            .0
+            .contains("Module IDs: role:context:1, role:context:0-2")
+    );
     assert_eq!(result.context_text.0.matches("Span.").count(), 1);
 }

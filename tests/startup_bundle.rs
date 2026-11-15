@@ -50,8 +50,8 @@ fn fixture(base: &std::path::Path) -> ([PathBuf; 3], SkillRegistry, StartupSelec
                 third_string: "Quaternary".into(),
             },
             system_modules: SystemModules(vec![
-                identity("spirit:core:0".into()),
-                identity("intent:seat:0".into()),
+                identity("spirit:core:0"),
+                identity("intent:seat:0"),
             ]),
             user_modules: UserModules(
                 std::iter::once("vision:core:0".to_owned())
@@ -83,9 +83,11 @@ fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
         .collect::<Vec<_>>();
     assert_eq!(system_ids, ["spirit:core:0", "intent:seat:0"]);
     assert_eq!(user_ids.first(), Some(&"vision:core:0"));
-    assert!(user_ids
-        .iter()
-        .all(|id| { !id.starts_with("spirit:") && !id.starts_with("intent:") }));
+    assert!(
+        user_ids
+            .iter()
+            .all(|id| { !id.starts_with("spirit:") && !id.starts_with("intent:") })
+    );
     assert!(!result.system_text.0.contains("SYSTEM_ONLY"));
     assert_eq!(result.user_text.0.matches("SYSTEM_ONLY").count(), 1);
     assert!(!result.system_text.0.contains("BODY_"));
@@ -99,10 +101,12 @@ fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
             1
         );
     }
-    assert!(result
-        .user_text
-        .0
-        .starts_with("These are your skills, given here; do not reload them."));
+    assert!(
+        result
+            .user_text
+            .0
+            .starts_with("These are your skills, given here; do not reload them.")
+    );
     assert_eq!(
         result.system_payload_sha256.0,
         digest(&result.system_text.0)
@@ -141,17 +145,17 @@ fn caller_paths_inline_text_unknown_duplicates_wrong_placement_and_changed_sourc
         "vision:core:0:1",
     ] {
         let mut s = selection.clone();
-        s.user_modules = UserModules(vec![identity(bad.into())]);
+        s.user_modules = UserModules(vec![identity(bad)]);
         assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     }
     let mut s = selection.clone();
     s.user_modules.0.push(s.user_modules.0[0].clone());
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     let mut s = selection.clone();
-    s.user_modules.0.push(identity("vision:core:0".into()));
+    s.user_modules.0.push(identity("vision:core:0"));
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     let mut s = selection.clone();
-    s.system_modules = SystemModules(vec![identity("compensation:user00:0".into())]);
+    s.system_modules = SystemModules(vec![identity("compensation:user00:0")]);
     s.user_modules.0.clear();
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     write_source(roots[2].join("compensation/user00/0.md"), "Changed").unwrap();
@@ -176,8 +180,8 @@ fn undeclared_shared_dependency_placement_refuses_instead_of_duplicate_injection
             second_string: "Publisher".into(),
             third_string: "Quaternary".into(),
         },
-        system_modules: SystemModules(vec![identity("vision:system:0".into())]),
-        user_modules: UserModules(vec![identity("compensation:user00:0".into())]),
+        system_modules: SystemModules(vec![identity("vision:system:0")]),
+        user_modules: UserModules(vec![identity("compensation:user00:0")]),
         flow_id_vector: vec![],
     };
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &selection).is_err());
@@ -212,7 +216,7 @@ fn spirit_intent_cannot_be_user_even_without_frontmatter_placement() {
     for id in ["spirit:core:0", "intent:seat:0"] {
         let mut s = selection.clone();
         s.system_modules.0.retain(|m| m.0 != id);
-        s.user_modules.0.push(identity(id.into()));
+        s.user_modules.0.push(identity(id));
         assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     }
     let mut s = selection;
@@ -347,7 +351,7 @@ fn startup_uses_actual_span_provenance_and_deduplicates_a_shared_span() {
     selection
         .user_modules
         .0
-        .push(identity("compensation:user00:1".into()));
+        .push(identity("compensation:user00:1"));
     let result = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
     let actual = result
         .context_provenance_vector
