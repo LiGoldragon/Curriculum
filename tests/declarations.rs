@@ -59,17 +59,56 @@ fn listing_is_unique_typed_and_verbose_is_opt_in() {
 }
 
 #[test]
-fn verbose_listing_applies_conservative_description_grammar() {
+fn verbose_listing_decodes_authored_description_scalars() {
+    for (frontmatter, expected) in [
+        ("description: plain text\n", "plain text"),
+        ("description: plain # comment\n", "plain"),
+        ("description: plain#literal\n", "plain#literal"),
+        ("description: first\n  continued # comment\n  final\n", "first continued final"),
+        ("description: \"quoted: value # literal\"\n", "quoted: value # literal"),
+        ("description: 'author''s: value # literal'\n", "author's: value # literal"),
+        ("description: \"quoted\" # comment\n", "quoted"),
+        ("description: ''\n", ""),
+        ("description: \"\"\n", ""),
+        (r#"description: "line\n\t\"quote\"\\slash\/\x41\u03bb\U0001f600"
+"#, "line\n\t\"quote\"\\slash/Aλ😀"),
+        // Exact authored scalars from Psyche faf30d66c36f919242f1cbf9aaf4c5195271b5f7.
+        ("description: \"The system context of every main flow: composed into its SYSTEM by the launcher, never loaded as a skill.\"\n", "The system context of every main flow: composed into its SYSTEM by the launcher, never loaded as a skill."),
+        ("description: \"The cluster's own Git server is set up or changed.\"\n", "The cluster's own Git server is set up or changed."),
+        ("description: \"Nix builds are made, kept or collected.\"\n", "Nix builds are made, kept or collected."),
+    ] {
+        let temp = tempfile::tempdir().unwrap();
+        let r = roots(temp.path());
+        file(&r[0], "vision/topic/0.md", &format!("---\n{frontmatter}---\nBody.\n"));
+        declare(&r[0], "[ { { Vision topic Single.0 } «vision/topic/0.md» } ]\n");
+        let registry = read(&r);
+        assert_eq!(registry.listed_modules().unwrap().len(), 1);
+        assert_eq!(registry.listed_modules_verbose().unwrap()[0].description_text.0, expected, "{frontmatter}");
+    }
+}
+
+#[test]
+fn verbose_listing_refuses_ambiguous_or_malformed_description_scalars() {
     for frontmatter in [
-        "description: \"quoted\"\n",
-        "description: plain # ambiguous\n",
-        "description: >\n  folded\n",
-        "description: |\n  literal\n",
-        "description: 'quoted'\n",
-        "description: first\n  continued\n",
         "description: first\ndescription: second\n",
         " description: indented\n",
-        "# comment\ndescription: plain\n",
+        "description: [collection]\n",
+        "description: {mapping: value}\n",
+        "description: \"unterminated\n",
+        "description: 'unterminated\n",
+        "description: \"quoted\" trailing\n",
+        "description: 'quoted' trailing\n",
+        "description: \"quoted\"#unseparated\n",
+        "description: \"quoted\"\n  continued\n",
+        "description: 'quoted'\n  continued\n",
+        r#"description: "invalid\q"
+"#,
+        r#"description: "invalid\x0"
+"#,
+        r#"description: "invalid\uD800"
+"#,
+        r#"description: "invalid\U00110000"
+"#,
     ] {
         let temp = tempfile::tempdir().unwrap();
         let r = roots(temp.path());
@@ -84,13 +123,11 @@ fn verbose_listing_applies_conservative_description_grammar() {
         );
         let registry = read(&r);
         assert!(registry.listed_modules().is_ok());
-        let result = registry.listed_modules_verbose();
-        if frontmatter.starts_with("#") {
-            assert!(result.is_ok());
-        } else {
-            let error = result.unwrap_err().to_string();
-            assert!(error.contains("vision:topic:0") && error.contains("vision/topic/0.md"));
-        }
+        let error = registry.listed_modules_verbose().unwrap_err().to_string();
+        assert!(
+            error.contains("vision:topic:0") && error.contains("vision/topic/0.md"),
+            "{frontmatter}: {error}"
+        );
     }
 }
 
@@ -496,11 +533,9 @@ fn every_inadmissible_span_file_refuses_and_names_the_identity() {
         );
         let error = SkillRegistry::from_context_repositories(&r, &revisions()).unwrap_err();
         assert!(error.to_string().contains("vision:range:0-1"));
-        assert!(
-            error
-                .to_string()
-                .contains("not a plain file inside the source")
-        );
+        assert!(error
+            .to_string()
+            .contains("not a plain file inside the source"));
     }
 }
 
