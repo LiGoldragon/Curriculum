@@ -32,9 +32,7 @@ fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
             model_id: ModelId("sonnet".into()),
             effort: Effort::Medium,
             permission: Permission::Unrestricted,
-            description_module: DescriptionModule(identity(
-                "role:illustrator-description:0".into(),
-            )),
+            description_module: DescriptionModule(identity("role:illustrator-description:0")),
             context_modules: ContextModules(vec![
                 identity("role:illustrator-svg:0"),
                 identity("compensation:illustration:0"),
