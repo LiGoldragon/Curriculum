@@ -80,7 +80,18 @@ fn verbose_listing_applies_conservative_description_grammar() {
             &r[0],
             "[ { { Vision topic Single.0 } «vision/topic/0.md» } ]\n",
         );
-        let registry = read(&r);
+        let registry = match SkillRegistry::from_context_repositories(&r, &revisions()) {
+            Ok(registry) => registry,
+            Err(error) => {
+                assert!(frontmatter.starts_with(" description:"));
+                assert!(
+                    error
+                        .to_string()
+                        .contains("unsupported frontmatter continuation")
+                );
+                continue;
+            }
+        };
         assert!(registry.listed_modules().is_ok());
         let result = registry.listed_modules_verbose();
         if frontmatter.starts_with("#") {
