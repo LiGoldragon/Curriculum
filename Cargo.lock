@@ -400,7 +400,7 @@ dependencies = [
 [[package]]
 name = "nexus"
 version = "0.5.0"
-source = "git+https://github.com/LiGoldragon/nexus?rev=ec097e315a3b0b99bc215a72f6c3f6d8b2b060cf#ec097e315a3b0b99bc215a72f6c3f6d8b2b060cf"
+source = "git+https://github.com/LiGoldragon/nexus?rev=ec097e315a3b0b99bc215a72f6c3f6d8b2b060cf#69946db066bb70bdbc1fd7dbf5e6c88dcf05c363"
 dependencies = [
  "kameo",
  "rkyv",

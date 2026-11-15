@@ -1330,8 +1330,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/LiGoldragon/nexus";
-          rev = "ec097e315a3b0b99bc215a72f6c3f6d8b2b060cf";
-          sha256 = "0c0qm66wilv27gpi4c18l812sk70hs28pvsbdvhbb89gffq1pl6f";
+          rev = "69946db066bb70bdbc1fd7dbf5e6c88dcf05c363";
+          sha256 = "08qk0m47dxvnpn7nz7x00x6vzmw22n9xl3ykl8v0f2xn5fhs8iv6";
         };
         dependencies = [
           {
