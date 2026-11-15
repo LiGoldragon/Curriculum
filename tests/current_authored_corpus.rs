@@ -1,4 +1,4 @@
-use curriculum::registry::{ModuleIdentityConversion, SkillRegistry};
+use curriculum::registry::{IdentityText, SkillRegistry};
 use sha2::{Digest, Sha256};
 use std::{fs, path::PathBuf};
 
@@ -35,12 +35,10 @@ fn verbose_lists_every_current_authored_module_with_exact_source_and_description
         );
         let found: Vec<_> = verbose
             .iter()
-            .filter(|entry| {
-                entry.listed_module.module_identity.identity_text().unwrap() == *identity
-            })
+            .filter(|entry| entry.module.module_identity.identity_text().unwrap() == *identity)
             .collect();
         assert_eq!(found.len(), 1, "{identity}");
-        assert_eq!(PathBuf::from(&found[0].listed_module.module_file.0), path);
+        assert_eq!(PathBuf::from(&found[0].module.module_file.0), path);
         assert_eq!(found[0].description_text.0, *description, "{identity}");
     }
 }

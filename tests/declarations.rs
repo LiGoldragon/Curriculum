@@ -72,6 +72,15 @@ fn verbose_listing_decodes_authored_description_scalars() {
         ("description: \"\"\n", ""),
         (r#"description: "line\n\t\"quote\"\\slash\/\x41\u03bb\U0001f600"
 "#, "line\n\t\"quote\"\\slash/Aλ😀"),
+        ("description: \"λ😀\"\n", "λ😀"),
+        (r"description: 'literal\backslash'
+", r"literal\backslash"),
+        ("description: ''''\n", "'"),
+        ("description: 'a''''b'\n", "a''b"),
+        ("description: first\n\n  # comment\n  final\n", "first final"),
+        ("description: plain: value\n", "plain: value"),
+        (r#"description: "\0\a\b\v\f\r\e\ \N\_\L\P"
+"#, "\0\u{7}\u{8}\u{b}\u{c}\r\u{1b} \u{85}\u{a0}\u{2028}\u{2029}"),
         // Exact authored scalars from Psyche faf30d66c36f919242f1cbf9aaf4c5195271b5f7.
         ("description: \"The system context of every main flow: composed into its SYSTEM by the launcher, never loaded as a skill.\"\n", "The system context of every main flow: composed into its SYSTEM by the launcher, never loaded as a skill."),
         ("description: \"The cluster's own Git server is set up or changed.\"\n", "The cluster's own Git server is set up or changed."),
@@ -101,6 +110,9 @@ fn verbose_listing_refuses_ambiguous_or_malformed_description_scalars() {
         "description: \"quoted\"#unseparated\n",
         "description: \"quoted\"\n  continued\n",
         "description: 'quoted'\n  continued\n",
+        "description: '''\n",
+        r#"description: "invalid\xGG"
+"#,
         r#"description: "invalid\q"
 "#,
         r#"description: "invalid\x0"
