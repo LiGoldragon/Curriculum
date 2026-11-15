@@ -24,7 +24,13 @@ pub fn identity(text: &str) -> signal_curriculum_nexus::ModuleIdentity {
     let Some(subject) = fields.next() else {
         return invalid_identity(text);
     };
-    let Some(version) = fields.next().and_then(|value| value.parse().ok()) else {
+    let Some(version_text) = fields.next() else {
+        return invalid_identity(text);
+    };
+    if (version_text.len() > 1 && version_text.starts_with('0')) || fields.next().is_some() {
+        return invalid_identity(text);
+    }
+    let Some(version) = version_text.parse().ok() else {
         return invalid_identity(text);
     };
     let module_subject = signal_curriculum_nexus::ModuleSubject(subject.into());
