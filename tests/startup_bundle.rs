@@ -56,7 +56,7 @@ fn fixture(base: &std::path::Path) -> ([PathBuf; 3], SkillRegistry, StartupSelec
             user_modules: UserModules(
                 std::iter::once("vision:core:0".to_owned())
                     .chain(ids)
-                    .map(ModuleIdentity)
+                    .map(|id| identity(&id))
                     .collect(),
             ),
             flow_id_vector: vec![],
@@ -82,7 +82,7 @@ fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
         .map(|row| row.module_identity.identity_text().unwrap())
         .collect::<Vec<_>>();
     assert_eq!(system_ids, ["spirit:core:0", "intent:seat:0"]);
-    assert_eq!(user_ids.first(), Some(&"vision:core:0"));
+    assert_eq!(user_ids.first().map(String::as_str), Some("vision:core:0"));
     assert!(
         user_ids
             .iter()
@@ -215,7 +215,9 @@ fn spirit_intent_cannot_be_user_even_without_frontmatter_placement() {
     let (_, registry, selection) = fixture(tmp.path());
     for id in ["spirit:core:0", "intent:seat:0"] {
         let mut s = selection.clone();
-        s.system_modules.0.retain(|m| m.0 != id);
+        s.system_modules
+            .0
+            .retain(|m| m.identity_text().map(|text| text != id).unwrap_or(false));
         s.user_modules.0.push(identity(id));
         assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     }
