@@ -923,11 +923,13 @@ pub mod workspace {
                         .module_identity
                         .identity_text()
                         .map_err(|e| invalid(&self.root, e))?;
-                    format!(
+                    Ok::<_, RegistryError>(format!(
                         "{} {} {}\n",
                         identity, m.source_revision.0, m.source_relative_path.0
-                    )
+                    ))
                 })
+                .collect::<Result<Vec<_>, _>>()?
+                .into_iter()
                 .collect::<String>();
             outputs.insert(PathBuf::from("modules"), inventory.clone());
             let mut content_manifest = String::new();
