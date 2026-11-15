@@ -75,14 +75,9 @@ impl Answering for Curriculum {
             .map_err(|e| Output::Rejected(e.to_string()))?;
         skills
             .into_iter()
-            .map(|skill| {
-                skill
-                    .name
-                    .as_str()
-                    .module_identity()
-                    .map_err(Output::Rejected)
-            })
-            .collect()
+            .map(|skill| skill.name.as_str().module_identity())
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(Output::Rejected)
     }
 
     fn resolve_sources(
