@@ -109,7 +109,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     }
     let response = invoke(
         &runtime,
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core:0 intent:seat:0 ] [ compensation:illustration:0 ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ { Compensation illustration Single.0 } ] [] }",
     );
     assert!(
         response.status.success(),
@@ -120,11 +120,14 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     assert!(text.starts_with("StartupComposed."));
     assert!(text.contains("EXACT_USER_BODY"));
     assert!(text.contains("field-belief"));
-    let sources = invoke(&runtime, "ResolveSources.[ compensation:illustration:0 ]");
+    let sources = invoke(
+        &runtime,
+        "ResolveSources.[ { Compensation illustration Single.0 } ]",
+    );
     assert!(sources.status.success());
     let source_text = String::from_utf8_lossy(&sources.stdout);
     assert!(source_text.contains("compensation/illustration/0.md"));
-    let psyche_sources = invoke(&runtime, "ResolveSources.[ intent:seat:0 ]");
+    let psyche_sources = invoke(&runtime, "ResolveSources.[ { Intent seat Single.0 } ]");
     assert!(psyche_sources.status.success());
     assert!(String::from_utf8_lossy(&psyche_sources.stdout).contains(&current_psyche_revision));
     let role = invoke(&runtime, "ComposeRole.{ book ClaudeAgent }");
@@ -134,8 +137,8 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         "RebuildSkills",
         "CheckSkills",
         "EditSkills.{ [] [] [] }",
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core:0 intent:seat:0 ] [ «/tmp/arbitrary.md» ] [] }",
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core:0 intent:seat:0 ] [ «inline prompt text» ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ «/tmp/arbitrary.md» ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ «inline prompt text» ] [] }",
     ] {
         assert!(!invoke(&runtime, old).status.success(), "accepted {old}");
     }
@@ -148,7 +151,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     .unwrap();
     let changed = invoke(
         &runtime,
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core:0 intent:seat:0 ] [ compensation:illustration:0 ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ { Compensation illustration Single.0 } ] [] }",
     );
     assert!(
         changed.status.success(),
