@@ -2,8 +2,32 @@
 //! fixture root is then given a modules.datom declaring every such file, so
 //! the registry reads them by their declarations.
 #![allow(dead_code)]
-use curriculum::registry::{MODULE_KINDS, RegistryError, SkillRegistry, Worded};
+use curriculum::registry::{RegistryError, SkillRegistry, Worded, MODULE_KINDS};
 use std::{fs, path::Path, path::PathBuf};
+
+pub fn identity(text: &str) -> signal_curriculum_nexus::ModuleIdentity {
+    let mut fields = text.split(':');
+    let module_kind = match fields.next().unwrap() {
+        "spirit" => signal_curriculum_nexus::ModuleKind::Spirit,
+        "intent" => signal_curriculum_nexus::ModuleKind::Intent,
+        "vision" => signal_curriculum_nexus::ModuleKind::Vision,
+        "knowledge" => signal_curriculum_nexus::ModuleKind::Knowledge,
+        "inquiry" => signal_curriculum_nexus::ModuleKind::Inquiry,
+        "compensation" => signal_curriculum_nexus::ModuleKind::Compensation,
+        "role" => signal_curriculum_nexus::ModuleKind::Role,
+        "raw" => signal_curriculum_nexus::ModuleKind::Raw,
+        _ => panic!(),
+    };
+    let module_subject = signal_curriculum_nexus::ModuleSubject(fields.next().unwrap().into());
+    let version: i64 = fields.next().unwrap().parse().unwrap();
+    signal_curriculum_nexus::ModuleIdentity {
+        module_kind,
+        module_subject,
+        versions: signal_curriculum_nexus::Versions::Single(signal_curriculum_nexus::Version(
+            version,
+        )),
+    }
+}
 
 /// Writes the root's modules.datom: one declaration per kind/topic/version.md file.
 pub fn declare(root: &Path) {

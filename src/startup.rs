@@ -1,7 +1,7 @@
 //! In-memory startup composition from the server's three authored repositories.
 //! Callers supply module IDs and a metaflow address, never paths or text.
 use crate::{
-    registry::{ExpandsSkills, SkillRegistry},
+    registry::{ExpandsSkills, IdentityText, SkillRegistry},
     startup_metadata::{instructions, sha256},
 };
 use signal_curriculum_nexus::{
@@ -43,8 +43,8 @@ pub fn compose(
         (&selection.user_modules.0, false),
     ] {
         for name in names {
-            let name = &name.0;
-            if !crate::registry::valid_id(name) || !explicit.insert(name.clone()) {
+            let name = name.identity_text()?;
+            if !crate::registry::valid_id(&name) || !explicit.insert(name.clone()) {
                 return Err("invalid, duplicate or cross-placement module ID".into());
             }
             if system != system_module(name) {
@@ -60,8 +60,8 @@ pub fn compose(
         .0
         .iter()
         .chain(&selection.user_modules.0)
-        .map(|id| id.0.clone())
-        .collect();
+        .map(|id| id.identity_text())
+        .collect::<Result<Vec<_>, _>>()?;
     let resolved = registry
         .resolved_sources(&roots)
         .map_err(|e| e.to_string())?;

@@ -1,3 +1,4 @@
+use curriculum::registry::IdentityText;
 mod support;
 use curriculum::registry::ExpandsSkills;
 use std::{fs, path::PathBuf};
@@ -60,7 +61,7 @@ fn dependencies_require_explicit_three_field_ids_and_reject_duplicates() {
         .unwrap();
     let ids: Vec<&str> = resolved
         .iter()
-        .map(|module| module.module_identity.0.as_str())
+        .map(|module| module.module_identity.identity_text().unwrap())
         .collect();
     assert_eq!(
         ids,
@@ -171,12 +172,10 @@ fn registry_workspace_projection_updates_plain_target_directories() {
             .starts_with("---\nname: knowledge:topic:0\n")
     );
     for surface in [".codex/skills", ".pi/skills"] {
-        assert!(
-            workspace
-                .join(surface)
-                .join("knowledge:topic:0/SKILL.md")
-                .is_file()
-        );
+        assert!(workspace
+            .join(surface)
+            .join("knowledge:topic:0/SKILL.md")
+            .is_file());
     }
     assert!(
         fs::read_to_string(workspace.join(".pi/skills/knowledge:topic:0/SKILL.md"))
@@ -236,17 +235,15 @@ fn registry_workspace_projection_updates_plain_target_directories() {
     let linked_workspace = temp.path().join("linked-workspace");
     fs::create_dir_all(&linked_workspace).unwrap();
     std::os::unix::fs::symlink(&outside, linked_workspace.join(".agents")).unwrap();
-    assert!(
-        WorkspaceProjector::new(&linked_workspace)
-            .write(&latest)
-            .is_err()
-    );
+    assert!(WorkspaceProjector::new(&linked_workspace)
+        .write(&latest)
+        .is_err());
     assert_eq!(fs::read_dir(outside).unwrap().count(), 0);
 }
 
 #[test]
 fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
-    use curriculum::registry::{MODULE_KINDS, Worded, workspace::WorkspaceProjector};
+    use curriculum::registry::{workspace::WorkspaceProjector, Worded, MODULE_KINDS};
     let temp = tempfile::tempdir().unwrap();
     let r = roots(temp.path());
     for (index, kind) in MODULE_KINDS.iter().enumerate() {
@@ -285,13 +282,11 @@ fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
             );
         }
         for surface in [".agents/skills", ".codex/skills"] {
-            assert!(
-                workspace
-                    .join(surface)
-                    .join(&id)
-                    .join("agents/openai.yaml")
-                    .is_file()
-            );
+            assert!(workspace
+                .join(surface)
+                .join(&id)
+                .join("agents/openai.yaml")
+                .is_file());
         }
         assert!(
             fs::read_to_string(workspace.join(".claude/skills").join(&id).join("SKILL.md"))
@@ -319,7 +314,7 @@ fn explicit_versions_are_distinct_and_dependencies_select_exactly_one() {
     assert_eq!(
         selected
             .iter()
-            .map(|m| m.module_identity.0.as_str())
+            .map(|m| m.module_identity.identity_text().unwrap())
             .collect::<Vec<_>>(),
         ["vision:topic:0", "knowledge:consumer:0"]
     );

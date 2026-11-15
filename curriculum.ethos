@@ -8,14 +8,9 @@
 ; SkillDirectory, rendered for the Target that directory's harness reads,
 ; and answers a ProjectionCandidate.
 Library
-[ :signal_curriculum_nexus:[ ModuleIdentity ModuleSubject RepositoryName SourceRevision
-                              RoleName Surface ModelId Effort Permission RoleTools RoleCallers ] ]
-[ ModuleKind.[ Spirit Intent Vision Knowledge Inquiry Compensation Role Raw ]
-  Version.Integer
-  Versions.[ Single.Version Span.{ First.Version Last.Version } ]
-  ModuleFile.String
-  ModuleDeclaration.{ ModuleKind ModuleSubject Versions ModuleFile }
-  ModuleDeclarations.Vector<ModuleDeclaration>
+[ :signal_curriculum_nexus:[ ModuleIdentity ModuleSubject ModuleKind Version Versions ModuleFile Module
+                              RepositoryName SourceRevision RoleName Surface ModelId Effort Permission RoleTools RoleCallers ] ]
+[ ModuleDeclarations.Vector<Module>
   SkillDirectory.[ Claude Agents Codex Pi OpenCode ]
   DeploymentDestination.String
   RepositoryRevision.{ RepositoryName SourceRevision }

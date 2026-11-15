@@ -1,11 +1,12 @@
 //! The sole authored module registry: three server-configured repository roots, each holding the modules its modules.datom declares.
 use crate::emission::{Emittable, RefreshOutcome, RefreshProgram};
-use crate::generated::{ModuleDeclaration, ModuleKind, Versions};
+use crate::generated::ModuleDeclarations;
 use crate::refresh::ProcessLauncher;
-use crate::startup_metadata::{declared_placement, instructions, sha256};
+use crate::startup_metadata::{declared_placement, description, instructions, sha256};
 use signal_curriculum_nexus::{
-    BodySha256, DeclaredPlacement, ModuleIdentity, ModuleSubject, ModuleType, RepositoryName,
-    ResolvedModule, SourceRelativePath, SourceRevision, SourceRoot, SourceSha256,
+    BodySha256, DeclaredPlacement, Module, ModuleIdentity, ModuleKind, ModuleSubject,
+    RepositoryName, ResolvedModule, SourceRelativePath, SourceRevision, SourceRoot, SourceSha256,
+    Versions,
 };
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -32,6 +33,58 @@ pub const DECLARATIONS_FILE: &str = "modules.datom";
 /// A module kind as it is written in a module's name.
 pub trait Worded {
     fn word(&self) -> &'static str;
+}
+
+pub trait IdentityText {
+    fn identity_text(&self) -> Result<String, String>;
+}
+impl IdentityText for ModuleIdentity {
+    fn identity_text(&self) -> Result<String, String> {
+        let version = self.versions.version_name()?;
+        if !valid_segment(&self.module_subject.0) {
+            return Err(format!(
+                "invalid module subject {:?}",
+                self.module_subject.0
+            ));
+        }
+        Ok(format!(
+            "{}:{}:{version}",
+            self.module_kind.word(),
+            self.module_subject.0
+        ))
+    }
+}
+
+/// Converts the registry's canonical textual key to the wire identity.
+/// This is the only legacy-key parser used by service, roles and startup.
+pub trait ModuleIdentityConversion {
+    fn module_identity(&self) -> Result<ModuleIdentity, String>;
+}
+impl ModuleIdentityConversion for str {
+    fn module_identity(&self) -> Result<ModuleIdentity, String> {
+        let parsed = self
+            .parsed_identity()
+            .ok_or_else(|| format!("invalid module identity {self}"))?;
+        let module_kind = MODULE_KINDS
+            .iter()
+            .find(|kind| kind.word() == parsed.kind)
+            .cloned()
+            .ok_or_else(|| format!("invalid module kind in {self}"))?;
+        let versions = match parsed.version {
+            BoundVersion::Single(v) => Versions::Single(signal_curriculum_nexus::Version(v)),
+            BoundVersion::Span { first, last } => {
+                Versions::Span(signal_curriculum_nexus::Span_Data {
+                    first: signal_curriculum_nexus::First(signal_curriculum_nexus::Version(first)),
+                    last: signal_curriculum_nexus::Last(signal_curriculum_nexus::Version(last)),
+                })
+            }
+        };
+        Ok(ModuleIdentity {
+            module_kind,
+            module_subject: ModuleSubject(parsed.topic.into()),
+            versions,
+        })
+    }
 }
 impl Worded for ModuleKind {
     fn word(&self) -> &'static str {
@@ -232,13 +285,13 @@ trait DeclaresModuleIdentity {
     fn declared_identity(&self) -> Result<String, String>;
 }
 
-impl DeclaresModuleIdentity for ModuleDeclaration {
+impl DeclaresModuleIdentity for Module {
     fn declared_identity(&self) -> Result<String, String> {
-        self.versions.version_name().map(|version| {
+        self.module_identity.versions.version_name().map(|version| {
             format!(
                 "{}:{}:{version}",
-                self.module_kind.word(),
-                self.module_subject.0
+                self.module_identity.module_kind.word(),
+                self.module_identity.module_subject.0
             )
         })
     }
@@ -450,6 +503,70 @@ impl SkillRegistry {
             .map(|s| self.describe(s))
             .collect()
     }
+
+    /// Lists each admitted module once, preserving its actual identity and file.
+    pub fn listed_modules(&self) -> Result<Vec<Module>, RegistryError> {
+        self.entries
+            .values()
+            .map(|skill| {
+                if canonical(&skill.path)? != skill.path
+                    || fs::read(&skill.path).map_err(|e| invalid(&skill.path, e))?
+                        != skill.body.as_bytes()
+                {
+                    return Err(invalid(
+                        &skill.path,
+                        "source changed since registry admission",
+                    ));
+                }
+                let module_identity = skill
+                    .name
+                    .as_str()
+                    .module_identity()
+                    .map_err(|e| invalid(&skill.path, e))?;
+                Ok(Module {
+                    module_identity,
+                    module_file: signal_curriculum_nexus::ModuleFile(
+                        skill.path.to_string_lossy().into_owned(),
+                    ),
+                })
+            })
+            .collect()
+    }
+
+    pub fn listed_modules_verbose(
+        &self,
+    ) -> Result<Vec<signal_curriculum_nexus::ModuleDescription>, RegistryError> {
+        self.entries
+            .values()
+            .map(|skill| {
+                if canonical(&skill.path)? != skill.path
+                    || fs::read(&skill.path).map_err(|e| invalid(&skill.path, e))?
+                        != skill.body.as_bytes()
+                {
+                    return Err(invalid(
+                        &skill.path,
+                        "source changed since registry admission",
+                    ));
+                }
+                let module = Module {
+                    module_identity: skill
+                        .name
+                        .as_str()
+                        .module_identity()
+                        .map_err(|e| invalid(&skill.path, e))?,
+                    module_file: signal_curriculum_nexus::ModuleFile(
+                        skill.path.to_string_lossy().into_owned(),
+                    ),
+                };
+                let value = description(&skill.body)
+                    .map_err(|e| invalid(&skill.path, format!("{} ({})", skill.name, e)))?;
+                Ok(signal_curriculum_nexus::ModuleDescription {
+                    module,
+                    description_text: signal_curriculum_nexus::DescriptionText(value),
+                })
+            })
+            .collect()
+    }
     fn describe(&self, skill: ResolvedSkill) -> Result<ResolvedModule, RegistryError> {
         if canonical(&skill.path)? != skill.path
             || fs::read(&skill.path).map_err(|e| invalid(&skill.path, e))? != skill.body.as_bytes()
@@ -464,13 +581,14 @@ impl SkillRegistry {
             .iter()
             .position(|r| skill.path.starts_with(r))
             .ok_or_else(|| invalid(&skill.path, "outside configured roots"))?;
-        let (kind, subject) = skill
+        let module_identity = skill
             .name
-            .split_once(':')
-            .ok_or_else(|| invalid(&skill.path, "invalid identity"))?;
+            .as_str()
+            .module_identity()
+            .map_err(|e| invalid(&skill.path, e))?;
         let text = instructions(&skill.body).map_err(|e| invalid(&skill.path, e))?;
         Ok(ResolvedModule {
-            module_identity: ModuleIdentity(skill.name.clone()),
+            module_identity,
             repository_name: RepositoryName(
                 ["psyche-belief", "mind-belief", "field-belief"][i].into(),
             ),
@@ -484,8 +602,6 @@ impl SkillRegistry {
                     .to_string_lossy()
                     .into_owned(),
             ),
-            module_type: ModuleType(kind.into()),
-            module_subject: ModuleSubject(subject.split_once(':').unwrap().0.into()),
             declared_placement: DeclaredPlacement(declared_placement(&skill.body).into()),
             source_sha256: SourceSha256(sha256(skill.body.as_bytes())),
             body_sha256: BodySha256(sha256(text.as_bytes())),
@@ -801,12 +917,16 @@ pub mod workspace {
             let inventory = modules
                 .iter()
                 .map(|m| {
+                    let identity = m
+                        .module_identity
+                        .identity_text()
+                        .map_err(|e| invalid(&self.root, e))?;
                     format!(
                         "{} {} {}\n",
-                        m.module_identity.0, m.source_revision.0, m.source_relative_path.0
+                        identity, m.source_revision.0, m.source_relative_path.0
                     )
                 })
-                .collect::<String>();
+                .collect::<Result<String, RegistryError>>()?;
             outputs.insert(PathBuf::from("modules"), inventory.clone());
             let mut content_manifest = String::new();
             for (relative, contents) in &outputs {
@@ -960,7 +1080,7 @@ pub mod workspace {
 }
 /// Reads the declarations of the source at this root: its modules.datom, whole.
 #[cfg(feature = "datom")]
-fn read_declarations(root: &Path) -> Result<Vec<ModuleDeclaration>, RegistryError> {
+fn read_declarations(root: &Path) -> Result<Vec<Module>, RegistryError> {
     use datom_codec::{Actualizing, Budget, Datomizable, Potential};
     use protos::{Protosizable, ReaderBudget, Textualizable};
     let path = root.join(DECLARATIONS_FILE);
@@ -969,18 +1089,18 @@ fn read_declarations(root: &Path) -> Result<Vec<ModuleDeclaration>, RegistryErro
         return Err(invalid(&path, "declarations must be a plain file"));
     }
     let text = fs::read_to_string(&path).map_err(|e| invalid(&path, e))?;
-    Potential::<crate::generated::ModuleDeclarations>::from(text)
+    Potential::<ModuleDeclarations>::from(text)
         .actualize(&mut Budget {
             remaining: 1_048_576,
             reader: ReaderBudget::try_from(1_048_576).expect("a constant reader budget"),
             depth: 0,
             maximum_depth: 1024,
         })
-        .map(|crate::generated::ModuleDeclarations(declarations)| declarations)
+        .map(|ModuleDeclarations(declarations)| declarations)
         .map_err(|e| invalid(&path, e.datomize(vec![]).protosize().textualize()))
 }
 #[cfg(not(feature = "datom"))]
-fn read_declarations(root: &Path) -> Result<Vec<ModuleDeclaration>, RegistryError> {
+fn read_declarations(root: &Path) -> Result<Vec<Module>, RegistryError> {
     Err(invalid(
         &root.join(DECLARATIONS_FILE),
         "source declarations require the datom package feature",
@@ -992,7 +1112,7 @@ fn read_declarations(root: &Path) -> Result<Vec<ModuleDeclaration>, RegistryErro
 /// duplicate identities and every inadmissible span file refuse the registry.
 fn admit(
     root: &Path,
-    declaration: ModuleDeclaration,
+    declaration: Module,
     entries: &mut BTreeMap<String, SkillEntry>,
     reports: &mut Vec<DeclarationReport>,
 ) -> Result<(), RegistryError> {
@@ -1011,7 +1131,7 @@ fn admit(
         .versions
         .version_name()
         .map_err(|message| invalid(&declarations, message))?;
-    let span = declaration.versions.names_span();
+    let span = declaration.module_identity.versions.names_span();
     let relative = Path::new(&declaration.module_file.0);
     let expected_file_name = format!("{version_name}.md");
     if relative.file_name().and_then(|file| file.to_str()) != Some(expected_file_name.as_str()) {
