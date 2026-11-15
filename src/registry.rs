@@ -2,7 +2,9 @@
 use crate::emission::{Emittable, RefreshOutcome, RefreshProgram};
 use crate::generated::ModuleDeclarations;
 use crate::refresh::ProcessLauncher;
-use crate::startup_metadata::{declared_placement, description, instructions, sha256};
+use crate::startup_metadata::{
+    declared_placement, description, framed_source, instructions, sha256,
+};
 use signal_curriculum_nexus::{
     BodySha256, DeclaredPlacement, Module, ModuleIdentity, ModuleKind, ModuleSubject,
     RepositoryName, ResolvedModule, SourceRelativePath, SourceRevision, SourceRoot, SourceSha256,
@@ -1200,10 +1202,7 @@ fn admit(
         ));
     }
     let text = fs::read_to_string(&path).map_err(|e| invalid(&path, e))?;
-    let content = instructions(&text).map_err(|e| invalid(&path, e))?;
-    if content.trim().is_empty() {
-        return Err(invalid(&path, "empty body"));
-    }
+    framed_source(&text).map_err(|e| invalid(&path, e))?;
     let dependencies = dependencies(&path, &text)?;
     entries.insert(
         name.clone(),

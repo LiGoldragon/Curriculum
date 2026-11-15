@@ -403,3 +403,21 @@ fn user_dependency_on_explicit_system_modules_is_deduplicated_by_actual_identity
         1
     );
 }
+
+#[test]
+fn inventory_is_independent_while_startup_refuses_duplicate_execution_metadata() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (roots, _, selection) = fixture(tmp.path());
+    fs::write(
+        roots[0].join("vision/core/0.md"),
+        "---\ndescription: first\ndescription: second\nplacement: user\n---\nBody.\n",
+    )
+    .unwrap();
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
+    assert_eq!(registry.listed_modules().unwrap().len(), 25);
+    let verbose = registry.listed_modules_verbose().unwrap_err().to_string();
+    assert!(verbose.contains("vision:core:0") && verbose.contains("vision/core/0.md"));
+    let error = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap_err();
+    assert!(error.contains("duplicate frontmatter key"), "{error}");
+}

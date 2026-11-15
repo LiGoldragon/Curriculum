@@ -219,3 +219,29 @@ fn role_binding_composes_all_actual_spans_once_with_actual_provenance() {
     );
     assert_eq!(result.context_text.0.matches("Span.").count(), 1);
 }
+
+#[test]
+fn inventory_is_independent_while_role_refuses_duplicate_execution_metadata() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (_, data, selection) = fixture(tmp.path());
+    let roots = [
+        tmp.path().join("psyche"),
+        tmp.path().join("mind"),
+        tmp.path().join("field"),
+    ];
+    fs::write(
+        roots[2].join("role/illustrator-description/0.md"),
+        "---\ndescription: first\ndescription: second\n---\nBody.\n",
+    )
+    .unwrap();
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
+    assert_eq!(registry.listed_modules().unwrap().len(), 4);
+    let verbose = registry.listed_modules_verbose().unwrap_err().to_string();
+    assert!(
+        verbose.contains("role:illustrator-description:0")
+            && verbose.contains("role/illustrator-description/0.md")
+    );
+    let error = roles::compose(&registry, &data, &selection).unwrap_err();
+    assert!(error.contains("duplicate frontmatter key"), "{error}");
+}

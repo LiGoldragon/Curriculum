@@ -64,6 +64,8 @@ fn verbose_listing_applies_conservative_description_grammar() {
         "description: \"quoted\"\n",
         "description: plain # ambiguous\n",
         "description: >\n  folded\n",
+        "description: |\n  literal\n",
+        "description: 'quoted'\n",
         "description: first\n  continued\n",
         "description: first\ndescription: second\n",
         " description: indented\n",
@@ -80,18 +82,7 @@ fn verbose_listing_applies_conservative_description_grammar() {
             &r[0],
             "[ { { Vision topic Single.0 } «vision/topic/0.md» } ]\n",
         );
-        let registry = match SkillRegistry::from_context_repositories(&r, &revisions()) {
-            Ok(registry) => registry,
-            Err(error) => {
-                assert!(frontmatter.starts_with(" description:"));
-                assert!(
-                    error
-                        .to_string()
-                        .contains("unsupported frontmatter continuation")
-                );
-                continue;
-            }
-        };
+        let registry = read(&r);
         assert!(registry.listed_modules().is_ok());
         let result = registry.listed_modules_verbose();
         if frontmatter.starts_with("#") {
@@ -100,6 +91,77 @@ fn verbose_listing_applies_conservative_description_grammar() {
             let error = result.unwrap_err().to_string();
             assert!(error.contains("vision:topic:0") && error.contains("vision/topic/0.md"));
         }
+    }
+}
+
+#[test]
+fn verbose_refuses_empty_and_populated_block_scalar_indicators_and_modifiers() {
+    for indicator in [
+        ">", "|", ">-", ">+", "|-", "|+", ">2", "|2", ">2-", ">-2", "|2+", "|+2",
+    ] {
+        for continuation in ["", "  content\n"] {
+            let temp = tempfile::tempdir().unwrap();
+            let r = roots(temp.path());
+            file(
+                &r[0],
+                "vision/topic/0.md",
+                &format!("---\ndescription: {indicator}\n{continuation}---\nBody.\n"),
+            );
+            declare(
+                &r[0],
+                "[ { { Vision topic Single.0 } «vision/topic/0.md» } ]\n",
+            );
+            let registry = read(&r);
+            let listed = registry.listed_modules().unwrap();
+            assert_eq!(listed.len(), 1);
+            assert_eq!(
+                listed[0].module_identity.identity_text().unwrap(),
+                "vision:topic:0"
+            );
+            assert!(listed[0].module_file.0.ends_with("vision/topic/0.md"));
+            let error = registry.listed_modules_verbose().unwrap_err().to_string();
+            assert!(
+                error.contains("vision:topic:0") && error.contains("vision/topic/0.md"),
+                "{indicator}: {error}"
+            );
+        }
+    }
+}
+
+#[test]
+fn verbose_continuations_follow_the_owning_key_and_preserve_plain_description() {
+    for (header, expected) in [
+        ("# comment\ndescription:   plain text  \n\n", "plain text"),
+        ("description:\n", ""),
+        (
+            "dependencies: []\n  unrelated continuation\ndescription: plain\n",
+            "plain",
+        ),
+        (
+            "description: plain\ndependencies: []\n  unrelated continuation\n",
+            "plain",
+        ),
+        ("dependencies: []\n  description: >-\n", ""),
+    ] {
+        let temp = tempfile::tempdir().unwrap();
+        let r = roots(temp.path());
+        file(
+            &r[0],
+            "vision/topic/0.md",
+            &format!("---\n{header}---\nBody.\n"),
+        );
+        declare(
+            &r[0],
+            "[ { { Vision topic Single.0 } «vision/topic/0.md» } ]\n",
+        );
+        let registry = read(&r);
+        assert_eq!(registry.listed_modules().unwrap().len(), 1);
+        assert_eq!(
+            registry.listed_modules_verbose().unwrap()[0]
+                .description_text
+                .0,
+            expected
+        );
     }
 }
 
