@@ -2,7 +2,7 @@
 //! fixture root is then given a modules.datom declaring every such file, so
 //! the registry reads them by their declarations.
 #![allow(dead_code)]
-use curriculum::registry::{RegistryError, SkillRegistry, Worded, MODULE_KINDS};
+use curriculum::registry::{MODULE_KINDS, RegistryError, SkillRegistry, Worded};
 use std::{fs, path::Path, path::PathBuf};
 
 pub fn identity(text: &str) -> signal_curriculum_nexus::ModuleIdentity {
@@ -54,7 +54,7 @@ pub fn declare(root: &Path) {
                     continue;
                 };
                 declarations.push(format!(
-                    "{{ {:?} {} Single.{version} «{}» }}",
+                    "{{ {{ {:?} {} Single.{version} }} «{}» }}",
                     kind,
                     topic.file_name().unwrap().to_str().unwrap(),
                     file.strip_prefix(root).unwrap().display()
