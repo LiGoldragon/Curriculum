@@ -195,7 +195,8 @@ fn span_only_and_overlapping_spans_resolve_in_deterministic_order() {
             .resolved_exact_sources(&["vision:range:1-3".into()])
             .unwrap()[0]
             .module_identity
-            .0,
+            .identity_text()
+            .unwrap(),
         "vision:range:1-3"
     );
     assert_eq!(
