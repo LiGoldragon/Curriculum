@@ -65,7 +65,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let roles = base.join("roles.datom");
     write_source(
         &roles,
-        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted role:book-description:0 [ spirit:core:0 intent:seat:0 compensation:illustration:0 ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
+        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted { Role book-description Single.0 } [ { Spirit core Single.0 } { Intent seat Single.0 } { Compensation illustration Single.0 } ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
     )
     .unwrap();
     for root in &roots {
