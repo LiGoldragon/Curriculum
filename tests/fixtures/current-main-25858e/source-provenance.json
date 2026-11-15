@@ -1,0 +1,32 @@
+[
+  {
+    "repository": "psyche-belief",
+    "flat": "3aaec70140332ebdf650257ed370ef139591ec74",
+    "typed": "faf30d66c36f919242f1cbf9aaf4c5195271b5f7",
+    "all_nonmanifest_blobs_identical": true,
+    "registrations_identical_in_order": true,
+    "modules": 75,
+    "flat_manifest_blob": "c76f3db0e42707f595c5dfdbfea53c6160ac40fa",
+    "typed_manifest_blob": "0f118c0fd4df212435123028b49caed748d4b9f3"
+  },
+  {
+    "repository": "mind-belief",
+    "flat": "4438964b00ebfb200acac091e740c545e4aa68ed",
+    "typed": "a27a6a3633caaf2c172e03e6b2e72a86c9112d5c",
+    "all_nonmanifest_blobs_identical": true,
+    "registrations_identical_in_order": true,
+    "modules": 39,
+    "flat_manifest_blob": "e962da858444ac02e218c9b18923e4b4a01a3580",
+    "typed_manifest_blob": "c3cae8a7b6a07f01b0c234ccc6762facfc1abf40"
+  },
+  {
+    "repository": "field-belief",
+    "flat": "c45950aeaa14b1f8d2c3e96cfd3acc1918f98fb4",
+    "typed": "7eba46a2d1e70e10dead070d6aa6ab33beaa5d5c",
+    "all_nonmanifest_blobs_identical": true,
+    "registrations_identical_in_order": true,
+    "modules": 16,
+    "flat_manifest_blob": "c08654b86f9ed998c5113342c0e9fd43c3a7f9f3",
+    "typed_manifest_blob": "2c61d05cd26dc4ebd4eb47b6acb7c4ae8c8b62ab"
+  }
+]
