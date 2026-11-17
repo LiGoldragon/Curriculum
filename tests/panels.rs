@@ -182,7 +182,7 @@ fn conditionals_raw_and_literal_fences_keep_their_meaning() {
     let temp = tempfile::tempdir().unwrap();
     let registry = fixture(temp.path());
     let prompt = PanelPrompt::for_registry(&registry);
-    let body = "{% if claude %}{% include \"panel:shared:0\" %}{% endif %}{% raw %}{{literal}}{% endraw %}\n{% include \"panel:shared:0\" %}";
+    let body = "{% if claude %}\n{% include \"panel:shared:0\" %}\n{% endif %}\n{% raw %}\n{{literal}}\n{% endraw %}\n{% include \"panel:shared:0\" %}";
     let rendered = prompt.render(&Target::Codex, body).unwrap();
     assert!(rendered.starts_with("{{literal}}\nPANEL_BODY"));
     assert_eq!(rendered.matches("PANEL_BODY").count(), 1);
