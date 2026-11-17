@@ -30,5 +30,4 @@ Roles.{ [
   { illustrator ClaudeAgent haiku High Unrestricted role:illustrator-description:0 [ spirit:core:0 intent:scratch:0 vision:presentation:0 role:illustrator-faithfulness:0 role:illustrator-svg:0 ] Explicit.[ Read Bash ] Any }
   { scripter ClaudeAgent haiku High Unrestricted role:scripter-description:0 [ role:general-instructions:0 spirit:core:0 spirit:ghost:0 spirit:psyche:0 intent:energy:0 knowledge:vocabulary:0 knowledge:psyche:0 vision:crystallization:0 vision:book:0 knowledge:book:0 vision:aspects:0 vision:model-roles:0 intent:psyche:0 intent:design:0 intent:models:0 intent:scratch:0 knowledge:flow-messaging:0 role:scripter:0 ] Explicit.[ Read Grep Glob Bash Edit Write WebFetch WebSearch LSP ] Any }
   { book-reader ClaudeAgent sonnet High Restricted role:book-reader-description:0 [ spirit:core:0 intent:scratch:0 role:book-reader-procedure:0 ] Explicit.[ Read Grep Glob Bash WebFetch WebSearch LSP ] Any }
-  { comment-relay ClaudeAgent sonnet High Unrestricted role:comment-relay-description:0 [ spirit:core:0 intent:scratch:0 role:comment-relay:0 ] Explicit.[ Read Bash ToolSearch ArtifactData ArtifactComments ] Only.[ { Psyche core Tertiary } ] }
 ] }
