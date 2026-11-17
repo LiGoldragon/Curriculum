@@ -50,6 +50,7 @@ pub struct ProjectionCandidate {
     pub published_inventory_digest: PublishedInventoryDigest,
     pub published_content_digest: PublishedContentDigest,
     pub renderer_version: RendererVersion,
+    pub missing_panels: signal_curriculum_nexus::MissingPanels,
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]

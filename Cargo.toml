@@ -1,6 +1,6 @@
 [package]
 name = "curriculum"
-version = "0.3.1"
+version = "0.4.0"
 edition = "2024"
 rust-version = "1.89"
 license = "MIT OR Apache-2.0"
@@ -23,11 +23,12 @@ name = "curriculum-nexus"
 path = "src/nexus_main.rs"
 
 [dependencies]
+minijinja = { version = "=2.24.0", default-features = false, features = ["multi_template", "loader", "custom_syntax"] }
 sha2 = "=0.10.9"
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "09a0526", features = ["rkyv"], optional = true }
 nexus = { git = "https://github.com/LiGoldragon/nexus", rev = "69946db066bb70bdbc1fd7dbf5e6c88dcf05c363" }
 # The wire contract: Input, Output and the Answering capabilities.
-signal-curriculum-nexus = { git = "https://github.com/LiGoldragon/signal-curriculum-nexus", rev = "31b3ac5796eadee2d7fdcd267ee3cea926f1f46c" }
+signal-curriculum-nexus = { git = "https://github.com/LiGoldragon/signal-curriculum-nexus", rev = "db06473d3d290eb1e22bc7e7d53ed9ddd4b11ee5" }
 protos = { git = "https://github.com/LiGoldragon/protos", rev = "c93b598", optional = true }
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 thiserror = "2"
@@ -54,3 +55,8 @@ required-features = ["datom"]
 unsafe_code = "forbid"
 unused = { level = "warn", priority = -1 }
 dead_code = "warn"
+
+[[bin]]
+name = "panel-syntax-audit"
+path = "src/panel_syntax_audit.rs"
+required-features = ["datom"]

@@ -1,5 +1,6 @@
 //! In-memory startup composition from the server's three authored repositories.
 //! Callers supply module IDs and a metaflow address, never paths or text.
+use crate::panels::{PanelPrompt, PanelRendering};
 use crate::{
     registry::{ExpandsSkills, IdentityText, SkillRegistry},
     startup_metadata::{instructions, sha256},
@@ -69,7 +70,12 @@ pub fn compose(
     let mut system = Vec::new();
     let mut user = Vec::new();
     let mut provenance = Vec::new();
+    let system_panels = PanelPrompt::for_registry(registry);
+    let user_panels = PanelPrompt::for_registry(registry);
     for (module, source) in resolved.into_iter().zip(snapshot) {
+        if module.module_identity.module_kind == signal_curriculum_nexus::ModuleKind::Panel {
+            return Err("a Panel is composed only through a mark in its master".into());
+        }
         let actual = std::fs::read(&source.path).map_err(|e| e.to_string())?;
         if actual != source.body.as_bytes() {
             return Err(format!(
@@ -81,7 +87,12 @@ pub fn compose(
         let is_system = system_module(&source.name);
         let output = if is_system { &mut system } else { &mut user };
         let ordinal = output.len() as i64;
-        let rendered = crate::context_render::render(&selection.target, body)?;
+        let panels = if is_system {
+            &system_panels
+        } else {
+            &user_panels
+        };
+        let rendered = panels.render(&selection.target, body)?;
         let rendered_sha256 = RenderedSha256(sha256(rendered.as_bytes()));
         output.push((source.name, rendered));
         provenance.push(ContextProvenance {
@@ -116,6 +127,15 @@ pub fn compose(
         user_text: UserText(user_text),
         records_text: RecordsText(records_text),
         context_provenance_vector: provenance,
+        missing_panels: {
+            let mut missing = system_panels.missing()?;
+            for name in user_panels.missing()?.0 {
+                if !missing.0.contains(&name) {
+                    missing.0.push(name);
+                }
+            }
+            missing
+        },
     })
 }
 

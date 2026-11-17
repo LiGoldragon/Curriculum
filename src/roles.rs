@@ -1,7 +1,8 @@
 //! Role metadata contains IDs only. Authored text is resolved by the same registry.
+use crate::panels::{PanelPrompt, PanelRendering};
 use crate::{
     generated::{RoleDefinition, Roles},
-    registry::{valid_id, valid_segment, IdentityText, SkillRegistry},
+    registry::{IdentityText, SkillRegistry, valid_id, valid_segment},
     startup_metadata::sha256,
 };
 use signal_curriculum_nexus::{
@@ -125,9 +126,21 @@ pub fn compose(
         Surface::CodexAgent => Target::Codex,
         Surface::PiAgent => Target::Pi,
     };
+    let description_panels = PanelPrompt::for_registry(registry);
+    let context_panels = PanelPrompt::for_registry(registry);
     let rendered: Vec<String> = modules
         .iter()
-        .map(|m| crate::context_render::render(&target, &m.string))
+        .map(|m| {
+            if m.module_identity.module_kind == signal_curriculum_nexus::ModuleKind::Panel {
+                return Err("a Panel is composed only through a mark in its master".into());
+            }
+            let panels = if description_identities.contains(&m.module_identity.identity_text()?) {
+                &description_panels
+            } else {
+                &context_panels
+            };
+            panels.render(&target, &m.string)
+        })
         .collect::<Result<_, _>>()?;
     let description_text = modules
         .iter()
@@ -197,6 +210,15 @@ pub fn compose(
         role_tools: role.role_tools.clone(),
         role_callers: role.role_callers.clone(),
         context_provenance_vector: provenance,
+        missing_panels: {
+            let mut missing = description_panels.missing()?;
+            for name in context_panels.missing()?.0 {
+                if !missing.0.contains(&name) {
+                    missing.0.push(name);
+                }
+            }
+            missing
+        },
     })
 }
 

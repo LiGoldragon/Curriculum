@@ -93,6 +93,22 @@ rec {
     #   inject test dependencies into the build
 
     crates = {
+      "aho-corasick" = rec {
+        crateName = "aho-corasick";
+        version = "1.1.5";
+        edition = "2021";
+        sha256 = "1fhjkp2nbs7gg4y1b68hpc8028rpax8aiscfh9b60q78m4pn90n9";
+        libName = "aho_corasick";
+        authors = [
+          "Andrew Gallant <jamslam@gmail.com>"
+        ];
+        features = {
+          "default" = [ "std" "perf-literal" ];
+          "logging" = [ "dep:log" ];
+          "perf-literal" = [ "dep:memchr" ];
+          "std" = [ "memchr?/std" ];
+        };
+      };
       "bitflags" = rec {
         crateName = "bitflags";
         version = "2.13.2";
@@ -302,7 +318,7 @@ rec {
       };
       "curriculum" = rec {
         crateName = "curriculum";
-        version = "0.3.1";
+        version = "0.4.0";
         edition = "2024";
         crateBin = [
           {
@@ -315,6 +331,11 @@ rec {
             path = "src/nexus_main.rs";
             requiredFeatures = [ ];
           }
+          {
+            name = "panel-syntax-audit";
+            path = "src/panel_syntax_audit.rs";
+            requiredFeatures = [ "datom" ];
+          }
         ];
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./.; };
         dependencies = [
@@ -323,6 +344,12 @@ rec {
             packageId = "datom-codec";
             optional = true;
             features = [ "rkyv" ];
+          }
+          {
+            name = "minijinja";
+            packageId = "minijinja";
+            usesDefaultFeatures = false;
+            features = [ "multi_template" "loader" "custom_syntax" ];
           }
           {
             name = "mio";
@@ -1237,6 +1264,68 @@ rec {
         };
         resolvedDefaultFeatures = [ "alloc" "default" "std" ];
       };
+      "memo-map" = rec {
+        crateName = "memo-map";
+        version = "0.3.4";
+        edition = "2018";
+        sha256 = "0jqjhd2ifgiv08bqnl6inglyrklzk6yi5lmv0akpx87ia33whjal";
+        libName = "memo_map";
+        authors = [
+          "Armin Ronacher <armin.ronacher@active-4.com>"
+        ];
+
+      };
+      "minijinja" = rec {
+        crateName = "minijinja";
+        version = "2.24.0";
+        edition = "2021";
+        sha256 = "1jdlr681pa11773hzpmdgsfqc8ghfnbyq7lskjqi9rplvgv6r246";
+        authors = [
+          "Armin Ronacher <armin.ronacher@active-4.com>"
+        ];
+        dependencies = [
+          {
+            name = "aho-corasick";
+            packageId = "aho-corasick";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "memo-map";
+            packageId = "memo-map";
+          }
+          {
+            name = "serde";
+            packageId = "serde";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "serde";
+            packageId = "serde";
+            features = [ "derive" ];
+          }
+        ];
+        features = {
+          "custom_syntax" = [ "dep:aho-corasick" ];
+          "default" = [ "builtins" "debug" "deserialization" "macros" "multi_template" "adjacent_loop_items" "std_collections" "serde" ];
+          "indexmap" = [ "dep:indexmap" ];
+          "json" = [ "serde_json" ];
+          "percent-encoding" = [ "dep:percent-encoding" ];
+          "preserve_order" = [ "indexmap" ];
+          "serde_json" = [ "dep:serde_json" ];
+          "speedups" = [ "v_htmlescape" ];
+          "stacker" = [ "dep:stacker" ];
+          "unicase" = [ "dep:unicase" ];
+          "unicode" = [ "unicode-ident" "unicase" ];
+          "unicode-ident" = [ "dep:unicode-ident" ];
+          "unstable_machinery" = [ "internal_debug" ];
+          "unstable_machinery_serde" = [ "unstable_machinery" "serde/derive" ];
+          "urlencode" = [ "percent-encoding" ];
+          "v_htmlescape" = [ "dep:v_htmlescape" ];
+        };
+        resolvedDefaultFeatures = [ "custom_syntax" "loader" "multi_template" ];
+      };
       "mio" = rec {
         crateName = "mio";
         version = "1.2.3";
@@ -1983,13 +2072,13 @@ rec {
       };
       "signal-curriculum-nexus" = rec {
         crateName = "signal-curriculum-nexus";
-        version = "0.3.0";
+        version = "0.4.0";
         edition = "2024";
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/LiGoldragon/signal-curriculum-nexus";
-          rev = "31b3ac5796eadee2d7fdcd267ee3cea926f1f46c";
-          sha256 = "038qbn2m1yqypmdha52qg5xavfsrripb624vm5as23cdqv5kszy5";
+          rev = "db06473d3d290eb1e22bc7e7d53ed9ddd4b11ee5";
+          sha256 = "03dg5lsa1m18gkvrmgyqfqa01rlwiwakb851725sacjkr3yr5iff";
         };
         libName = "signal_curriculum_nexus";
         dependencies = [

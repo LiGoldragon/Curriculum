@@ -18,7 +18,7 @@ use std::{
 use thiserror::Error;
 
 /// Every module kind, in the order the kinds are declared.
-pub const MODULE_KINDS: [ModuleKind; 9] = [
+pub const MODULE_KINDS: [ModuleKind; 10] = [
     ModuleKind::Spirit,
     ModuleKind::Intent,
     ModuleKind::Vision,
@@ -28,6 +28,7 @@ pub const MODULE_KINDS: [ModuleKind; 9] = [
     ModuleKind::Role,
     ModuleKind::Raw,
     ModuleKind::Notion,
+    ModuleKind::Panel,
 ];
 
 /// The file at a source's root that declares the modules the source holds.
@@ -101,6 +102,7 @@ impl Worded for ModuleKind {
             ModuleKind::Role => "role",
             ModuleKind::Raw => "raw",
             ModuleKind::Notion => "notion",
+            ModuleKind::Panel => "panel",
         }
     }
 }
@@ -512,6 +514,7 @@ impl SkillRegistry {
     pub fn listed_modules(&self) -> Result<Vec<Module>, RegistryError> {
         self.entries
             .values()
+            .filter(|skill| !skill.name.starts_with("panel:"))
             .map(|skill| {
                 if canonical(&skill.path)? != skill.path
                     || fs::read(&skill.path).map_err(|e| invalid(&skill.path, e))?
@@ -542,6 +545,7 @@ impl SkillRegistry {
     ) -> Result<Vec<signal_curriculum_nexus::ModuleDescription>, RegistryError> {
         self.entries
             .values()
+            .filter(|skill| !skill.name.starts_with("panel:"))
             .map(|skill| {
                 if canonical(&skill.path)? != skill.path
                     || fs::read(&skill.path).map_err(|e| invalid(&skill.path, e))?
@@ -707,10 +711,19 @@ impl ExpandsSkills for SkillRegistry {
         Ok(output)
     }
     fn skill_names(&self) -> Result<Vec<String>, RegistryError> {
-        Ok(self.entries.keys().cloned().collect())
+        Ok(self
+            .entries
+            .keys()
+            .filter(|name| !name.starts_with("panel:"))
+            .cloned()
+            .collect())
     }
     fn actual_skills(&self) -> Vec<ResolvedSkill> {
-        self.entries.values().cloned().collect()
+        self.entries
+            .values()
+            .filter(|skill| !skill.name.starts_with("panel:"))
+            .cloned()
+            .collect()
     }
 }
 
@@ -725,6 +738,7 @@ pub mod workspace {
         DeploymentDestination, ProjectionCandidate, PublishedContentDigest,
         PublishedInventoryDigest, RendererVersion, RepositoryRevision, SkillDirectory,
     };
+    use crate::panels::{PanelPrompt, PanelRendering};
     use signal_curriculum_nexus::{RepositoryName, SourceRevision, Target};
     use std::{
         collections::BTreeMap,
@@ -899,12 +913,27 @@ pub mod workspace {
             for directory in &SKILL_DIRECTORIES {
                 self.remove_stale(directory, &ids)?;
             }
+            let mut missing_panels = signal_curriculum_nexus::MissingPanels(vec![]);
             for skill in &skills {
                 for directory in &SKILL_DIRECTORIES {
                     let relative = Path::new(directory.path())
                         .join(&skill.name)
                         .join("SKILL.md");
-                    outputs.insert(relative, directory.target().render(skill)?);
+                    let panels = PanelPrompt::for_registry(registry);
+                    let mut merged = skill.clone();
+                    merged.body = panels
+                        .render(&directory.target(), &skill.body)
+                        .map_err(|error| invalid(&skill.path, error))?;
+                    for name in panels
+                        .missing()
+                        .map_err(|error| invalid(&skill.path, error))?
+                        .0
+                    {
+                        if !missing_panels.0.contains(&name) {
+                            missing_panels.0.push(name);
+                        }
+                    }
+                    outputs.insert(relative, directory.target().render(&merged)?);
                 }
                 if user_only(&skill.body) {
                     for directory in SKILL_DIRECTORIES
@@ -964,6 +993,7 @@ pub mod workspace {
                 })
                 .collect();
             Ok(ProjectionCandidate {
+                missing_panels,
                 deployment_destination: DeploymentDestination(
                     destination.to_string_lossy().into_owned(),
                 ),
