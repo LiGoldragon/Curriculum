@@ -182,9 +182,28 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         "ComposeRole.{ book ClaudeAgent }",
     ] {
         let refused = invoke(&runtime, request);
-        let text = String::from_utf8(refused.stdout).unwrap();
-        assert!(text.starts_with("Rejected."), "{text}");
-        assert!(text.contains("unresolved context variable"), "{text}");
+        assert!(!refused.status.success());
+        let diagnostic = String::from_utf8(refused.stderr).unwrap();
+        assert!(
+            diagnostic.contains("unresolved context variable"),
+            "{diagnostic}"
+        );
+        // The default CLI presents a refusal on stderr. Read the wire itself
+        // to assert its typed shape independently of that presentation.
+        use datom_codec::{Actualizing, Budget, Potential};
+        use protos::ReaderBudget;
+        let input = Potential::<signal_curriculum_nexus::Input>::from(request)
+            .actualize(&mut Budget {
+                remaining: 1_048_576,
+                reader: ReaderBudget::try_from(1_048_576).unwrap(),
+                depth: 0,
+                maximum_depth: 1024,
+            })
+            .unwrap();
+        let output = signal_reply(&socket, &input);
+        assert!(
+            matches!(output, signal_curriculum_nexus::Output::Rejected(reason) if reason.contains("unresolved context variable"))
+        );
     }
 }
 
@@ -195,4 +214,22 @@ fn write_source(
     let path = path.as_ref();
     fs::create_dir_all(path.parent().unwrap())?;
     fs::write(path, contents)
+}
+
+fn signal_reply(
+    socket: &std::path::Path,
+    input: &signal_curriculum_nexus::Input,
+) -> signal_curriculum_nexus::Output {
+    use std::io::{Read, Write};
+    let mut stream = std::os::unix::net::UnixStream::connect(socket).unwrap();
+    let request = rkyv::to_bytes::<rkyv::rancor::Error>(input).unwrap();
+    stream
+        .write_all(&u32::try_from(request.len()).unwrap().to_be_bytes())
+        .unwrap();
+    stream.write_all(&request).unwrap();
+    let mut length = [0; 4];
+    stream.read_exact(&mut length).unwrap();
+    let mut reply = vec![0; u32::from_be_bytes(length) as usize];
+    stream.read_exact(&mut reply).unwrap();
+    rkyv::from_bytes::<signal_curriculum_nexus::Output, rkyv::rancor::Error>(&reply).unwrap()
 }
