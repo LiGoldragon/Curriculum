@@ -52,6 +52,8 @@ impl PanelRendering for PanelPrompt {
     fn render(&self, target: &Target, source: &str) -> Result<String, String> {
         let mut environment = Environment::empty();
         environment.set_keep_trailing_newline(true);
+        environment.set_trim_blocks(true);
+        environment.set_lstrip_blocks(true);
         environment.set_undefined_behavior(UndefinedBehavior::Strict);
         let state = Arc::clone(&self.state);
         environment.set_loader(move |name| {
