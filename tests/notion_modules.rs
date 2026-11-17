@@ -227,3 +227,16 @@ fn exact_authored_notions_and_flow_span_resolve_from_frozen_source_cohort() {
         );
     }
 }
+
+#[test]
+fn authored_harness_notion_json_renders_without_changing_its_bytes() {
+    let source = include_str!("fixtures/notions-404d40/mind-belief/notion/harness-nexus/0.md");
+    let body = source;
+    assert!(body.contains(r#""cache_creation_input_tokens":305}}}"#));
+    for target in [Target::Claude, Target::Codex, Target::Pi, Target::OpenCode] {
+        assert_eq!(
+            curriculum::context_render::render(&target, body).unwrap(),
+            body
+        );
+    }
+}

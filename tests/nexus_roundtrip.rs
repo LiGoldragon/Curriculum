@@ -59,7 +59,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     write_source(roots[0].join("intent/seat/0.md"), "INTENT_BODY").unwrap();
     write_source(
         roots[2].join("compensation/illustration/0.md"),
-        "---\ndescription: instruction\ndependencies: []\nplacement: user\n---\nEXACT_USER_BODY",
+        "---\ndescription: instruction\ndependencies: []\nplacement: user\n---\nEXACT_USER_BODY\n{\"message\":{\"usage\":{\"input_tokens\":2}}}\n",
     )
     .unwrap();
     let roles = base.join("roles.datom");
@@ -119,6 +119,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let text = String::from_utf8(response.stdout).unwrap();
     assert!(text.starts_with("StartupComposed."));
     assert!(text.contains("EXACT_USER_BODY"));
+    assert!(text.contains(r#"{"message":{"usage":{"input_tokens":2}}}"#));
     assert!(text.contains("field-belief"));
     let sources = invoke(
         &runtime,
@@ -133,6 +134,10 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let role = invoke(&runtime, "ComposeRole.{ book ClaudeAgent }");
     assert!(role.status.success());
     assert!(String::from_utf8_lossy(&role.stdout).contains("EXACT_USER_BODY"));
+    assert!(
+        String::from_utf8_lossy(&role.stdout)
+            .contains(r#"{"message":{"usage":{"input_tokens":2}}}"#)
+    );
     for old in [
         "RebuildSkills",
         "CheckSkills",
@@ -167,6 +172,20 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let changed_role_text = String::from_utf8(changed_role.stdout).unwrap();
     assert!(changed_role_text.contains("CHANGED_SOURCE"));
     assert!(!changed_role_text.contains("EXACT_USER_BODY"));
+    write_source(
+        roots[2].join("compensation/illustration/0.md"),
+        "{{ missing_variable }}",
+    )
+    .unwrap();
+    for request in [
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ { Compensation illustration Single.0 } ] [] }",
+        "ComposeRole.{ book ClaudeAgent }",
+    ] {
+        let refused = invoke(&runtime, request);
+        let text = String::from_utf8(refused.stdout).unwrap();
+        assert!(text.starts_with("Rejected."), "{text}");
+        assert!(text.contains("unresolved context variable"), "{text}");
+    }
 }
 
 fn write_source(

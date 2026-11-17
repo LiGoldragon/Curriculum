@@ -302,7 +302,7 @@ rec {
       };
       "curriculum" = rec {
         crateName = "curriculum";
-        version = "0.3.0";
+        version = "0.3.1";
         edition = "2024";
         crateBin = [
           {

@@ -421,3 +421,41 @@ fn inventory_is_independent_while_startup_refuses_duplicate_execution_metadata()
     let error = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap_err();
     assert!(error.contains("duplicate frontmatter key"), "{error}");
 }
+
+#[test]
+fn context_variables_require_a_complete_identifier_placeholder() {
+    use curriculum::context_render;
+    let literal = concat!(
+        "```json\n",
+        "{\"type\":\"assistant\",\"message\":{\"usage\":{\"input_tokens\":2}}}\n",
+        "```\n",
+        "}} {{ {{ }} {{123}} {{not a name}} {{\"key\":1}}\n",
+        "Unicode: café; shell: ${VAR:?}; unclosed: {{name\n",
+    );
+    for target in [Target::Claude, Target::Codex, Target::Pi, Target::OpenCode] {
+        assert_eq!(context_render::render(&target, literal).unwrap(), literal);
+        for variable in [
+            "{{unknown}}",
+            "{{ unknown_2 }}",
+            "{{_name}}",
+            "literal }} then {{ missing }}",
+        ] {
+            assert_eq!(
+                context_render::render(&target, variable).unwrap_err(),
+                "unresolved context variable; no caller-inline substitution is allowed"
+            );
+        }
+        assert_eq!(
+            context_render::render(&target, "{% raw %}\n{{unknown}}\n{% endraw %}\n").unwrap(),
+            "{{unknown}}\n"
+        );
+    }
+    assert_eq!(
+        context_render::render(
+            &Target::Codex,
+            "{% if claude %}\n{{unknown}}\n{% endif %}\n"
+        )
+        .unwrap(),
+        ""
+    );
+}
