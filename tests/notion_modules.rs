@@ -105,6 +105,7 @@ fn notions_resolve_with_spans_and_compose_as_knowledge_with_actual_provenance() 
         notion[1].source_relative_path.0,
         "notion/harness-nexus/0.md"
     );
+    fs::create_dir(temp.path().join("flows")).unwrap();
     let selection = StartupSelection {
         target: Target::Codex,
         caller_metaflow: CallerMetaflow {
