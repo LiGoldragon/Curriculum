@@ -1,0 +1,9 @@
+[ { { Vision nexus Single.1 } «vision/nexus/1.md» }
+  { { Vision signal Single.0 } «vision/signal/0.md» }
+  { { Vision nexus Single.0 } «vision/nexus/0.md» }
+  { { Vision flow-nexus Span.{ 0 1 } } «vision/flow-nexus/0-1.md» }
+  { { Vision flow-nexus Single.0 } «vision/flow-nexus/0.md» }
+  { { Vision sema Single.0 } «vision/sema/0.md» }
+  { { Vision datom Single.0 } «vision/datom/0.md» }
+  { { Vision ethos Single.0 } «vision/ethos/0.md» }
+  { { Vision sema Single.1 } «vision/sema/1.md» } ]
