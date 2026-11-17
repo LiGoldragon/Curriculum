@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &roots,
         &["0".repeat(40), "0".repeat(40), "0".repeat(40)],
     )?;
-    let mut environment = Environment::new();
+    let mut environment = Environment::empty();
     environment.set_keep_trailing_newline(true);
     environment.set_undefined_behavior(UndefinedBehavior::Strict);
     let mut total = 0;

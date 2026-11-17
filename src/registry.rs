@@ -796,82 +796,12 @@ pub mod workspace {
     impl RendersSkill for Target {
         fn render(&self, skill: &ResolvedSkill) -> Result<String, RegistryError> {
             let mut rendered = String::new();
-            let mut branches = Vec::<(bool, bool)>::new();
-            let mut raw = false;
-
-            for (index, line) in skill.body.split_inclusive('\n').enumerate() {
-                let line_number = index + 1;
-                let directive = line.trim();
-                if raw {
-                    if directive == "{% endraw %}" {
-                        raw = false;
-                    } else if branches.iter().all(|(selected, _)| *selected) {
-                        rendered.push_str(line);
-                    }
-                    continue;
+            for line in skill.body.split_inclusive('\n') {
+                if *self == Target::Claude && line.trim() == "user-only: true" {
+                    rendered.push_str("disable-model-invocation: true\n");
+                } else {
+                    rendered.push_str(line);
                 }
-
-                let selected = match directive {
-                    "{% if claude %}" => Some(*self == Target::Claude),
-                    "{% if codex %}" => Some(*self == Target::Codex),
-                    "{% if opencode %}" => Some(*self == Target::OpenCode),
-                    "{% if pi %}" => Some(*self == Target::Pi),
-                    "{% raw %}" => {
-                        raw = true;
-                        continue;
-                    }
-                    "{% endraw %}" => {
-                        return Err(invalid(
-                            &skill.path,
-                            format!("line {line_number}: endraw without raw"),
-                        ));
-                    }
-                    "{% else %}" => {
-                        let Some((selected, saw_else)) = branches.last_mut() else {
-                            return Err(invalid(
-                                &skill.path,
-                                format!("line {line_number}: else without if"),
-                            ));
-                        };
-                        if *saw_else {
-                            return Err(invalid(
-                                &skill.path,
-                                format!("line {line_number}: repeated else"),
-                            ));
-                        }
-                        *selected = !*selected;
-                        *saw_else = true;
-                        continue;
-                    }
-                    "{% endif %}" => {
-                        if branches.pop().is_none() {
-                            return Err(invalid(
-                                &skill.path,
-                                format!("line {line_number}: endif without if"),
-                            ));
-                        }
-                        continue;
-                    }
-                    _ => None,
-                };
-                if let Some(selected) = selected {
-                    branches.push((selected, false));
-                    continue;
-                }
-                if branches.iter().all(|(selected, _)| *selected) {
-                    if *self == Target::Claude && directive == "user-only: true" {
-                        rendered.push_str("disable-model-invocation: true\n");
-                    } else {
-                        rendered.push_str(line);
-                    }
-                }
-            }
-
-            if !branches.is_empty() || raw {
-                return Err(invalid(
-                    &skill.path,
-                    "unclosed target conditional or raw block",
-                ));
             }
             if *self == Target::OpenCode {
                 let name = format!("name: {}\n", skill.name);

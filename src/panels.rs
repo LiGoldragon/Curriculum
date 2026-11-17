@@ -50,7 +50,7 @@ impl PanelRendering for PanelPrompt {
         }
     }
     fn render(&self, target: &Target, source: &str) -> Result<String, String> {
-        let mut environment = Environment::new();
+        let mut environment = Environment::empty();
         environment.set_keep_trailing_newline(true);
         environment.set_undefined_behavior(UndefinedBehavior::Strict);
         let state = Arc::clone(&self.state);

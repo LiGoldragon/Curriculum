@@ -243,3 +243,16 @@ fn panel_changes_update_the_merged_hash_without_changing_the_master_source_hash(
     assert_ne!(before, after);
     assert!(after.contains("UPDATED_PANEL"));
 }
+
+#[test]
+fn actual_authored_harness_fences_pass_the_include_engine_unchanged() {
+    let temp = tempfile::tempdir().unwrap();
+    let registry = fixture(temp.path());
+    let source = include_str!("fixtures/notions-404d40/mind-belief/notion/harness-nexus/0.md");
+    assert_eq!(
+        PanelPrompt::for_registry(&registry)
+            .render(&Target::Codex, source)
+            .unwrap(),
+        source
+    );
+}
