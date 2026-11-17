@@ -18,7 +18,7 @@ use std::{
 use thiserror::Error;
 
 /// Every module kind, in the order the kinds are declared.
-pub const MODULE_KINDS: [ModuleKind; 8] = [
+pub const MODULE_KINDS: [ModuleKind; 9] = [
     ModuleKind::Spirit,
     ModuleKind::Intent,
     ModuleKind::Vision,
@@ -27,6 +27,7 @@ pub const MODULE_KINDS: [ModuleKind; 8] = [
     ModuleKind::Compensation,
     ModuleKind::Role,
     ModuleKind::Raw,
+    ModuleKind::Notion,
 ];
 
 /// The file at a source's root that declares the modules the source holds.
@@ -99,6 +100,7 @@ impl Worded for ModuleKind {
             ModuleKind::Compensation => "compensation",
             ModuleKind::Role => "role",
             ModuleKind::Raw => "raw",
+            ModuleKind::Notion => "notion",
         }
     }
 }
