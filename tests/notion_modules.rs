@@ -153,7 +153,10 @@ fn notions_resolve_with_spans_and_compose_as_knowledge_with_actual_provenance() 
             effort: Effort::Medium,
             permission: Permission::Unrestricted,
             description_module: DescriptionModule(identity("vision:flow-nexus:0-1")),
-            context_modules: ContextModules(vec![identity("notion:harness-nexus:0")]),
+            context_modules: ContextModules(vec![
+                identity("notion:harness-nexus:0"),
+                identity("notion:source-nexus:0"),
+            ]),
             role_tools: RoleTools::Explicit(vec![]),
             role_callers: RoleCallers::Any,
         }],
