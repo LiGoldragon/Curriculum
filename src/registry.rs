@@ -122,6 +122,7 @@ pub enum DeclarationFinding {
     Unplaceable(PathBuf),
     /// The declared kind, subject and version make no valid name.
     InvalidName,
+    PanelCycle(crate::generated::PanelCycle),
 }
 impl std::fmt::Display for DeclarationReport {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -139,6 +140,17 @@ impl std::fmt::Display for DeclarationReport {
                 formatter,
                 "{declarations}: {name}: {} is not a plain file inside the source",
                 file.display()
+            ),
+            DeclarationFinding::PanelCycle(cycle) => write!(
+                formatter,
+                "{declarations}: panel inclusion cycle at {}",
+                cycle
+                    .0
+                    .iter()
+                    .map(IdentityText::identity_text)
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|_| std::fmt::Error)?
+                    .join(" -> ")
             ),
             DeclarationFinding::InvalidName => {
                 write!(
@@ -465,13 +477,14 @@ impl SkillRegistry {
         for (root_index, declaration) in declarations {
             admit(&roots[root_index], declaration, &mut entries, &mut reports)?;
         }
-        let registry = Self {
+        let mut registry = Self {
             entries,
             roots,
             revisions: revisions.clone(),
             reports,
         };
         registry.expand_skills(&registry.skill_names()?)?;
+        registry.read_panel_cycles()?;
         Ok(registry)
     }
     /// The declarations that put no module in the registry, as reported when the sources were read.
@@ -650,6 +663,63 @@ impl SkillRegistry {
         visiting.remove(identity);
         seen.insert(identity.into());
         output.push(source.clone());
+        Ok(())
+    }
+}
+
+trait ReadsPanelCycles {
+    fn read_panel_cycles(&mut self) -> Result<(), RegistryError>;
+}
+impl ReadsPanelCycles for SkillRegistry {
+    fn read_panel_cycles(&mut self) -> Result<(), RegistryError> {
+        use crate::panels::{PanelPrompt, PanelRendering};
+        use signal_curriculum_nexus::Target;
+        let names = self
+            .entries
+            .keys()
+            .filter(|name| name.starts_with("panel:"))
+            .cloned()
+            .collect::<Vec<_>>();
+        if names.is_empty() {
+            return Ok(());
+        }
+        let mut cycles = Vec::new();
+        for target in [Target::Claude, Target::Codex, Target::Pi, Target::OpenCode] {
+            let panels = PanelPrompt::for_registry(self);
+            for name in &names {
+                let source = &self.entries[name];
+                panels
+                    .render(&target, &format!("{{% include {name:?} %}}"))
+                    .map_err(|error| invalid(&source.path, error))?;
+            }
+            for cycle in panels
+                .cycles()
+                .map_err(|error| invalid(&self.roots[0], error))?
+            {
+                if !cycles.contains(&cycle) {
+                    cycles.push(cycle);
+                }
+            }
+        }
+        for cycle in cycles {
+            let name = cycle
+                .0
+                .first()
+                .ok_or_else(|| invalid(&self.roots[0], "empty panel cycle"))?
+                .identity_text()
+                .map_err(|error| invalid(&self.roots[0], error))?;
+            let path = &self.entries[&name].path;
+            let root = self
+                .roots
+                .iter()
+                .find(|root| path.starts_with(root))
+                .ok_or_else(|| invalid(path, "panel outside sources"))?;
+            self.reports.push(DeclarationReport {
+                declarations: root.join(DECLARATIONS_FILE),
+                name,
+                finding: DeclarationFinding::PanelCycle(cycle),
+            });
+        }
         Ok(())
     }
 }
@@ -844,6 +914,7 @@ pub mod workspace {
                 self.remove_stale(directory, &ids)?;
             }
             let mut missing_panels = signal_curriculum_nexus::MissingPanels(vec![]);
+            let mut merged_panels = signal_curriculum_nexus::MergedPanels(vec![]);
             for skill in &skills {
                 for directory in &SKILL_DIRECTORIES {
                     let relative = Path::new(directory.path())
@@ -863,6 +934,12 @@ pub mod workspace {
                             missing_panels.0.push(name);
                         }
                     }
+                    merged_panels.0.extend(
+                        panels
+                            .provenance()
+                            .map_err(|error| invalid(&skill.path, error))?
+                            .0,
+                    );
                     outputs.insert(relative, directory.target().render(&merged)?);
                 }
                 if user_only(&skill.body) {
@@ -924,6 +1001,7 @@ pub mod workspace {
                 .collect();
             Ok(ProjectionCandidate {
                 missing_panels,
+                merged_panels,
                 deployment_destination: DeploymentDestination(
                     destination.to_string_lossy().into_owned(),
                 ),

@@ -210,6 +210,11 @@ pub fn compose(
         role_tools: role.role_tools.clone(),
         role_callers: role.role_callers.clone(),
         context_provenance_vector: provenance,
+        merged_panels: {
+            let mut merged = description_panels.provenance()?;
+            merged.0.extend(context_panels.provenance()?.0);
+            merged
+        },
         missing_panels: {
             let mut missing = description_panels.missing()?;
             for name in context_panels.missing()?.0 {

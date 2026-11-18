@@ -25,9 +25,8 @@ impl Remembering for SkillMemory {
             .and_then(|c| c.read().map_err(|e| e.to_string()))
             .map_err(|e| eprintln!("{e}"))
             .ok()?;
-        // Interim, until Curriculum has an observer surface: each declaration
-        // that put no module in the registry is written to stderr at start,
-        // so it reaches the journal.
+        // Source-read findings reach the journal at start until Curriculum
+        // has an observer surface.
         for report in registry.reports() {
             eprintln!("{report}");
         }

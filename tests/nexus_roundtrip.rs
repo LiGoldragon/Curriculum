@@ -59,9 +59,10 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     write_source(roots[0].join("intent/seat/0.md"), "INTENT_BODY").unwrap();
     write_source(
         roots[2].join("compensation/illustration/0.md"),
-        "---\ndescription: instruction\ndependencies: []\nplacement: user\n---\nEXACT_USER_BODY\n{\"message\":{\"usage\":{\"input_tokens\":2}}}\n",
+        "---\ndescription: instruction\ndependencies: []\nplacement: user\n---\nEXACT_USER_BODY\n{\"message\":{\"usage\":{\"input_tokens\":2}}}\n{% include \"panel:native:0\" %}\n{% include \"panel:missing:0\" %}\n",
     )
     .unwrap();
+    write_source(roots[1].join("panel/native/0.md"), "NATIVE_PANEL").unwrap();
     let roles = base.join("roles.datom");
     write_source(
         &roles,
@@ -121,6 +122,42 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     assert!(text.contains("EXACT_USER_BODY"));
     assert!(text.contains(r#"{"message":{"usage":{"input_tokens":2}}}"#));
     assert!(text.contains("field-belief"));
+    use curriculum::registry::ModuleIdentityConversion;
+    use signal_curriculum_nexus::{
+        CallerMetaflow, Input, Output, StartupSelection, SystemModules, Target, UserModules,
+    };
+    let input = Input::ComposeStartup(StartupSelection {
+        caller_metaflow: CallerMetaflow {
+            first_string: "Field".into(),
+            second_string: "Publisher".into(),
+            third_string: "Quaternary".into(),
+        },
+        target: Target::Claude,
+        system_modules: SystemModules(vec![
+            "spirit:core:0".module_identity().unwrap(),
+            "intent:seat:0".module_identity().unwrap(),
+        ]),
+        user_modules: UserModules(vec![
+            "compensation:illustration:0".module_identity().unwrap(),
+        ]),
+        flow_id_vector: vec![],
+    });
+    let Output::StartupComposed(typed) = signal_reply(&socket, &input) else {
+        panic!("composition must continue despite a missing panel")
+    };
+    assert_eq!(
+        typed.missing_panels.0,
+        ["panel:missing:0".module_identity().unwrap()]
+    );
+    assert_eq!(typed.merged_panels.0.len(), 1);
+    let panel = &typed.merged_panels.0[0];
+    assert_eq!(
+        panel.module_identity,
+        "panel:native:0".module_identity().unwrap()
+    );
+    assert_eq!(panel.source_relative_path.0, "panel/native/0.md");
+    assert_eq!(typed.user_text.0.matches("NATIVE_PANEL").count(), 1);
+    assert!(!typed.user_text.0.contains("<!-- module: panel:"));
     let sources = invoke(
         &runtime,
         "ResolveSources.[ { Compensation illustration Single.0 } ]",

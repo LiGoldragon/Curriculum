@@ -127,6 +127,11 @@ pub fn compose(
         user_text: UserText(user_text),
         records_text: RecordsText(records_text),
         context_provenance_vector: provenance,
+        merged_panels: {
+            let mut merged = system_panels.provenance()?;
+            merged.0.extend(user_panels.provenance()?.0);
+            merged
+        },
         missing_panels: {
             let mut missing = system_panels.missing()?;
             for name in user_panels.missing()?.0 {

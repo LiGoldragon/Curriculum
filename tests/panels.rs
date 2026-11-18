@@ -5,6 +5,7 @@ use curriculum::{
     registry::{IdentityText, ModuleIdentityConversion, workspace::WorkspaceProjector},
     roles, startup,
 };
+use sha2::{Digest, Sha256};
 use signal_curriculum_nexus::*;
 use std::{fs, path::Path};
 
@@ -113,6 +114,29 @@ fn startup_merges_at_the_first_mark_once_in_each_prompt_and_reports_missing() {
     assert!(!composed.user_text.0.contains("{% include"));
     assert!(!composed.user_text.0.contains("<!-- module: panel:"));
     assert_eq!(composed.missing_panels.0, [identity("panel:missing:0")]);
+    assert_eq!(composed.merged_panels.0.len(), 4);
+    for panel in &composed.merged_panels.0 {
+        assert_eq!(panel.repository_name.0, "mind-belief");
+        assert_eq!(panel.source_revision.0, "b".repeat(40));
+        let source =
+            fs::read(temp.path().join("mind").join(&panel.source_relative_path.0)).unwrap();
+        assert_eq!(
+            panel.source_sha256.0,
+            format!("{:x}", Sha256::digest(&source))
+        );
+        assert_eq!(panel.body_sha256.0, panel.source_sha256.0);
+        let nested = "NESTED_BODY\n{\"message\":{\"usage\":{\"input_tokens\":2}}}\n";
+        let expected = if panel.module_identity == identity("panel:shared:0") {
+            format!("PANEL_BODY\n{nested}")
+        } else {
+            nested.into()
+        };
+        assert_eq!(
+            panel.rendered_sha256.0,
+            format!("{:x}", Sha256::digest(expected.as_bytes()))
+        );
+    }
+
     selection.user_modules.0 = vec![identity("panel:shared:0")];
     assert!(startup::compose(&registry, &temp.path().join("records"), &selection).is_err());
 }
@@ -154,6 +178,14 @@ fn roles_and_each_skill_have_their_own_complete_panel_scope() {
         .project(&registry)
         .unwrap();
     assert_eq!(projected.missing_panels.0, [identity("panel:missing:0")]);
+    assert_eq!(projected.merged_panels.0.len(), 30);
+    assert!(
+        projected
+            .merged_panels
+            .0
+            .iter()
+            .all(|row| row.module_identity.module_kind == ModuleKind::Panel)
+    );
     for directory in [".claude", ".agents", ".codex", ".pi", ".opencode"] {
         for master in ["vision:first:0", "vision:second:0"] {
             let body = fs::read_to_string(
@@ -255,4 +287,64 @@ fn actual_authored_harness_fences_pass_the_include_engine_unchanged() {
             .unwrap(),
         source
     );
+}
+
+#[test]
+fn nested_panel_cycles_are_broken_and_reported_at_source_admission() {
+    use curriculum::registry::DeclarationFinding;
+    let temp = tempfile::tempdir().unwrap();
+    let _ = fixture(temp.path());
+    fs::write(
+        temp.path().join("mind/panel/shared/0.md"),
+        "SHARED\n{% include \"panel:nested:0\" %}",
+    )
+    .unwrap();
+    fs::write(
+        temp.path().join("mind/panel/nested/0.md"),
+        "NESTED\n{% if claude %}\n{% include \"panel:shared:0\" %}\n{% endif %}",
+    )
+    .unwrap();
+    let roots = [
+        temp.path().join("psyche"),
+        temp.path().join("mind"),
+        temp.path().join("field"),
+    ];
+    let registry = SkillRegistry::from_context_repositories(
+        &roots,
+        &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
+    )
+    .unwrap();
+    assert_eq!(registry.reports().len(), 1);
+    let report = &registry.reports()[0];
+    let DeclarationFinding::PanelCycle(cycle) = &report.finding else {
+        panic!("{report:?}")
+    };
+    assert_eq!(cycle.0.first(), cycle.0.last());
+    assert_eq!(cycle.0.len(), 3);
+    assert!(report.to_string().contains("panel inclusion cycle"));
+    assert!(report.to_string().contains("panel:shared:0"));
+    assert!(report.to_string().contains("panel:nested:0"));
+    let prompt = PanelPrompt::for_registry(&registry);
+    let body = prompt
+        .render(
+            &Target::Claude,
+            "{% include \"panel:shared:0\" %}\n{% include \"panel:shared:0\" %}",
+        )
+        .unwrap();
+    assert_eq!(body.matches("SHARED").count(), 1);
+    assert_eq!(body.matches("NESTED").count(), 1);
+    assert_eq!(prompt.provenance().unwrap().0.len(), 2);
+    assert_eq!(
+        prompt.cycles().unwrap()[0].0,
+        [
+            identity("panel:shared:0"),
+            identity("panel:nested:0"),
+            identity("panel:shared:0")
+        ]
+    );
+    let codex = PanelPrompt::for_registry(&registry);
+    codex
+        .render(&Target::Codex, "{% include \"panel:shared:0\" %}")
+        .unwrap();
+    assert!(codex.cycles().unwrap().is_empty());
 }

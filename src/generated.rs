@@ -7,6 +7,10 @@
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub struct PanelCycle(pub std::vec::Vec<signal_curriculum_nexus::ModuleIdentity>);
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct ModuleDeclarations(pub std::vec::Vec<signal_curriculum_nexus::Module>);
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
@@ -51,6 +55,7 @@ pub struct ProjectionCandidate {
     pub published_content_digest: PublishedContentDigest,
     pub renderer_version: RendererVersion,
     pub missing_panels: signal_curriculum_nexus::MissingPanels,
+    pub merged_panels: signal_curriculum_nexus::MergedPanels,
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]

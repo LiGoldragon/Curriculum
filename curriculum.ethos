@@ -9,15 +9,16 @@
 ; and answers a ProjectionCandidate.
 Library
 [ :signal_curriculum_nexus:[ ModuleIdentity ModuleSubject ModuleKind Version Versions ModuleFile Module
-                              RepositoryName SourceRevision RoleName Surface ModelId Effort Permission RoleTools RoleCallers MissingPanels ] ]
-[ ModuleDeclarations.Vector<Module>
+                              RepositoryName SourceRevision RoleName Surface ModelId Effort Permission RoleTools RoleCallers MissingPanels MergedPanels ] ]
+[ PanelCycle.Vector<ModuleIdentity>
+  ModuleDeclarations.Vector<Module>
   SkillDirectory.[ Claude Agents Codex Pi OpenCode ]
   DeploymentDestination.String
   RepositoryRevision.{ RepositoryName SourceRevision }
   PublishedInventoryDigest.String
   PublishedContentDigest.String
   RendererVersion.String
-  ProjectionCandidate.{ DeploymentDestination Vector<RepositoryRevision> PublishedInventoryDigest PublishedContentDigest RendererVersion MissingPanels }
+  ProjectionCandidate.{ DeploymentDestination Vector<RepositoryRevision> PublishedInventoryDigest PublishedContentDigest RendererVersion MissingPanels MergedPanels }
   DescriptionModule.ModuleIdentity
   ContextModules.Vector<ModuleIdentity>
   RoleDefinition.{ RoleName Surface ModelId Effort Permission DescriptionModule ContextModules RoleTools RoleCallers }

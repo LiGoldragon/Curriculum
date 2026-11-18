@@ -1,7 +1,12 @@
 //! A composition owns its panel set; each skill starts a separate composition.
+use crate::generated::PanelCycle;
 use crate::registry::{IdentityText, SkillRegistry};
-use signal_curriculum_nexus::{MissingPanels, ModuleIdentity, ModuleKind, ResolvedModule};
-use std::collections::BTreeSet;
+use crate::startup_metadata::sha256;
+use signal_curriculum_nexus::{
+    MergedPanels, MissingPanels, ModuleIdentity, ModuleKind, PanelProvenance, RenderedSha256,
+    ResolvedModule,
+};
+use std::collections::{BTreeMap, BTreeSet};
 
 /// The lookup is the same declared-source registry used by ordinary modules.
 pub trait PanelLookup {
@@ -33,11 +38,18 @@ struct PanelPromptState {
     registry: SkillRegistry,
     included: BTreeSet<String>,
     missing: MissingPanels,
+    active: Vec<ModuleIdentity>,
+    cycles: Vec<PanelCycle>,
+    order: Vec<String>,
+    sources: BTreeMap<String, ResolvedModule>,
+    merged: BTreeMap<String, PanelProvenance>,
 }
 pub trait PanelRendering: Sized {
     fn for_registry(registry: &SkillRegistry) -> Self;
     fn render(&self, target: &Target, source: &str) -> Result<String, String>;
     fn missing(&self) -> Result<MissingPanels, String>;
+    fn provenance(&self) -> Result<MergedPanels, String>;
+    fn cycles(&self) -> Result<Vec<PanelCycle>, String>;
 }
 impl PanelRendering for PanelPrompt {
     fn for_registry(registry: &SkillRegistry) -> Self {
@@ -46,6 +58,11 @@ impl PanelRendering for PanelPrompt {
                 registry: registry.clone(),
                 included: BTreeSet::new(),
                 missing: MissingPanels(vec![]),
+                active: vec![],
+                cycles: vec![],
+                order: vec![],
+                sources: BTreeMap::new(),
+                merged: BTreeMap::new(),
             })),
         }
     }
@@ -77,9 +94,10 @@ impl PanelRendering for PanelPrompt {
                     .identity_text()
                     .map_err(|error| Error::new(ErrorKind::InvalidOperation, error))?;
                 text.push_str(&format!(
-                    "{{% if __panel_claim({name:?}) %}}{}{{% endif %}}",
+                    "{{% if __panel_claim({name:?}) %}}{{% set __panel_body %}}{}{{% endset %}}{{{{ __panel_record({name:?}, __panel_body) }}}}{{% endif %}}",
                     source.string
                 ));
+                state.sources.insert(name, source);
             }
             Ok(Some(text))
         });
@@ -90,7 +108,57 @@ impl PanelRendering for PanelPrompt {
                 let mut state = state
                     .lock()
                     .map_err(|error| Error::new(ErrorKind::InvalidOperation, error.to_string()))?;
-                Ok(state.included.insert(name))
+                let identity = name
+                    .module_identity()
+                    .map_err(|error| Error::new(ErrorKind::InvalidOperation, error))?;
+                if let Some(index) = state.active.iter().position(|active| active == &identity) {
+                    let mut cycle = state.active[index..].to_vec();
+                    cycle.push(identity);
+                    let cycle = PanelCycle(cycle);
+                    if !state.cycles.contains(&cycle) {
+                        state.cycles.push(cycle);
+                    }
+                    return Ok(false);
+                }
+                if !state.included.insert(name.clone()) {
+                    return Ok(false);
+                }
+                state.order.push(name);
+                state.active.push(identity);
+                Ok(true)
+            },
+        );
+        let state = Arc::clone(&self.state);
+        environment.add_function(
+            "__panel_record",
+            move |name: String, body: String| -> Result<String, Error> {
+                let mut state = state
+                    .lock()
+                    .map_err(|error| Error::new(ErrorKind::InvalidOperation, error.to_string()))?;
+                let source = state
+                    .sources
+                    .get(&name)
+                    .ok_or_else(|| Error::new(ErrorKind::InvalidOperation, "panel was not loaded"))?
+                    .clone();
+                if state.active.pop().as_ref() != Some(&source.module_identity) {
+                    return Err(Error::new(
+                        ErrorKind::InvalidOperation,
+                        "panel inclusion stack disagrees",
+                    ));
+                }
+                state.merged.insert(
+                    name,
+                    PanelProvenance {
+                        module_identity: source.module_identity,
+                        repository_name: source.repository_name,
+                        source_revision: source.source_revision,
+                        source_relative_path: source.source_relative_path,
+                        source_sha256: source.source_sha256,
+                        body_sha256: source.body_sha256,
+                        rendered_sha256: RenderedSha256(sha256(body.as_bytes())),
+                    },
+                );
+                Ok(body)
             },
         );
         environment
@@ -115,6 +183,27 @@ impl PanelRendering for PanelPrompt {
         self.state
             .lock()
             .map(|state| state.missing.clone())
+            .map_err(|error| error.to_string())
+    }
+    fn provenance(&self) -> Result<MergedPanels, String> {
+        let state = self.state.lock().map_err(|error| error.to_string())?;
+        state
+            .order
+            .iter()
+            .map(|name| {
+                state
+                    .merged
+                    .get(name)
+                    .cloned()
+                    .ok_or_else(|| "incomplete panel render".to_owned())
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map(MergedPanels)
+    }
+    fn cycles(&self) -> Result<Vec<PanelCycle>, String> {
+        self.state
+            .lock()
+            .map(|state| state.cycles.clone())
             .map_err(|error| error.to_string())
     }
 }
