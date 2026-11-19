@@ -1,3 +1,4 @@
+use curriculum::registry::IdentityText;
 mod support;
 use curriculum::registry::ExpandsSkills;
 use std::{fs, path::PathBuf};
@@ -58,9 +59,9 @@ fn dependencies_require_explicit_three_field_ids_and_reject_duplicates() {
     let resolved = registry
         .resolved_sources(&["compensation:illustration:0".into()])
         .unwrap();
-    let ids: Vec<&str> = resolved
+    let ids: Vec<String> = resolved
         .iter()
-        .map(|module| module.module_identity.0.as_str())
+        .map(|module| module.module_identity.identity_text().unwrap())
         .collect();
     assert_eq!(
         ids,
@@ -258,7 +259,8 @@ fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
     }
     let registry = support::registry(&r, &revisions()).unwrap();
     let ids = registry.skill_names().unwrap();
-    assert_eq!(ids.len(), 8);
+    assert_eq!(ids.len(), 9);
+    assert!(ids.iter().any(|id| id == "notion:item-8:0"));
     let workspace = temp.path().join("workspace");
     WorkspaceProjector::new(&workspace)
         .write(&registry)
@@ -319,12 +321,12 @@ fn explicit_versions_are_distinct_and_dependencies_select_exactly_one() {
     assert_eq!(
         selected
             .iter()
-            .map(|m| m.module_identity.0.as_str())
+            .map(|m| m.module_identity.identity_text().unwrap())
             .collect::<Vec<_>>(),
         ["vision:topic:0", "knowledge:consumer:0"]
     );
     assert_eq!(selected[0].source_relative_path.0, "vision/topic/0.md");
-    assert_eq!(selected[0].module_subject.0, "topic");
+    assert_eq!(selected[0].module_identity.module_subject.0, "topic");
     assert_eq!(
         registry.resolve_exact(&["vision:topic:12".into()]).unwrap()[0].body,
         "Version twelve.\n"
@@ -342,7 +344,13 @@ fn explicit_versions_are_distinct_and_dependencies_select_exactly_one() {
 #[test]
 fn versioned_identity_validation_has_no_implicit_or_alias_form() {
     use curriculum::registry::valid_id;
-    for id in ["vision:topic:0", "knowledge:a-b:42", "spirit:core:1"] {
+    for id in [
+        "vision:topic:0",
+        "knowledge:a-b:42",
+        "spirit:core:1",
+        "vision:topic:0-1",
+        "knowledge:a-b:2-42",
+    ] {
         assert!(valid_id(id), "{id}");
     }
     for id in [
@@ -352,6 +360,11 @@ fn versioned_identity_validation_has_no_implicit_or_alias_form() {
         "vision:topic:",
         "vision:topic:00",
         "vision:topic:01",
+        "vision:topic:0-0",
+        "vision:topic:2-1",
+        "vision:topic:00-1",
+        "vision:topic:0-01",
+        "vision:topic:0-1-2",
         "vision:topic:-1",
         "vision:topic:+1",
         "vision:topic:latest",

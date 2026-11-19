@@ -1,0 +1,16 @@
+[ { Role book-page-procedure [ 0 ] «role/book-page-procedure/0.md» }
+  { Role book-publishing-procedure [ 0 ] «role/book-publishing-procedure/0.md» }
+  { Role book-reader-description [ 0 ] «role/book-reader-description/0.md» }
+  { Role book-reader-procedure [ 0 ] «role/book-reader-procedure/0.md» }
+  { Role comment-relay [ 0 ] «role/comment-relay/0.md» }
+  { Role comment-relay-description [ 0 ] «role/comment-relay-description/0.md» }
+  { Role comment-watch [ 0 ] «role/comment-watch/0.md» }
+  { Role contextualizer-description [ 0 ] «role/contextualizer-description/0.md» }
+  { Role general-instructions [ 0 ] «role/general-instructions/0.md» }
+  { Role illustrator-description [ 0 ] «role/illustrator-description/0.md» }
+  { Role illustrator-faithfulness [ 0 ] «role/illustrator-faithfulness/0.md» }
+  { Role illustrator-svg [ 0 ] «role/illustrator-svg/0.md» }
+  { Role psyche-core-tertiary [ 0 ] «role/psyche-core-tertiary/0.md» }
+  { Role psyche-core-tertiary-description [ 0 ] «role/psyche-core-tertiary-description/0.md» }
+  { Role scripter [ 0 ] «role/scripter/0.md» }
+  { Role scripter-description [ 0 ] «role/scripter-description/0.md» } ]

@@ -1,0 +1,130 @@
+psyche-belief	spirit:core:0	spirit/core/0.md	3fe2afeeafe556f75b3e148d5cc2cca5169ba645465aaa1a8e3c2e56aa2b388f	Every task.
+psyche-belief	spirit:ghost:0	spirit/ghost/0.md	270ee1b2819fd62a604f51ac8b1ecd41933051c0d9f6ab2f5cfce3deddbb9f9d	Every task.
+psyche-belief	spirit:psyche:0	spirit/psyche/0.md	0a00d2f9c8489a004f7161996cf83259a5975fd1f139d2e66f60bdd831c893fc	Every task.
+psyche-belief	intent:belief-modules:0	intent/belief-modules/0.md	9113b964d7117d59848fef7e4038c7bc6934778bd6b09bc8c7dd25aea74d50ff	A belief module is written, judged, or placed.
+psyche-belief	intent:configuration:0	intent/configuration/0.md	37fa03eb40e11be4a735cea12f05c29ac053eaa6fb9795a1fb9736790f7f5bc8	A value or a decision is being fixed in code, or a hardwired behavior is met.
+psyche-belief	intent:design:0	intent/design/0.md	6c90bfef67f2bdd8e7d9d439c6a9a501e6bfa6e552360fab403364b747d995b6	A design is begun, or a proposal is judged for whether its pieces are enough.
+psyche-belief	intent:energy:0	intent/energy/0.md	e2f713ede826aaa3a009a5af3d1067998d73a6f6b6f6dceb3c71fdf373a2bdb1	A text is written, or a message is sized for the reader who will spend energy on it.
+psyche-belief	intent:fable:0	intent/fable/0.md	06f723535dc8557504d6d1179f2a98c49f803023ffd86383ed3ca2a079ece5a5	A Fable flow judges, designs and speaks to the living; what it needs found is found for it.
+psyche-belief	intent:incomplete-system:0	intent/incomplete-system/0.md	67ac651698bd1c3aa6df675b77fdd6902b92767d75a82a5cf79199cfe85bc416	A flow meets conditions that are not ideal and decides whether to go on.
+psyche-belief	intent:living-interaction:0	intent/living-interaction/0.md	69fe37359a345a9dcf3afb3c0fbeedf8031610db9995fb92a76f8c65350a2a05	A main flow hears the living and must decide whether to relay it.
+psyche-belief	intent:main-flow:0	intent/main-flow/0.md	34c674f004fc9ed5984827e5b1f6a5a00d18f2f6654174e7a784bafa315901dc	The system context of every main flow: composed into its SYSTEM by the launcher, never loaded as a skill.
+psyche-belief	intent:models:0	intent/models/0.md	863c02feec42a4ba217581b1dc2380284effb7127e3fff5b479be362dfedcc0c	Quality is sought by raising a model's effort.
+psyche-belief	intent:opus:0	intent/opus/0.md	eab5da56ad08e017d74e902009bd26a271753a4bf0e1e305a404066cf5989de0	An Opus flow decides what reaches its Fable and in what form.
+psyche-belief	intent:psyche:0	intent/psyche/0.md	e31710079e926880305a8e749074a4d1f4ac76f9e57f1b9ea0c97e9050692c17	A flow weighs the living's reviewed and approved words against a machine's inference, handles psyche data, or decides whether a reviewed line is psyche and which level it sits at.
+psyche-belief	intent:scratch:0	intent/scratch/0.md	0c92b38bfd6f2da2dda8289175ff8b4c5e5afa7c125dc29f038ede42709f6145	A flow is about to write a file for its own work.
+psyche-belief	vision:account:0	vision/account/0.md	0ee3d27674d8d47245a255bc4cf74f95798eba6037fc3d7004fa539c3f5ac41c	An account of what happened and how a thing works is written for the living, or judged.
+psyche-belief	vision:anatomy:0	vision/anatomy/0.md	2e549a8a2df3140202c5adb6a86aebc14739b80f773d40e65130c6c01712fedc	The machine is made of parts; each part does what one part of a human mind does, and is named after it in English.
+psyche-belief	vision:aspects:0	vision/aspects/0.md	e6ceaa69e1f52d7a809b32fb01fc7a96ab505ab3ad7055a85f72485832e37d89	Flows of different aspects work on one topic, or Field reaches Psyche.
+psyche-belief	vision:belief-modules:0	vision/belief-modules/0.md	8e4bcb1175ab108845fc566ebdfafd22be14c4c8987c1525dea53351c409bcb4	The belief modules and how the living reviews them.
+psyche-belief	vision:belief-nexus:0	vision/belief-nexus/0.md	455a33750b9883bec1dbcc4fce6b2c1a6c77062339e861ca46105fc4171cd71d	The Belief Nexus, version 1, which holds the belief modules and furnishes workspaces with them in place of Curriculum, is being designed or judged against what the living wants it to be.
+psyche-belief	vision:book:0	vision/book/0.md	63e2d878b456613e306e2a8e44760064f9ceac726f2ce53794731b5f06fc4ec3	How a presentation already written is published.
+psyche-belief	vision:chronos:0	vision/chronos/0.md	3825c26764823fd598e7ef688abb6f56b80fdaeaef710e2bd071ec983dc4b408	Chronos, the Nexus that tells astrological time, is designed or judged against what the living wants it to be.
+psyche-belief	vision:clojure:0	vision/clojure/0.md	f90bee87458dffc2e003b993f268e1af0c134ddc58c2c7aceb47654036dc45ef	A Clojure prototype represents an Ethos type or a Datom value.
+psyche-belief	vision:code:0	vision/code/0.md	6fdc0ea7529ad088fc6d2d2ef97dd5103af423e1791f6834667c3955c1a689db	Code is written, or its structure is judged.
+psyche-belief	vision:collaboration:0	vision/collaboration/0.md	b42743996c86a9d693ecbd7e421bf139dea7878a233252c30720c62fd1c052e3	Flows work together: how work is handed between them, stopped, or started for the living.
+psyche-belief	vision:committing:0	vision/committing/0.md	7ab9a7d528ad811cad17aa52e157d5fe3b2e7b8a819ce9462c59db0a257a4525	A commit is being made, or a commit practice is judged against what the living wants.
+psyche-belief	vision:complex:1	vision/complex/1.md	6987bb940506bb8614182e1cefdd24984b020d2b8839639624485f0354e532b4	The complex, version 1, a named set of metaflows and the relationships between them, the being one talks to, is being designed or judged against what the living wants it to be.
+psyche-belief	vision:criomos:0	vision/criomos/0.md	0ba2cf570a0a2b4844b43ff4ad44b833cf8f7a1cbd3a330efa53fb0f93ee1e54	CriomOS, its hosts, fixes, hardware, services, Nix code or desktop, is being designed or judged.
+psyche-belief	vision:crystallization:0	vision/crystallization/0.md	58dfb21620852720e97ae8ebf0c30a6dfa64c1c8ea5d32829ef8a20a603f1f37	A crystallization proposal is composed or judged.
+psyche-belief	vision:datom:0	vision/datom/0.md	a4ef423cb32b82fed23bb3e800b3b93936e161e55950aa15c6815e72057f5645	Datom — its syntax, strings, containers, errors, codec or relation to Ethos — is being designed or judged against what the living wants it to be.
+psyche-belief	vision:deployment:0	vision/deployment/0.md	7a8e9ad61826efda00e38201c61df6a24ce7d2320f5c5af97078c486be26d469	A proof of concept or test is about to be deployed and the host must be chosen.
+psyche-belief	vision:energy-nexus:1	vision/energy-nexus/1.md	a8cf0ebf8a58c6ada5c72222444976f253e4b6d451a0239d894f9403d27dd431	The Energy Nexus, version 1, which knows how much usage the machine has left on every provider and says so, is being designed or built against what the living wants it to be.
+psyche-belief	vision:ethos:0	vision/ethos/0.md	9bde1cb54f283a7a6bb638bed4cd395766c598604768097ce2e732888b47be66	An ethos file is written, or a type, trait or layout is judged against what the living wants ethos to be.
+psyche-belief	vision:far-flow-nexus:0	vision/far-flow-nexus/0.md	4b7e7434571696c997aca97e9b837355b4d19c44af689e5b061fa44f7ea7628d	The Flow Nexus, loaded by a flow designing it.
+psyche-belief	vision:far-sema:0	vision/far-sema/0.md	fe54d24f36b3ba09c481414eba9fa7980d64619d981865b86f2c3e514a939fa8	Sema: the living read through every channel, and the machine spoken to in signal alone.
+psyche-belief	vision:far-versioning:0	vision/far-versioning/0.md	1f0c6b3d409e6d263535313adaf645b07985246b0340672585002464655c6478	Upgrading a running system from one version to the next, its state shifted without the system being killed, is being designed or judged.
+psyche-belief	vision:field-aspect:0	vision/field-aspect/0.md	6b4d5b21f04d23ce27a2d2d1b88e006aa80831c5b47e785e4444cf48e27ed5bf	A Field flow uses the tools Mind makes and keeps the system running.
+psyche-belief	vision:flow-nexus:0	vision/flow-nexus/0.md	563c910bd4b89b9ab6923061a43703dfa417dd7e4b97fcc55bab4ec8b135d6af	The Flow Nexus — the Nexus that launches, names, tracks and ends flows and carries every message between them — or a permaflow, a message, a side flow, a hook or the Capsule is being designed or judged against what the living wants.
+psyche-belief	vision:flow-nexus:1	vision/flow-nexus/1.md	d7135eea914329339288a082578278c5765e6bd1326033e1f4fad1f37cf7471a	The Flow Nexus, version 1, which launches a flow from a metaflow the user defined, is being designed or judged against what the living wants it to be.
+psyche-belief	vision:git-server:0	vision/git-server/0.md	3ca1624daabccbee0aa11632e5a99a5134e93bdbd3738144b2e4158703cd8a31	The cluster's own Git server is set up or changed.
+psyche-belief	vision:capsule-nexus:0	vision/capsule-nexus/0.md	db4745c5e796867692eb976e6546d5eb1965a265b7674c9ab30a55da4e1765c7	The Capsule Nexus, the one component that owns every pane and runs herdr, its backend, is being designed or built against what the living wants it to be.
+psyche-belief	vision:high-level-view:0	vision/high-level-view/0.md	59a4e56ffa3e3bef6ba3946416c99a3d4cefc6597a05322ccaf30a837960eef6	A high-level view of what is being built is owed or written.
+psyche-belief	vision:horizon:0	vision/horizon/0.md	e83c7aff4a960445c310a80118b0c46ed38fdd172ccd268d33d1aefbfe4d1c64	Horizon, the cluster state it answers, or where a sandbox virtual machine runs is being designed or judged.
+psyche-belief	vision:long-model-roles:0	vision/long-model-roles/0.md	f6b2d26d54483e17a6a06c58b5c6409309ae7c96abd4daacba173dece8f4d69f	Model roles, how a Fable flow is served by the flows below it, are being designed or judged.
+psyche-belief	vision:long-nexus:0	vision/long-nexus/0.md	3842b27fe34e39683c4218fd0cae8277b3aae32c11eaa1aeb115d1f5042319e1	A Nexus, loaded by a flow designing it.
+psyche-belief	vision:long-sema:0	vision/long-sema/0.md	30137b8b9e99eaa2aece9e9968e2dd161bb503692826ae7734baf0ea19754354	Sema as it is to be past the compromised phase: whole, paralinguistic, rendered from dictation.
+psyche-belief	vision:memory:0	vision/memory/0.md	e2d0ee7367222f2d080e9aac5dbb65eae5c804a2148a97e1c315ef014137dfc1	Memory, the database engine of a Nexus, or its record types are being designed or judged.
+psyche-belief	vision:mind-aspect:0	vision/mind-aspect/0.md	4b873580e3a532e4b62f4164c60229cf3c6ad88514d1f4524938badf3b19db83	A Mind flow makes the tools Psyche designs.
+psyche-belief	vision:model-roles:0	vision/model-roles/0.md	626ca3028f3bc7af71c8f7a29f04535cd53cecec385fc02f974031eae40f1404	Which model thinks, designs, delegates or speaks to the living, and in which metaflow, is decided, or a model is named natively.
+psyche-belief	vision:nexus:0	vision/nexus/0.md	402ebbfa597d1d88c0f7e636771e0affffb82af9e82f8cc0b0652e9e05bac612	A long-running Nexus — its sockets, clients, wire contracts and store — is being designed or judged against what the living wants it to be.
+psyche-belief	vision:nexus:1	vision/nexus/1.md	cb3a79b97ed0347e00cc48b855b2956b7b965cecd27b6d51f7de4f74be9dc7d0	A Nexus, version 1 — its four parts of Signal, Operation, Memory and Emission, and the translator that speaks text for it — is being designed or judged against what the living wants it to be.
+psyche-belief	vision:nix-builds:0	vision/nix-builds/0.md	6487465a5f81de87b30cfa917ecacc781a059caec90e641f12066044696c5f39	Nix builds are made, kept or collected.
+psyche-belief	vision:orchestrate:0	vision/orchestrate/0.md	905bba298e0c2116d291bc2e40dc213b80a999ba06e530ed859ef27886112820	Orchestrate itself — its deployment, its meta binary, or its locking — is being designed or judged.
+psyche-belief	vision:persona:0	vision/persona/0.md	ce35e8e015ad7e4973b7b1f4462a5c825437d01656ee13f00361b41557c868c4	Persona, the meta harness: the one artificial being a person interacts with, distributed over a cluster, and the Nexus that supervises it, is designed or judged.
+psyche-belief	vision:presentation:0	vision/presentation/0.md	4eb184cac719500476c593fe71af61ec649bf73df2edd76ee21db7c8cbe7456f	What a presentation is, a page the living reads, a proposal, a review or an account; how its figures, code and change marks are shown.
+psyche-belief	vision:proposal:0	vision/proposal/0.md	2f99fd5a626103b6b74bfeb74a106c91c493969f57b5251cef0a90d370bc8077	How a proposal of the living's vision is made: what it is made of, how its code is shown, and how it is shown to him.
+psyche-belief	vision:protos:0	vision/protos/0.md	4884d5e318470bb4412c7f6851dea4b67768720fffbfa8996bb53f752b8fad4b	Protos — the shared parsing style, its layers, delimiters, multi-pass engine or canonical print — is being designed or judged against what the living wants.
+psyche-belief	vision:psyche:0	vision/psyche/0.md	7c5df76fc74509644a0d229e17994d30360b46a0bb680b1164e071b9f9148596	Psyche, the living system of one human mind, and the written psyche, its records, which the word alone means: its levels, where its data lives and how a record is made are being designed or judged.
+psyche-belief	vision:psyche-aspect:0	vision/psyche-aspect/0.md	f976d771c427e460c88c0ead6fc9462aa6151f6684672a07a398d2093a34b6ff	A Psyche main flow of a topic designs and audits that topic.
+psyche-belief	vision:psyche-fable:0	vision/psyche-fable/0.md	0663b43959a12ad8097bec349811d3f4b0a56f53cbba2bd8b62ada190ba75fc8	The Psyche core Fable works with the living, or judges what it is to talk about.
+psyche-belief	vision:remembering:0	vision/remembering/0.md	a8ef16936f1009c728cc2c11d4c46b3554c6956f4365b90813d5edcd47e24f41	A flow is told it did or said something it does not itself recall.
+psyche-belief	vision:review:0	vision/review/0.md	1b7414e560eec3c51241903aeaef9b7911becf684201e875b58738d9966ec765	What a review is, a presentation of lines landed without the living's review, shown in the dark shades.
+psyche-belief	vision:sanskrit:0	vision/sanskrit/0.md	839a7fed241bc823a12888edb01b04645e76c7561ec39b53b40b9615e3313f80	A flow looks to the Sanskrit corpus for how to approach a problem, or the keeping and searching of its texts is designed.
+psyche-belief	vision:sema:0	vision/sema/0.md	b3faee323d172ce9bce239633611fa8d468046f3ff8cc492db5b3c8bb7f200ef	Sema, version 0: Markdown read into a typed tree and printed back from it, so a document is held, edited and searched by its structure.
+psyche-belief	vision:sema:1	vision/sema/1.md	2f4f0270c8946273e45532164a9ca9793205602e59b5cd2a07661b28ba64ef7e	Sema, the meaning language — its logographic signs, roots, verbs, links, storage or names — is being designed or judged against what the living wants.
+psyche-belief	vision:short-ethos:0	vision/short-ethos/0.md	b88b9eaa39f4a70aa0e6f2e9367782aff0d6301f628d80b7fde76cc87d23b08d	Ethos: how an Emission is written while ethos-zero knows no Emission root.
+psyche-belief	vision:short-sema:0	vision/short-sema/0.md	533a1fd4c20e7847308f503b8c1e2dc753317993e8c8ee1ca7dd7fb80a362e93	Sema: what stands until the full verb set lands.
+psyche-belief	vision:signal:0	vision/signal/0.md	03bd4c4717a03af1d8b633e5b96ef7379a546675e2ab6374caf6e26f5a07cb64	Signal — the binary messaging layer, its inputs and outputs, meta signal or protocol — is being designed or judged against what the living wants.
+psyche-belief	vision:subflows:0	vision/subflows/0.md	64d27a5af0f0cd8e94c594c0fb184cf96000cdb23dbfbc806940618479e54bdd	Subflows, the actual flows that replace the harness subagent tool long term, are being designed or judged.
+psyche-belief	vision:system-one:0	vision/system-one/0.md	ab0948e772f34ef3f431b36953937ee7b5ea6145ff9c97c97336cc5206fe80c0	A System 1 model, such as Jev, is designed into the system's logic or judged.
+psyche-belief	vision:testing:0	vision/testing/0.md	a8b4ca511b0ec1ee5d9ed25b8803294a181a012ef60d058e867136e9e837bc48	Test repositories hold a repository's tests apart from its code.
+psyche-belief	vision:versioning:0	vision/versioning/0.md	b8109161bde99256be5e5774ee091caa3cb51789f361e3bbe1fe3a24f41864f8	A Nexus is versioned, rewritten whole, run as stable and next, or upgraded while the system runs.
+psyche-belief	vision:x11:0	vision/x11/0.md	b1524b4f6908d3af90e1886ce079ff07223b75b8023b1efa89eca97df82ce53a	A CriomOS display or graphical-session choice touches X11.
+psyche-belief	knowledge:active-projects:0	knowledge/active-projects/0.md	32281b5106b745b706a4607794a4387853ba5ca194283a11c885a04e11b1340e	Which repositories are active: the ones worked on and run now, where effort on build, tests and upkeep is spent; every other repository is left as it is.
+psyche-belief	knowledge:flow-messaging:0	knowledge/flow-messaging/0.md	3e92a2d7a4a9a2d3f5ee2a543355c5499d42e895dc94e74b7d35132ed28a9591	How a flow sends a message through the Flow CLI.
+mind-belief	knowledge:astra:0	knowledge/astra/0.md	fcd1c44901f2c20eaa42702f90bb08f26fab21aab1ce731264ee4b31e660dac8	A flow deals with an Astra flow.
+mind-belief	knowledge:book:0	knowledge/book/0.md	bb6d246952e77895e959451d5f4090ce56945c6fb00b9eab6dbb7cb9625b9282	A book's source, figures and publication.
+mind-belief	knowledge:codex-reset:0	knowledge/codex-reset/0.md	8b6800204f3dfb82d7955e7947956d897591d5be33e1b2929a4210042d2e7c4c	Codex usage is low or out and a usage reset may be redeemed; load before reading Codex usage or redeeming a reset.
+mind-belief	knowledge:context-strata:0	knowledge/context-strata/0.md	23937d9130bcf4d632d9292f44624220de7f53089d78d9edd0ff39ca8541316f	Designing or implementing something that depends on where text enters a thinking machine's (an LLM's) context. Almost never arises in ordinary task work.
+mind-belief	knowledge:criomos:0	knowledge/criomos/0.md	f8160126157c1bab9fd56e38221ce7d1450656237f3ff9b46b08c89e1c381db0	CriomOS must be maintained: a host is declared, a fix placed, a system built or deployed, or a fact about a host asked for.
+mind-belief	knowledge:criomos-deploy:0	knowledge/criomos-deploy/0.md	222bd2f6312e1161d2f3f2be02fe7341a41b7a2c5067edebc4c73790b15567c6	A change to a host or to the user environment is made, checked and switched in through Lojix.
+mind-belief	knowledge:ethos:0	knowledge/ethos/0.md	0fdd47eb2f2c6a0898700dcdf516bcf24bca7a4d7309c7949fd6a93154b79824	An ethos file is checked, or Rust is generated from it, with ethos-zero.
+mind-belief	knowledge:fable:0	knowledge/fable/0.md	495f75047945ce405517cfe2e758f7846d0483dae053c9656cb3253ec702ba59	A flow deals with a Fable flow.
+mind-belief	knowledge:haiku:0	knowledge/haiku/0.md	0785e2ce111fe93509f34fa16998306e68cda168898381201f5f768150a1f5e4	A flow deals with a Haiku flow.
+mind-belief	knowledge:lojix:0	knowledge/lojix/0.md	0f69a14f4191183992da8a5727c32070ff4d596da670fda7bff5e842577aacd5	A Lojix request must be constructed, submitted, observed, or interpreted.
+mind-belief	knowledge:luna:0	knowledge/luna/0.md	4ddb9a548a4a5550e3ece720e2b7daa43407e85216f1200b96fadce9992647c6	A flow deals with a Luna flow.
+mind-belief	knowledge:model-descriptions:0	knowledge/model-descriptions/0.md	464c6374fa3a81d426f343fc7532926ba82fc91b292c45ae4ae620a4a91dfdec	A permaflow's modules are configured, and which model descriptions it is given is decided.
+mind-belief	knowledge:nix-rust-builds:0	knowledge/nix-rust-builds/0.md	6d153fb2011f45d6ebf0737d3a7a56933ca4b33430420820d5fd63a9ae2f33ef	A Rust repository is built and tested with Nix so that nothing is compiled twice.
+mind-belief	knowledge:notion:0	knowledge/notion/0.md	2503230f8edbb05880306d98c18fabe5ea969efe49f605937e3b1ee9305c24a8	What a notion module is, who writes it and how it stands to vision.
+mind-belief	knowledge:offload:0	knowledge/offload/0.md	4c262edb55f036c63b82dac2fd1d7eec334d4c152e700b7890d67133d63903e4	A command is heavy on CPU, memory or disk: a Nix evaluation, a cargo build or test, a search over a large tree, a flake update.
+mind-belief	knowledge:opus:0	knowledge/opus/0.md	3ce7388560a4da21526fe0237a1fadba4fa41e4e4684680087b72b0ba833cbc4	A flow deals with an Opus flow.
+mind-belief	knowledge:orchestrate:0	knowledge/orchestrate/0.md	e25f7c494a393f7840f3d3eabda52f6bda0d1f0f66dd0499045530662d8f817e	An ordinary Orchestrate Lock request must be constructed, submitted, or interpreted.
+mind-belief	knowledge:psyche:0	knowledge/psyche/0.md	ba5f8849a6ce42e138e463e21bfe3792b2001600460e3232346b67c384c10908	Where the psyche's records are found.
+mind-belief	knowledge:repositories:0	knowledge/repositories/0.md	33fe6ef703e731bdb159d34ce9f3500438dc966c02f931114ce083d087237998	A repository is fetched to a machine, tagged at its remote, or removed from a machine.
+mind-belief	knowledge:root:0	knowledge/root/0.md	950fc4af88241451b4e776f48e44931ddd05deee2bfa30933ec00c968bec1724	A command needs root on a host.
+mind-belief	knowledge:sanskrit-vocabulary:0	knowledge/sanskrit-vocabulary/0.md	807d3023aa72844b7949b4c72ddab75ce0159a3c756108dbbbeb5429bcc31188	A Sanskrit term is used or met: every Sanskrit term we use is defined here, in IAST, with its English.
+mind-belief	knowledge:search:0	knowledge/search/0.md	f50fd3c789465820452be9e48d0ea91c994f5215576cc28db119aa4e62b00bb4	Text or a file is searched for.
+mind-belief	knowledge:secrets:0	knowledge/secrets/0.md	2766a81ed9bb5d4fa609ea30ced1edb3e6ae16fb2ead2358b9908c69d3ef4329	A secret must reach a program without reaching the agent; load before any command that handles a credential.
+mind-belief	knowledge:sol:0	knowledge/sol/0.md	8ff882bfcf8eaf8434ddf5b9e6c8afcd4aa75a211c4a35eb122ba02c733845ab	A flow deals with a Sol flow.
+mind-belief	knowledge:sonnet:0	knowledge/sonnet/0.md	f12aed736e53f8938493ed932d41dcbcbbb09891d77c5f1ae45559212452e2f9	A flow deals with a Sonnet flow.
+mind-belief	knowledge:terra:0	knowledge/terra/0.md	7d207fbc51768a11096f4322098e8973f0a1089a8bc0ecaa90e8e6f5f4d136a8	A flow deals with a Terra flow.
+mind-belief	knowledge:vocabulary:0	knowledge/vocabulary/0.md	fe0d77d7c6f79c7cf370fbf0720c72c8389dea2e8804043462e2e71c17454445	One of our own terms is used, or a term is being defined.
+mind-belief	role:book-description:0	role/book-description/0.md	63b09834474405cb8954d52b7600bfe86d6b1689c29304c5039da926e3b218ac	Role selection description.
+mind-belief	role:book-page-description:0	role/book-page-description/0.md	bfc831cadda36c3d48677bc851bf0f7c4e933d5469f1d250f903aef9deb581f2	Role selection description.
+mind-belief	role:default-description:0	role/default-description/0.md	e92f23d4934965e0bdedacb16ce581063b69781536611b950bfecf0e7f4b93f0	Role selection description.
+mind-belief	role:explorer-description:0	role/explorer-description/0.md	d0fdd6e9d14908e22374c9cb6a1e7d4fa05c55682a98a193cc71b1ac31025efc	Role selection description.
+mind-belief	role:read-demanding-description:0	role/read-demanding-description/0.md	ffe0f415df6528d851f897044832fa83719109277d7fe407289ded24245c69a1	Role selection description.
+mind-belief	role:read-ordinary-description:0	role/read-ordinary-description/0.md	590f23383539a6a4f0173533ef2c2ab0bae6f00fc13f0e263bc083161db4e3bd	Role selection description.
+mind-belief	role:read-trivial-description:0	role/read-trivial-description/0.md	f7debe18b48d3266dbe33148ae59aed8e3a364477c5c70654a207804ad6e5a1e	Role selection description.
+mind-belief	role:tester-description:0	role/tester-description/0.md	ba789dd68268cfdf9f8054605426314a4c1c90a10d131e1ac67840c6fe6512bb	Role selection description.
+mind-belief	role:worker-description:0	role/worker-description/0.md	80addfaea1b74725502d0c1e3af8b42cfa1ab0c37e1b565944f00a9735adb5b4	Role selection description.
+mind-belief	role:write-demanding-description:0	role/write-demanding-description/0.md	1e1cb2c2416557df8fb2977d496c8c7c9df9f4928f58bf6e4032e59b0eb183fb	Role selection description.
+mind-belief	role:write-ordinary-description:0	role/write-ordinary-description/0.md	29df3e701ac333bd57ecd87fb93b630a6262e6791d1a9a6dbc668408c9a0a85f	Role selection description.
+mind-belief	role:write-trivial-description:0	role/write-trivial-description/0.md	a245bc5085f2d8eeedaa870aee5c69eb3924ac9b427ea246529601c24797c12c	Role selection description.
+field-belief	role:book-page-procedure:0	role/book-page-procedure/0.md	7fdb6f12d79e67f371e4a3c6a47414eff5a552c8df33c56b029872b488876ae4	book page procedure.
+field-belief	role:book-publishing-procedure:0	role/book-publishing-procedure/0.md	1cd3f162aab3f7fec79a58892c0348fd551b359a8194c2e8acca828b4fd6a47f	book publishing procedure.
+field-belief	role:book-reader-description:0	role/book-reader-description/0.md	b56cfecbe0d08c70908649d5e8ef4df76c5142c1475e8ddf78bea40666c961d8	book reader description.
+field-belief	role:book-reader-procedure:0	role/book-reader-procedure/0.md	9facd904f269e29309e6539b93a367bb9d4741a8b8d0cadc17a1bf7a770109f4	book reader procedure.
+field-belief	role:comment-relay:0	role/comment-relay/0.md	e02b85d0ce7bdaa8e4257270c465a1e3ebdd19015a2a9c69f05299b3f7f2b82b	Relay the living's comments on the named books.
+field-belief	role:comment-relay-description:0	role/comment-relay-description/0.md	07abedaa19490d3a8cb86bf45f3faebc0bc29c404d75c3d18edc4a6d43734349	comment relay description.
+field-belief	role:comment-watch:0	role/comment-watch/0.md	abdc6d146d6bfe027ca5db30cde001981692dd4e63df6eb8c60955853786e2f5	comment watch.
+field-belief	role:contextualizer-description:0	role/contextualizer-description/0.md	a9365f69ddc7060ae4e4c8a584c01ec909d6510212d97fa05474132125d05dd5	contextualizer description.
+field-belief	role:general-instructions:0	role/general-instructions/0.md	923ba7167d5d7c635a6781bf34a0b2582dea9e7479a11bc5702866f77966ebac	general instructions.
+field-belief	role:illustrator-description:0	role/illustrator-description/0.md	06877bf9d04df588491b53b027c2268a1e407e54e188ce56544364b07dd51d4e	illustrator description.
+field-belief	role:illustrator-faithfulness:0	role/illustrator-faithfulness/0.md	86a81ac5bdfbce193c21445f6a47d9ccc01e675f9ca9e572c9706d7645aad5c5	illustrator faithfulness.
+field-belief	role:illustrator-svg:0	role/illustrator-svg/0.md	66ace3858513e869cd600026531ed55c43088041322ba6ae2da526dfe9645142	illustrator svg.
+field-belief	role:psyche-core-tertiary:0	role/psyche-core-tertiary/0.md	db839e3d77cf228750130d8443b17d3f54ee64d1309576750f82b0e935cc7264	psyche core tertiary.
+field-belief	role:psyche-core-tertiary-description:0	role/psyche-core-tertiary-description/0.md	6f245e0d2235c80a9d6febe184f329171dea2ae5dcad4d09346376c670bd370d	psyche core tertiary description.
+field-belief	role:scripter:0	role/scripter/0.md	277be111deba22d0e17edaf51bfcfbaacbb3e9a99bfd77a4821b6856d6b8cec3	scripter.
+field-belief	role:scripter-description:0	role/scripter-description/0.md	eeb618a89f8a601a01a6104481a97c95462d7eea2763e41e4cf13311de7e98e7	scripter description.

@@ -1,8 +1,10 @@
+use curriculum::registry::IdentityText;
 mod support;
 use curriculum::{registry::SkillRegistry, startup};
 use sha2::{Digest, Sha256};
 use signal_curriculum_nexus::*;
 use std::{fs, path::PathBuf};
+use support::identity;
 fn digest(text: &str) -> String {
     format!("{:x}", Sha256::digest(text.as_bytes()))
 }
@@ -48,13 +50,13 @@ fn fixture(base: &std::path::Path) -> ([PathBuf; 3], SkillRegistry, StartupSelec
                 third_string: "Quaternary".into(),
             },
             system_modules: SystemModules(vec![
-                ModuleIdentity("spirit:core:0".into()),
-                ModuleIdentity("intent:seat:0".into()),
+                identity("spirit:core:0"),
+                identity("intent:seat:0"),
             ]),
             user_modules: UserModules(
                 std::iter::once("vision:core:0".to_owned())
                     .chain(ids)
-                    .map(ModuleIdentity)
+                    .map(|id| identity(&id))
                     .collect(),
             ),
             flow_id_vector: vec![],
@@ -71,16 +73,16 @@ fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
         .context_provenance_vector
         .iter()
         .filter(|row| row.startup_placement == StartupPlacement::System)
-        .map(|row| row.module_identity.0.as_str())
+        .map(|row| row.module_identity.identity_text().unwrap())
         .collect::<Vec<_>>();
     let user_ids = result
         .context_provenance_vector
         .iter()
         .filter(|row| row.startup_placement == StartupPlacement::User)
-        .map(|row| row.module_identity.0.as_str())
+        .map(|row| row.module_identity.identity_text().unwrap())
         .collect::<Vec<_>>();
     assert_eq!(system_ids, ["spirit:core:0", "intent:seat:0"]);
-    assert_eq!(user_ids.first(), Some(&"vision:core:0"));
+    assert_eq!(user_ids.first().map(String::as_str), Some("vision:core:0"));
     assert!(
         user_ids
             .iter()
@@ -143,19 +145,17 @@ fn caller_paths_inline_text_unknown_duplicates_wrong_placement_and_changed_sourc
         "vision:core:0:1",
     ] {
         let mut s = selection.clone();
-        s.user_modules = UserModules(vec![ModuleIdentity(bad.into())]);
+        s.user_modules = UserModules(vec![identity(bad)]);
         assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     }
     let mut s = selection.clone();
     s.user_modules.0.push(s.user_modules.0[0].clone());
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     let mut s = selection.clone();
-    s.user_modules
-        .0
-        .push(ModuleIdentity("vision:core:0".into()));
+    s.user_modules.0.push(identity("vision:core:0"));
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     let mut s = selection.clone();
-    s.system_modules = SystemModules(vec![ModuleIdentity("compensation:user00:0".into())]);
+    s.system_modules = SystemModules(vec![identity("compensation:user00:0")]);
     s.user_modules.0.clear();
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     write_source(roots[2].join("compensation/user00/0.md"), "Changed").unwrap();
@@ -180,8 +180,8 @@ fn undeclared_shared_dependency_placement_refuses_instead_of_duplicate_injection
             second_string: "Publisher".into(),
             third_string: "Quaternary".into(),
         },
-        system_modules: SystemModules(vec![ModuleIdentity("vision:system:0".into())]),
-        user_modules: UserModules(vec![ModuleIdentity("compensation:user00:0".into())]),
+        system_modules: SystemModules(vec![identity("vision:system:0")]),
+        user_modules: UserModules(vec![identity("compensation:user00:0")]),
         flow_id_vector: vec![],
     };
     assert!(startup::compose(&registry, &tmp.path().join("flows"), &selection).is_err());
@@ -215,8 +215,10 @@ fn spirit_intent_cannot_be_user_even_without_frontmatter_placement() {
     let (_, registry, selection) = fixture(tmp.path());
     for id in ["spirit:core:0", "intent:seat:0"] {
         let mut s = selection.clone();
-        s.system_modules.0.retain(|m| m.0 != id);
-        s.user_modules.0.push(ModuleIdentity(id.into()));
+        s.system_modules
+            .0
+            .retain(|m| m.identity_text().map(|text| text != id).unwrap_or(false));
+        s.user_modules.0.push(identity(id));
         assert!(startup::compose(&registry, &tmp.path().join("flows"), &s).is_err());
     }
     let mut s = selection;
@@ -236,7 +238,12 @@ fn manifest_distinguishes_authored_and_target_rendered_module_hashes() {
     let module = result
         .context_provenance_vector
         .iter()
-        .find(|m| m.module_identity.0 == "compensation:user00:0")
+        .find(|m| {
+            m.module_identity
+                .identity_text()
+                .map(|id| id == "compensation:user00:0")
+                .unwrap_or(false)
+        })
         .unwrap();
     assert_eq!(module.body_sha256.0, digest(text));
     assert_eq!(module.rendered_sha256.0, digest("CLAUDE_ONLY\n"));
@@ -317,4 +324,138 @@ fn write_source(
     let path = path.as_ref();
     fs::create_dir_all(path.parent().unwrap())?;
     fs::write(path, contents)
+}
+
+#[test]
+fn startup_uses_actual_span_provenance_and_deduplicates_a_shared_span() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (roots, _, mut selection) = fixture(tmp.path());
+    write_source(
+        roots[2].join("compensation/user00/0-1.md"),
+        "---\ndependencies: [ vision:core:0 ]\nplacement: user\n---\nBODY_00_SPAN\n",
+    )
+    .unwrap();
+    let manifest = roots[2].join("modules.datom");
+    let declarations = fs::read_to_string(&manifest).unwrap();
+    let declarations = declarations.strip_suffix(" ]\n").unwrap();
+    fs::write(
+        &manifest,
+        format!(
+            "{declarations}\n  {{ {{ Compensation user00 Span.{{ 0 1 }} }} «compensation/user00/0-1.md» }} ]\n"
+        ),
+    )
+    .unwrap();
+    let registry = SkillRegistry::from_context_repositories(
+        &roots,
+        &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
+    )
+    .unwrap();
+    selection
+        .user_modules
+        .0
+        .push(identity("compensation:user00:1"));
+    let result = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
+    let actual = result
+        .context_provenance_vector
+        .iter()
+        .filter(|module| {
+            module
+                .module_identity
+                .identity_text()
+                .map(|id| id.starts_with("compensation:user00:"))
+                .unwrap_or(false)
+        })
+        .map(|module| module.module_identity.identity_text().unwrap())
+        .collect::<Vec<_>>();
+    assert_eq!(actual, ["compensation:user00:0", "compensation:user00:0-1"]);
+    assert_eq!(result.user_text.0.matches("BODY_00_EXACT").count(), 1);
+    assert_eq!(result.user_text.0.matches("BODY_00_SPAN").count(), 1);
+}
+
+#[test]
+fn user_dependency_on_explicit_system_modules_is_deduplicated_by_actual_identity() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (roots, _, selection) = fixture(tmp.path());
+    write_source(
+        roots[2].join("compensation/user00/0.md"),
+        "---\ndependencies: [ spirit:core:0 intent:seat:0 ]\nplacement: user\n---\nUSER_WITH_SYSTEM_DEPS\n",
+    )
+    .unwrap();
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
+    let result = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
+    for identity in ["spirit:core:0", "intent:seat:0"] {
+        assert_eq!(
+            result
+                .context_provenance_vector
+                .iter()
+                .filter(|module| module
+                    .module_identity
+                    .identity_text()
+                    .map(|id| id == identity)
+                    .unwrap_or(false))
+                .count(),
+            1
+        );
+    }
+    assert_eq!(
+        result.user_text.0.matches("USER_WITH_SYSTEM_DEPS").count(),
+        1
+    );
+}
+
+#[test]
+fn inventory_is_independent_while_startup_refuses_duplicate_execution_metadata() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (roots, _, selection) = fixture(tmp.path());
+    fs::write(
+        roots[0].join("vision/core/0.md"),
+        "---\ndescription: first\ndescription: second\nplacement: user\n---\nBody.\n",
+    )
+    .unwrap();
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
+    assert_eq!(registry.listed_modules().unwrap().len(), 25);
+    let verbose = registry.listed_modules_verbose().unwrap_err().to_string();
+    assert!(verbose.contains("vision:core:0") && verbose.contains("vision/core/0.md"));
+    let error = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap_err();
+    assert!(error.contains("duplicate frontmatter key"), "{error}");
+}
+
+#[test]
+fn context_variables_require_a_complete_identifier_placeholder() {
+    use curriculum::context_render;
+    let literal = concat!(
+        "```json\n",
+        "{\"type\":\"assistant\",\"message\":{\"usage\":{\"input_tokens\":2}}}\n",
+        "```\n",
+        "}} {{ {{ }} {{123}} {{not a name}} {{\"key\":1}}\n",
+        "Unicode: café; shell: ${VAR:?}; unclosed: {{name\n",
+    );
+    for target in [Target::Claude, Target::Codex, Target::Pi, Target::OpenCode] {
+        assert_eq!(context_render::render(&target, literal).unwrap(), literal);
+        for variable in [
+            "{{unknown}}",
+            "{{ unknown_2 }}",
+            "{{_name}}",
+            "literal }} then {{ missing }}",
+        ] {
+            assert_eq!(
+                context_render::render(&target, variable).unwrap_err(),
+                "unresolved context variable; no caller-inline substitution is allowed"
+            );
+        }
+        assert_eq!(
+            context_render::render(&target, "{% raw %}\n{{unknown}}\n{% endraw %}\n").unwrap(),
+            "{{unknown}}\n"
+        );
+    }
+    assert_eq!(
+        context_render::render(
+            &Target::Codex,
+            "{% if claude %}\n{{unknown}}\n{% endif %}\n"
+        )
+        .unwrap(),
+        ""
+    );
 }

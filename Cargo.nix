@@ -302,7 +302,7 @@ rec {
       };
       "curriculum" = rec {
         crateName = "curriculum";
-        version = "0.1.0";
+        version = "0.3.1";
         edition = "2024";
         crateBin = [
           {
@@ -1330,8 +1330,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/LiGoldragon/nexus";
-          rev = "ec097e315a3b0b99bc215a72f6c3f6d8b2b060cf";
-          sha256 = "0c0qm66wilv27gpi4c18l812sk70hs28pvsbdvhbb89gffq1pl6f";
+          rev = "69946db066bb70bdbc1fd7dbf5e6c88dcf05c363";
+          sha256 = "08qk0m47dxvnpn7nz7x00x6vzmw22n9xl3ykl8v0f2xn5fhs8iv6";
         };
         dependencies = [
           {
@@ -1983,13 +1983,13 @@ rec {
       };
       "signal-curriculum-nexus" = rec {
         crateName = "signal-curriculum-nexus";
-        version = "0.1.0";
+        version = "0.3.0";
         edition = "2024";
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/LiGoldragon/signal-curriculum-nexus";
-          rev = "4202d8bade73179be646b588498ae55e5687d1e8";
-          sha256 = "0911rq0kmmm4p6gw5xzak74lgi7zh41ai7phz1frmp913spwcp74";
+          rev = "31b3ac5796eadee2d7fdcd267ee3cea926f1f46c";
+          sha256 = "038qbn2m1yqypmdha52qg5xavfsrripb624vm5as23cdqv5kszy5";
         };
         libName = "signal_curriculum_nexus";
         dependencies = [

@@ -1,0 +1,1562 @@
+[
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Spirit",
+      "core",
+      "0"
+    ],
+    "path": "spirit/core/0.md",
+    "description": "Every task.",
+    "sha256": "3fe2afeeafe556f75b3e148d5cc2cca5169ba645465aaa1a8e3c2e56aa2b388f",
+    "git_blob": "fb86a44d64dc43ec34ca7545641df558b57213db"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Spirit",
+      "ghost",
+      "0"
+    ],
+    "path": "spirit/ghost/0.md",
+    "description": "Every task.",
+    "sha256": "270ee1b2819fd62a604f51ac8b1ecd41933051c0d9f6ab2f5cfce3deddbb9f9d",
+    "git_blob": "90ac0c72c29936008b6b5fdad5eb2ac918f0e48a"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Spirit",
+      "psyche",
+      "0"
+    ],
+    "path": "spirit/psyche/0.md",
+    "description": "Every task.",
+    "sha256": "0a00d2f9c8489a004f7161996cf83259a5975fd1f139d2e66f60bdd831c893fc",
+    "git_blob": "3510b71ae3cdcf3a5935dbc427e4e10641cce4fb"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Intent",
+      "belief-modules",
+      "0"
+    ],
+    "path": "intent/belief-modules/0.md",
+    "description": "A belief module is written, judged, or placed.",
+    "sha256": "9113b964d7117d59848fef7e4038c7bc6934778bd6b09bc8c7dd25aea74d50ff",
+    "git_blob": "3d9514642baa06744402e5591a1acc33c1a7d9b6"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Intent",
+      "configuration",
+      "0"
+    ],
+    "path": "intent/configuration/0.md",
+    "description": "A value or a decision is being fixed in code, or a hardwired behavior is met.",
+    "sha256": "37fa03eb40e11be4a735cea12f05c29ac053eaa6fb9795a1fb9736790f7f5bc8",
+    "git_blob": "88ac0ff04d14ffcc2ab5aa41954deddb17ea3178"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Intent",
+      "design",
+      "0"
+    ],
+    "path": "intent/design/0.md",
+    "description": "A design is begun, or a proposal is judged for whether its pieces are enough.",
+    "sha256": "6c90bfef67f2bdd8e7d9d439c6a9a501e6bfa6e552360fab403364b747d995b6",
+    "git_blob": "1df48799b42093eda37173d92829be278c71209a"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Intent",
+      "energy",
+      "0"
+    ],
+    "path": "intent/energy/0.md",
+    "description": "A text is written, or a message is sized for the reader who will spend energy on it.",
+    "sha256": "e2f713ede826aaa3a009a5af3d1067998d73a6f6b6f6dceb3c71fdf373a2bdb1",
+    "git_blob": "557c005b47d5b351ac4c6c43db1305b4de724b49"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Intent",
+      "fable",
+      "0"
+    ],
+    "path": "intent/fable/0.md",
+    "description": "A Fable flow judges, designs and speaks to the living; what it needs found is found for it.",
+    "sha256": "06f723535dc8557504d6d1179f2a98c49f803023ffd86383ed3ca2a079ece5a5",
+    "git_blob": "61a2579e92c53c52211f8f4331e571902fa4d950"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Intent",
+      "incomplete-system",
+      "0"
+    ],
+    "path": "intent/incomplete-system/0.md",
+    "description": "A flow meets conditions that are not ideal and decides whether to go on.",
+    "sha256": "67ac651698bd1c3aa6df675b77fdd6902b92767d75a82a5cf79199cfe85bc416",
+    "git_blob": "8b49944764bd475be86867d45a4b0d11daed0776"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Intent",
+      "living-interaction",
+      "0"
+    ],
+    "path": "intent/living-interaction/0.md",
+    "description": "A main flow hears the living and must decide whether to relay it.",
+    "sha256": "69fe37359a345a9dcf3afb3c0fbeedf8031610db9995fb92a76f8c65350a2a05",
+    "git_blob": "f973b0cabc18524266dc3608642a2150e2e142c7"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Intent",
+      "main-flow",
+      "0"
+    ],
+    "path": "intent/main-flow/0.md",
+    "description": "The system context of every main flow: composed into its SYSTEM by the launcher, never loaded as a skill.",
+    "sha256": "34c674f004fc9ed5984827e5b1f6a5a00d18f2f6654174e7a784bafa315901dc",
+    "git_blob": "2b3f4c2be5f9a2bebeb902f9e508f197d3a8fdf3"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Intent",
+      "models",
+      "0"
+    ],
+    "path": "intent/models/0.md",
+    "description": "Quality is sought by raising a model's effort.",
+    "sha256": "863c02feec42a4ba217581b1dc2380284effb7127e3fff5b479be362dfedcc0c",
+    "git_blob": "19015d82c6a7539f3988dca0dc0ee5df3365c7d5"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Intent",
+      "opus",
+      "0"
+    ],
+    "path": "intent/opus/0.md",
+    "description": "An Opus flow decides what reaches its Fable and in what form.",
+    "sha256": "eab5da56ad08e017d74e902009bd26a271753a4bf0e1e305a404066cf5989de0",
+    "git_blob": "41a5382f5dbdb75a1c93587cfac98cecd4fad3e6"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Intent",
+      "psyche",
+      "0"
+    ],
+    "path": "intent/psyche/0.md",
+    "description": "A flow weighs the living's reviewed and approved words against a machine's inference, handles psyche data, or decides whether a reviewed line is psyche and which level it sits at.",
+    "sha256": "e31710079e926880305a8e749074a4d1f4ac76f9e57f1b9ea0c97e9050692c17",
+    "git_blob": "1dc6b34e3dfab1b04fe809f6583c2ac0c84945ed"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Intent",
+      "scratch",
+      "0"
+    ],
+    "path": "intent/scratch/0.md",
+    "description": "A flow is about to write a file for its own work.",
+    "sha256": "0c92b38bfd6f2da2dda8289175ff8b4c5e5afa7c125dc29f038ede42709f6145",
+    "git_blob": "3c7173bfc766acc30f8958cff3e8c6563dfffe72"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "account",
+      "0"
+    ],
+    "path": "vision/account/0.md",
+    "description": "An account of what happened and how a thing works is written for the living, or judged.",
+    "sha256": "0ee3d27674d8d47245a255bc4cf74f95798eba6037fc3d7004fa539c3f5ac41c",
+    "git_blob": "24b0c2b473cad01053bd23b0a9e5b6fd5ee6deb4"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "anatomy",
+      "0"
+    ],
+    "path": "vision/anatomy/0.md",
+    "description": "The machine is made of parts; each part does what one part of a human mind does, and is named after it in English.",
+    "sha256": "2e549a8a2df3140202c5adb6a86aebc14739b80f773d40e65130c6c01712fedc",
+    "git_blob": "d9b96e7e323071e23c7036449af338783584bd85"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "aspects",
+      "0"
+    ],
+    "path": "vision/aspects/0.md",
+    "description": "Flows of different aspects work on one topic, or Field reaches Psyche.",
+    "sha256": "e6ceaa69e1f52d7a809b32fb01fc7a96ab505ab3ad7055a85f72485832e37d89",
+    "git_blob": "768553ead44962663bc23084a53565908569dbdc"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "belief-modules",
+      "0"
+    ],
+    "path": "vision/belief-modules/0.md",
+    "description": "The belief modules and how the living reviews them.",
+    "sha256": "8e4bcb1175ab108845fc566ebdfafd22be14c4c8987c1525dea53351c409bcb4",
+    "git_blob": "8cdf590e75a3d18f98c53bc3a69b65fe19f09e00"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "belief-nexus",
+      "0"
+    ],
+    "path": "vision/belief-nexus/0.md",
+    "description": "The Belief Nexus, version 1, which holds the belief modules and furnishes workspaces with them in place of Curriculum, is being designed or judged against what the living wants it to be.",
+    "sha256": "455a33750b9883bec1dbcc4fce6b2c1a6c77062339e861ca46105fc4171cd71d",
+    "git_blob": "8b758432ffce30ee5615b88d6e72d0563931fe81"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "book",
+      "0"
+    ],
+    "path": "vision/book/0.md",
+    "description": "How a presentation already written is published.",
+    "sha256": "63e2d878b456613e306e2a8e44760064f9ceac726f2ce53794731b5f06fc4ec3",
+    "git_blob": "d17369ed720c3f86d0b1d80712f3f245dd287548"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "chronos",
+      "0"
+    ],
+    "path": "vision/chronos/0.md",
+    "description": "Chronos, the Nexus that tells astrological time, is designed or judged against what the living wants it to be.",
+    "sha256": "3825c26764823fd598e7ef688abb6f56b80fdaeaef710e2bd071ec983dc4b408",
+    "git_blob": "b5b6a9ca05e047e40cda3abf032b3b863f920ebb"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "clojure",
+      "0"
+    ],
+    "path": "vision/clojure/0.md",
+    "description": "A Clojure prototype represents an Ethos type or a Datom value.",
+    "sha256": "f90bee87458dffc2e003b993f268e1af0c134ddc58c2c7aceb47654036dc45ef",
+    "git_blob": "11f41a57d4b4719feff245db688b89ec505ef9dc"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "code",
+      "0"
+    ],
+    "path": "vision/code/0.md",
+    "description": "Code is written, or its structure is judged.",
+    "sha256": "6fdc0ea7529ad088fc6d2d2ef97dd5103af423e1791f6834667c3955c1a689db",
+    "git_blob": "3305097969c7a7d2a4cdf1a092c7c0e64a60863d"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "collaboration",
+      "0"
+    ],
+    "path": "vision/collaboration/0.md",
+    "description": "Flows work together: how work is handed between them, stopped, or started for the living.",
+    "sha256": "b42743996c86a9d693ecbd7e421bf139dea7878a233252c30720c62fd1c052e3",
+    "git_blob": "cc1fbb726c43456f6e823449c12945ba4eb931bf"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "committing",
+      "0"
+    ],
+    "path": "vision/committing/0.md",
+    "description": "A commit is being made, or a commit practice is judged against what the living wants.",
+    "sha256": "7ab9a7d528ad811cad17aa52e157d5fe3b2e7b8a819ce9462c59db0a257a4525",
+    "git_blob": "423104e073c67887ceb13c73dc93063b17f80cb0"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "complex",
+      "1"
+    ],
+    "path": "vision/complex/1.md",
+    "description": "The complex, version 1, a named set of metaflows and the relationships between them, the being one talks to, is being designed or judged against what the living wants it to be.",
+    "sha256": "6987bb940506bb8614182e1cefdd24984b020d2b8839639624485f0354e532b4",
+    "git_blob": "8d909c0879a142a6ac573cd5398062dc03dad1fa"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "criomos",
+      "0"
+    ],
+    "path": "vision/criomos/0.md",
+    "description": "CriomOS, its hosts, fixes, hardware, services, Nix code or desktop, is being designed or judged.",
+    "sha256": "0ba2cf570a0a2b4844b43ff4ad44b833cf8f7a1cbd3a330efa53fb0f93ee1e54",
+    "git_blob": "4d753120caca380f0de8db21ff4d83d518421fc9"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "crystallization",
+      "0"
+    ],
+    "path": "vision/crystallization/0.md",
+    "description": "A crystallization proposal is composed or judged.",
+    "sha256": "58dfb21620852720e97ae8ebf0c30a6dfa64c1c8ea5d32829ef8a20a603f1f37",
+    "git_blob": "5850c7efcf95a032f59b23c293e09958f7f99ffc"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "datom",
+      "0"
+    ],
+    "path": "vision/datom/0.md",
+    "description": "Datom — its syntax, strings, containers, errors, codec or relation to Ethos — is being designed or judged against what the living wants it to be.",
+    "sha256": "a4ef423cb32b82fed23bb3e800b3b93936e161e55950aa15c6815e72057f5645",
+    "git_blob": "e2977d27cfcd12794953fddbf04774f797f53f7e"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "deployment",
+      "0"
+    ],
+    "path": "vision/deployment/0.md",
+    "description": "A proof of concept or test is about to be deployed and the host must be chosen.",
+    "sha256": "7a8e9ad61826efda00e38201c61df6a24ce7d2320f5c5af97078c486be26d469",
+    "git_blob": "9147d73b9ebd7d8d5755ec9a6cbbc5d925da537f"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "energy-nexus",
+      "1"
+    ],
+    "path": "vision/energy-nexus/1.md",
+    "description": "The Energy Nexus, version 1, which knows how much usage the machine has left on every provider and says so, is being designed or built against what the living wants it to be.",
+    "sha256": "a8cf0ebf8a58c6ada5c72222444976f253e4b6d451a0239d894f9403d27dd431",
+    "git_blob": "85a970af5f220d5a7de8a07ea18934dc47b8630f"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "ethos",
+      "0"
+    ],
+    "path": "vision/ethos/0.md",
+    "description": "An ethos file is written, or a type, trait or layout is judged against what the living wants ethos to be.",
+    "sha256": "9bde1cb54f283a7a6bb638bed4cd395766c598604768097ce2e732888b47be66",
+    "git_blob": "da4584d3983c9babf5e8ecc64893180f2f1af63d"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "far-flow-nexus",
+      "0"
+    ],
+    "path": "vision/far-flow-nexus/0.md",
+    "description": "The Flow Nexus, loaded by a flow designing it.",
+    "sha256": "4b7e7434571696c997aca97e9b837355b4d19c44af689e5b061fa44f7ea7628d",
+    "git_blob": "de22a4ecbcc71e7fc30627058630f6c9cfa941ab"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "far-sema",
+      "0"
+    ],
+    "path": "vision/far-sema/0.md",
+    "description": "Sema: the living read through every channel, and the machine spoken to in signal alone.",
+    "sha256": "fe54d24f36b3ba09c481414eba9fa7980d64619d981865b86f2c3e514a939fa8",
+    "git_blob": "db51afb2440671e887b5ec5c27c8efbb510e6192"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "far-versioning",
+      "0"
+    ],
+    "path": "vision/far-versioning/0.md",
+    "description": "Upgrading a running system from one version to the next, its state shifted without the system being killed, is being designed or judged.",
+    "sha256": "1f0c6b3d409e6d263535313adaf645b07985246b0340672585002464655c6478",
+    "git_blob": "e52485eaaf3297d43bbe173e69043ba6cda1834b"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "field-aspect",
+      "0"
+    ],
+    "path": "vision/field-aspect/0.md",
+    "description": "A Field flow uses the tools Mind makes and keeps the system running.",
+    "sha256": "6b4d5b21f04d23ce27a2d2d1b88e006aa80831c5b47e785e4444cf48e27ed5bf",
+    "git_blob": "90fa1c8e45f157b5f7dd1b2741eb53e23c1e8485"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "flow-nexus",
+      "0"
+    ],
+    "path": "vision/flow-nexus/0.md",
+    "description": "The Flow Nexus — the Nexus that launches, names, tracks and ends flows and carries every message between them — or a permaflow, a message, a side flow, a hook or the Capsule is being designed or judged against what the living wants.",
+    "sha256": "563c910bd4b89b9ab6923061a43703dfa417dd7e4b97fcc55bab4ec8b135d6af",
+    "git_blob": "c28d270ef596e72a3b0add44b5eb98e43f6905a9"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "flow-nexus",
+      "1"
+    ],
+    "path": "vision/flow-nexus/1.md",
+    "description": "The Flow Nexus, version 1, which launches a flow from a metaflow the user defined, is being designed or judged against what the living wants it to be.",
+    "sha256": "d7135eea914329339288a082578278c5765e6bd1326033e1f4fad1f37cf7471a",
+    "git_blob": "71b7cf54040f185955d897506ebb79f86c28582f"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "git-server",
+      "0"
+    ],
+    "path": "vision/git-server/0.md",
+    "description": "The cluster's own Git server is set up or changed.",
+    "sha256": "3ca1624daabccbee0aa11632e5a99a5134e93bdbd3738144b2e4158703cd8a31",
+    "git_blob": "f9b917b02063bf4f0ff08e401cba5153e6d56e3a"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "capsule-nexus",
+      "0"
+    ],
+    "path": "vision/capsule-nexus/0.md",
+    "description": "The Capsule Nexus, the one component that owns every pane and runs herdr, its backend, is being designed or built against what the living wants it to be.",
+    "sha256": "db4745c5e796867692eb976e6546d5eb1965a265b7674c9ab30a55da4e1765c7",
+    "git_blob": "9b9a6d81c526c193d3e9e27f3f3d3f1c630c4bc6"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "high-level-view",
+      "0"
+    ],
+    "path": "vision/high-level-view/0.md",
+    "description": "A high-level view of what is being built is owed or written.",
+    "sha256": "59a4e56ffa3e3bef6ba3946416c99a3d4cefc6597a05322ccaf30a837960eef6",
+    "git_blob": "7a81d9190cbe7697a4cd89ea7a24b54168c04be3"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "horizon",
+      "0"
+    ],
+    "path": "vision/horizon/0.md",
+    "description": "Horizon, the cluster state it answers, or where a sandbox virtual machine runs is being designed or judged.",
+    "sha256": "e83c7aff4a960445c310a80118b0c46ed38fdd172ccd268d33d1aefbfe4d1c64",
+    "git_blob": "905d8ef3d0c91469aae34c20933293fe46aa7870"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "long-model-roles",
+      "0"
+    ],
+    "path": "vision/long-model-roles/0.md",
+    "description": "Model roles, how a Fable flow is served by the flows below it, are being designed or judged.",
+    "sha256": "f6b2d26d54483e17a6a06c58b5c6409309ae7c96abd4daacba173dece8f4d69f",
+    "git_blob": "2490bd8d4d5ec14dd0284cf8c3c6f63b15b1e75b"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "long-nexus",
+      "0"
+    ],
+    "path": "vision/long-nexus/0.md",
+    "description": "A Nexus, loaded by a flow designing it.",
+    "sha256": "3842b27fe34e39683c4218fd0cae8277b3aae32c11eaa1aeb115d1f5042319e1",
+    "git_blob": "2fabc97634ce16ce114c281583fe5b7de3e05e40"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "long-sema",
+      "0"
+    ],
+    "path": "vision/long-sema/0.md",
+    "description": "Sema as it is to be past the compromised phase: whole, paralinguistic, rendered from dictation.",
+    "sha256": "30137b8b9e99eaa2aece9e9968e2dd161bb503692826ae7734baf0ea19754354",
+    "git_blob": "19e331230c215168ab9de50e4ba528e90bd74950"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "memory",
+      "0"
+    ],
+    "path": "vision/memory/0.md",
+    "description": "Memory, the database engine of a Nexus, or its record types are being designed or judged.",
+    "sha256": "e2d0ee7367222f2d080e9aac5dbb65eae5c804a2148a97e1c315ef014137dfc1",
+    "git_blob": "d8c96d1919b93093574c8738358404b2bbf53e1b"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "mind-aspect",
+      "0"
+    ],
+    "path": "vision/mind-aspect/0.md",
+    "description": "A Mind flow makes the tools Psyche designs.",
+    "sha256": "4b873580e3a532e4b62f4164c60229cf3c6ad88514d1f4524938badf3b19db83",
+    "git_blob": "4729573d1c63cf649d9a5e9b3a333bf620c28f51"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "model-roles",
+      "0"
+    ],
+    "path": "vision/model-roles/0.md",
+    "description": "Which model thinks, designs, delegates or speaks to the living, and in which metaflow, is decided, or a model is named natively.",
+    "sha256": "626ca3028f3bc7af71c8f7a29f04535cd53cecec385fc02f974031eae40f1404",
+    "git_blob": "923bc4a558f2814c38b56f202667b7adc9cf060e"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "nexus",
+      "0"
+    ],
+    "path": "vision/nexus/0.md",
+    "description": "A long-running Nexus — its sockets, clients, wire contracts and store — is being designed or judged against what the living wants it to be.",
+    "sha256": "402ebbfa597d1d88c0f7e636771e0affffb82af9e82f8cc0b0652e9e05bac612",
+    "git_blob": "63a76b511969d23a0dd75e26866dbc2c173ad5f9"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "nexus",
+      "1"
+    ],
+    "path": "vision/nexus/1.md",
+    "description": "A Nexus, version 1 — its four parts of Signal, Operation, Memory and Emission, and the translator that speaks text for it — is being designed or judged against what the living wants it to be.",
+    "sha256": "cb3a79b97ed0347e00cc48b855b2956b7b965cecd27b6d51f7de4f74be9dc7d0",
+    "git_blob": "f0fc5491947f00d32da80c10cccad6d91da0d593"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "nix-builds",
+      "0"
+    ],
+    "path": "vision/nix-builds/0.md",
+    "description": "Nix builds are made, kept or collected.",
+    "sha256": "6487465a5f81de87b30cfa917ecacc781a059caec90e641f12066044696c5f39",
+    "git_blob": "56f469987fb799765a12ada05ff8db54c03bd680"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "orchestrate",
+      "0"
+    ],
+    "path": "vision/orchestrate/0.md",
+    "description": "Orchestrate itself — its deployment, its meta binary, or its locking — is being designed or judged.",
+    "sha256": "905bba298e0c2116d291bc2e40dc213b80a999ba06e530ed859ef27886112820",
+    "git_blob": "21836573e647cf18616cd3ed7a1f1dab598cc325"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "persona",
+      "0"
+    ],
+    "path": "vision/persona/0.md",
+    "description": "Persona, the meta harness: the one artificial being a person interacts with, distributed over a cluster, and the Nexus that supervises it, is designed or judged.",
+    "sha256": "ce35e8e015ad7e4973b7b1f4462a5c825437d01656ee13f00361b41557c868c4",
+    "git_blob": "fd63a6cc03ed3ffaac75c0c8cfd013572cc2f203"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "presentation",
+      "0"
+    ],
+    "path": "vision/presentation/0.md",
+    "description": "What a presentation is, a page the living reads, a proposal, a review or an account; how its figures, code and change marks are shown.",
+    "sha256": "4eb184cac719500476c593fe71af61ec649bf73df2edd76ee21db7c8cbe7456f",
+    "git_blob": "d892cc66424e0ceadd17e87d70c46bcf23da0b41"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "proposal",
+      "0"
+    ],
+    "path": "vision/proposal/0.md",
+    "description": "How a proposal of the living's vision is made: what it is made of, how its code is shown, and how it is shown to him.",
+    "sha256": "2f99fd5a626103b6b74bfeb74a106c91c493969f57b5251cef0a90d370bc8077",
+    "git_blob": "53a62af2d8788df3cb5ad92bc0aa72f6256737cb"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "protos",
+      "0"
+    ],
+    "path": "vision/protos/0.md",
+    "description": "Protos — the shared parsing style, its layers, delimiters, multi-pass engine or canonical print — is being designed or judged against what the living wants.",
+    "sha256": "4884d5e318470bb4412c7f6851dea4b67768720fffbfa8996bb53f752b8fad4b",
+    "git_blob": "f8a59301a6597ee97741548e0974599859d8c155"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "psyche",
+      "0"
+    ],
+    "path": "vision/psyche/0.md",
+    "description": "Psyche, the living system of one human mind, and the written psyche, its records, which the word alone means: its levels, where its data lives and how a record is made are being designed or judged.",
+    "sha256": "7c5df76fc74509644a0d229e17994d30360b46a0bb680b1164e071b9f9148596",
+    "git_blob": "5dd0ca42872e8a81c12ee2f1747cf63b5195c717"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "psyche-aspect",
+      "0"
+    ],
+    "path": "vision/psyche-aspect/0.md",
+    "description": "A Psyche main flow of a topic designs and audits that topic.",
+    "sha256": "f976d771c427e460c88c0ead6fc9462aa6151f6684672a07a398d2093a34b6ff",
+    "git_blob": "d5b72f1ee8f4c19dce90b47d3a4bad5910d16d89"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "psyche-fable",
+      "0"
+    ],
+    "path": "vision/psyche-fable/0.md",
+    "description": "The Psyche core Fable works with the living, or judges what it is to talk about.",
+    "sha256": "0663b43959a12ad8097bec349811d3f4b0a56f53cbba2bd8b62ada190ba75fc8",
+    "git_blob": "2e1c5f89e3f2125a17c6153d25d973ad7778630f"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "remembering",
+      "0"
+    ],
+    "path": "vision/remembering/0.md",
+    "description": "A flow is told it did or said something it does not itself recall.",
+    "sha256": "a8ef16936f1009c728cc2c11d4c46b3554c6956f4365b90813d5edcd47e24f41",
+    "git_blob": "59dce35605ef39fd682f407133085c6066b409ac"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "review",
+      "0"
+    ],
+    "path": "vision/review/0.md",
+    "description": "What a review is, a presentation of lines landed without the living's review, shown in the dark shades.",
+    "sha256": "1b7414e560eec3c51241903aeaef9b7911becf684201e875b58738d9966ec765",
+    "git_blob": "221dd70efb9fc5daeee63452cccc3827ac1af66d"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "sanskrit",
+      "0"
+    ],
+    "path": "vision/sanskrit/0.md",
+    "description": "A flow looks to the Sanskrit corpus for how to approach a problem, or the keeping and searching of its texts is designed.",
+    "sha256": "839a7fed241bc823a12888edb01b04645e76c7561ec39b53b40b9615e3313f80",
+    "git_blob": "02846dfdd856ee825a8a0fc26f5a2b9513d001b7"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "sema",
+      "0"
+    ],
+    "path": "vision/sema/0.md",
+    "description": "Sema, version 0: Markdown read into a typed tree and printed back from it, so a document is held, edited and searched by its structure.",
+    "sha256": "b3faee323d172ce9bce239633611fa8d468046f3ff8cc492db5b3c8bb7f200ef",
+    "git_blob": "891328f2af537af6134fed4777347ebc78340198"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "sema",
+      "1"
+    ],
+    "path": "vision/sema/1.md",
+    "description": "Sema, the meaning language — its logographic signs, roots, verbs, links, storage or names — is being designed or judged against what the living wants.",
+    "sha256": "2f4f0270c8946273e45532164a9ca9793205602e59b5cd2a07661b28ba64ef7e",
+    "git_blob": "0f390c1417c840914fc0debbebf43e1ab8dd22c8"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "short-ethos",
+      "0"
+    ],
+    "path": "vision/short-ethos/0.md",
+    "description": "Ethos: how an Emission is written while ethos-zero knows no Emission root.",
+    "sha256": "b88b9eaa39f4a70aa0e6f2e9367782aff0d6301f628d80b7fde76cc87d23b08d",
+    "git_blob": "f32909ecb30df91b767770b2584bf4e9e20db53d"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "short-sema",
+      "0"
+    ],
+    "path": "vision/short-sema/0.md",
+    "description": "Sema: what stands until the full verb set lands.",
+    "sha256": "533a1fd4c20e7847308f503b8c1e2dc753317993e8c8ee1ca7dd7fb80a362e93",
+    "git_blob": "8f81fa95aff9a79e8de3823a172cf17a47c02e08"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "signal",
+      "0"
+    ],
+    "path": "vision/signal/0.md",
+    "description": "Signal — the binary messaging layer, its inputs and outputs, meta signal or protocol — is being designed or judged against what the living wants.",
+    "sha256": "03bd4c4717a03af1d8b633e5b96ef7379a546675e2ab6374caf6e26f5a07cb64",
+    "git_blob": "807ed74f37d5c3dcfc163698845366ab1f359b0e"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "subflows",
+      "0"
+    ],
+    "path": "vision/subflows/0.md",
+    "description": "Subflows, the actual flows that replace the harness subagent tool long term, are being designed or judged.",
+    "sha256": "64d27a5af0f0cd8e94c594c0fb184cf96000cdb23dbfbc806940618479e54bdd",
+    "git_blob": "31963cbed33cd31b2af14297f21ddca0b0f9920a"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "system-one",
+      "0"
+    ],
+    "path": "vision/system-one/0.md",
+    "description": "A System 1 model, such as Jev, is designed into the system's logic or judged.",
+    "sha256": "ab0948e772f34ef3f431b36953937ee7b5ea6145ff9c97c97336cc5206fe80c0",
+    "git_blob": "a06726b1f92080568b574d29037ba61615fdf4fb"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "testing",
+      "0"
+    ],
+    "path": "vision/testing/0.md",
+    "description": "Test repositories hold a repository's tests apart from its code.",
+    "sha256": "a8b4ca511b0ec1ee5d9ed25b8803294a181a012ef60d058e867136e9e837bc48",
+    "git_blob": "c593504e5f8c9cce0b4d6bc6464f80af8a7b05f9"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "versioning",
+      "0"
+    ],
+    "path": "vision/versioning/0.md",
+    "description": "A Nexus is versioned, rewritten whole, run as stable and next, or upgraded while the system runs.",
+    "sha256": "b8109161bde99256be5e5774ee091caa3cb51789f361e3bbe1fe3a24f41864f8",
+    "git_blob": "080369022bdedb5270a4ec4acedbdea20c81c440"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Vision",
+      "x11",
+      "0"
+    ],
+    "path": "vision/x11/0.md",
+    "description": "A CriomOS display or graphical-session choice touches X11.",
+    "sha256": "b1524b4f6908d3af90e1886ce079ff07223b75b8023b1efa89eca97df82ce53a",
+    "git_blob": "f36e513ced19b57c5c3e4713df56c0f2c12bc9d3"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Knowledge",
+      "active-projects",
+      "0"
+    ],
+    "path": "knowledge/active-projects/0.md",
+    "description": "Which repositories are active: the ones worked on and run now, where effort on build, tests and upkeep is spent; every other repository is left as it is.",
+    "sha256": "32281b5106b745b706a4607794a4387853ba5ca194283a11c885a04e11b1340e",
+    "git_blob": "78b473f0c01b01d27080b5fc847b2cc1d64f11d9"
+  },
+  {
+    "repository": "psyche-belief",
+    "identity": [
+      "Knowledge",
+      "flow-messaging",
+      "0"
+    ],
+    "path": "knowledge/flow-messaging/0.md",
+    "description": "How a flow sends a message through the Flow CLI.",
+    "sha256": "3e92a2d7a4a9a2d3f5ee2a543355c5499d42e895dc94e74b7d35132ed28a9591",
+    "git_blob": "8a8f2669d6bd6c591834337ec308e2417bcfb2ce"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "astra",
+      "0"
+    ],
+    "path": "knowledge/astra/0.md",
+    "description": "A flow deals with an Astra flow.",
+    "sha256": "fcd1c44901f2c20eaa42702f90bb08f26fab21aab1ce731264ee4b31e660dac8",
+    "git_blob": "24bbd79f5561adf59204208672a007f82bb1978a"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "book",
+      "0"
+    ],
+    "path": "knowledge/book/0.md",
+    "description": "A book's source, figures and publication.",
+    "sha256": "bb6d246952e77895e959451d5f4090ce56945c6fb00b9eab6dbb7cb9625b9282",
+    "git_blob": "f8c68b36bd0880049490b970ba312c4d53fc4fe3"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "codex-reset",
+      "0"
+    ],
+    "path": "knowledge/codex-reset/0.md",
+    "description": "Codex usage is low or out and a usage reset may be redeemed; load before reading Codex usage or redeeming a reset.",
+    "sha256": "8b6800204f3dfb82d7955e7947956d897591d5be33e1b2929a4210042d2e7c4c",
+    "git_blob": "f4f6bf0bcb81e87b3d1424672a6034ff59c2178a"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "context-strata",
+      "0"
+    ],
+    "path": "knowledge/context-strata/0.md",
+    "description": "Designing or implementing something that depends on where text enters a thinking machine's (an LLM's) context. Almost never arises in ordinary task work.",
+    "sha256": "23937d9130bcf4d632d9292f44624220de7f53089d78d9edd0ff39ca8541316f",
+    "git_blob": "02585534d33e838cdbbf0cca1b34895170338167"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "criomos",
+      "0"
+    ],
+    "path": "knowledge/criomos/0.md",
+    "description": "CriomOS must be maintained: a host is declared, a fix placed, a system built or deployed, or a fact about a host asked for.",
+    "sha256": "f8160126157c1bab9fd56e38221ce7d1450656237f3ff9b46b08c89e1c381db0",
+    "git_blob": "1de45813df4e6593be6654d14f6c8fbbe96eb08e"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "criomos-deploy",
+      "0"
+    ],
+    "path": "knowledge/criomos-deploy/0.md",
+    "description": "A change to a host or to the user environment is made, checked and switched in through Lojix.",
+    "sha256": "222bd2f6312e1161d2f3f2be02fe7341a41b7a2c5067edebc4c73790b15567c6",
+    "git_blob": "211d22aa6acf33624174f5c69c52d0d2da19a871"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "ethos",
+      "0"
+    ],
+    "path": "knowledge/ethos/0.md",
+    "description": "An ethos file is checked, or Rust is generated from it, with ethos-zero.",
+    "sha256": "0fdd47eb2f2c6a0898700dcdf516bcf24bca7a4d7309c7949fd6a93154b79824",
+    "git_blob": "59d22bdfd8170014915a6b9c5ac899cf4bef18bf"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "fable",
+      "0"
+    ],
+    "path": "knowledge/fable/0.md",
+    "description": "A flow deals with a Fable flow.",
+    "sha256": "495f75047945ce405517cfe2e758f7846d0483dae053c9656cb3253ec702ba59",
+    "git_blob": "e64ec23c45add84c1a9f4b80a713afa97cea15ae"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "haiku",
+      "0"
+    ],
+    "path": "knowledge/haiku/0.md",
+    "description": "A flow deals with a Haiku flow.",
+    "sha256": "0785e2ce111fe93509f34fa16998306e68cda168898381201f5f768150a1f5e4",
+    "git_blob": "0a06de6b2bb11d31d91cfdb0739082dae7a4ab1b"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "lojix",
+      "0"
+    ],
+    "path": "knowledge/lojix/0.md",
+    "description": "A Lojix request must be constructed, submitted, observed, or interpreted.",
+    "sha256": "0f69a14f4191183992da8a5727c32070ff4d596da670fda7bff5e842577aacd5",
+    "git_blob": "25a58684697f16c437eff8457e7993efbe41a622"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "luna",
+      "0"
+    ],
+    "path": "knowledge/luna/0.md",
+    "description": "A flow deals with a Luna flow.",
+    "sha256": "4ddb9a548a4a5550e3ece720e2b7daa43407e85216f1200b96fadce9992647c6",
+    "git_blob": "93547400e2401884b80185e048c72cb3f9a5c770"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "model-descriptions",
+      "0"
+    ],
+    "path": "knowledge/model-descriptions/0.md",
+    "description": "A permaflow's modules are configured, and which model descriptions it is given is decided.",
+    "sha256": "464c6374fa3a81d426f343fc7532926ba82fc91b292c45ae4ae620a4a91dfdec",
+    "git_blob": "4096d2c793e667918bfeded5274d07d4316ca034"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "nix-rust-builds",
+      "0"
+    ],
+    "path": "knowledge/nix-rust-builds/0.md",
+    "description": "A Rust repository is built and tested with Nix so that nothing is compiled twice.",
+    "sha256": "6d153fb2011f45d6ebf0737d3a7a56933ca4b33430420820d5fd63a9ae2f33ef",
+    "git_blob": "571c30c573bc24f6ee2465f84c4be8a08d41a98f"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "notion",
+      "0"
+    ],
+    "path": "knowledge/notion/0.md",
+    "description": "What a notion module is, who writes it and how it stands to vision.",
+    "sha256": "2503230f8edbb05880306d98c18fabe5ea969efe49f605937e3b1ee9305c24a8",
+    "git_blob": "86fce2a4f3c74b2f77420e3c8faca55a5f0d8bc1"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "offload",
+      "0"
+    ],
+    "path": "knowledge/offload/0.md",
+    "description": "A command is heavy on CPU, memory or disk: a Nix evaluation, a cargo build or test, a search over a large tree, a flake update.",
+    "sha256": "4c262edb55f036c63b82dac2fd1d7eec334d4c152e700b7890d67133d63903e4",
+    "git_blob": "0eb3a0f44f0838cd30bf224cdc16ecbc1c928175"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "opus",
+      "0"
+    ],
+    "path": "knowledge/opus/0.md",
+    "description": "A flow deals with an Opus flow.",
+    "sha256": "3ce7388560a4da21526fe0237a1fadba4fa41e4e4684680087b72b0ba833cbc4",
+    "git_blob": "1eb78723e72333964038ccfc78a671809f8c2d21"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "orchestrate",
+      "0"
+    ],
+    "path": "knowledge/orchestrate/0.md",
+    "description": "An ordinary Orchestrate Lock request must be constructed, submitted, or interpreted.",
+    "sha256": "e25f7c494a393f7840f3d3eabda52f6bda0d1f0f66dd0499045530662d8f817e",
+    "git_blob": "bc92c770531edfbdcf836aca8971fd511a05f62e"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "psyche",
+      "0"
+    ],
+    "path": "knowledge/psyche/0.md",
+    "description": "Where the psyche's records are found.",
+    "sha256": "ba5f8849a6ce42e138e463e21bfe3792b2001600460e3232346b67c384c10908",
+    "git_blob": "e5eced5f2c35b073042ec37e36a26543675efebe"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "repositories",
+      "0"
+    ],
+    "path": "knowledge/repositories/0.md",
+    "description": "A repository is fetched to a machine, tagged at its remote, or removed from a machine.",
+    "sha256": "33fe6ef703e731bdb159d34ce9f3500438dc966c02f931114ce083d087237998",
+    "git_blob": "cd9230f33136fdfc19b8466c80959d10d66e7223"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "root",
+      "0"
+    ],
+    "path": "knowledge/root/0.md",
+    "description": "A command needs root on a host.",
+    "sha256": "950fc4af88241451b4e776f48e44931ddd05deee2bfa30933ec00c968bec1724",
+    "git_blob": "54f3702c3d5203e48a6a8975d21d9394d795e552"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "sanskrit-vocabulary",
+      "0"
+    ],
+    "path": "knowledge/sanskrit-vocabulary/0.md",
+    "description": "A Sanskrit term is used or met: every Sanskrit term we use is defined here, in IAST, with its English.",
+    "sha256": "807d3023aa72844b7949b4c72ddab75ce0159a3c756108dbbbeb5429bcc31188",
+    "git_blob": "260266180f75c43945f9271e4976a9f0aae99292"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "search",
+      "0"
+    ],
+    "path": "knowledge/search/0.md",
+    "description": "Text or a file is searched for.",
+    "sha256": "f50fd3c789465820452be9e48d0ea91c994f5215576cc28db119aa4e62b00bb4",
+    "git_blob": "f24b385f7809d2e892b35372b133439cfdc644fb"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "secrets",
+      "0"
+    ],
+    "path": "knowledge/secrets/0.md",
+    "description": "A secret must reach a program without reaching the agent; load before any command that handles a credential.",
+    "sha256": "2766a81ed9bb5d4fa609ea30ced1edb3e6ae16fb2ead2358b9908c69d3ef4329",
+    "git_blob": "7128b431d64e905aee652d32e788e10f661f71d9"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "sol",
+      "0"
+    ],
+    "path": "knowledge/sol/0.md",
+    "description": "A flow deals with a Sol flow.",
+    "sha256": "8ff882bfcf8eaf8434ddf5b9e6c8afcd4aa75a211c4a35eb122ba02c733845ab",
+    "git_blob": "428da3eae7e1244a06fd3a9f8ef531794a248aeb"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "sonnet",
+      "0"
+    ],
+    "path": "knowledge/sonnet/0.md",
+    "description": "A flow deals with a Sonnet flow.",
+    "sha256": "f12aed736e53f8938493ed932d41dcbcbbb09891d77c5f1ae45559212452e2f9",
+    "git_blob": "3a621b537c1e837efa1e9f93ca5bdc37612953d0"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "terra",
+      "0"
+    ],
+    "path": "knowledge/terra/0.md",
+    "description": "A flow deals with a Terra flow.",
+    "sha256": "7d207fbc51768a11096f4322098e8973f0a1089a8bc0ecaa90e8e6f5f4d136a8",
+    "git_blob": "883eefe9a5aa7271514272164f8db7d558c3a5d2"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Knowledge",
+      "vocabulary",
+      "0"
+    ],
+    "path": "knowledge/vocabulary/0.md",
+    "description": "One of our own terms is used, or a term is being defined.",
+    "sha256": "fe0d77d7c6f79c7cf370fbf0720c72c8389dea2e8804043462e2e71c17454445",
+    "git_blob": "52f20bbebf3fdf43c3b6f3e2cc4132e6023e238a"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Role",
+      "book-description",
+      "0"
+    ],
+    "path": "role/book-description/0.md",
+    "description": "Role selection description.",
+    "sha256": "63b09834474405cb8954d52b7600bfe86d6b1689c29304c5039da926e3b218ac",
+    "git_blob": "566c339c4051ab95cce01395f0a28fa2627eadce"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Role",
+      "book-page-description",
+      "0"
+    ],
+    "path": "role/book-page-description/0.md",
+    "description": "Role selection description.",
+    "sha256": "bfc831cadda36c3d48677bc851bf0f7c4e933d5469f1d250f903aef9deb581f2",
+    "git_blob": "b0529f2bf2d166bd51112e3c7a749e79e54928fe"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Role",
+      "default-description",
+      "0"
+    ],
+    "path": "role/default-description/0.md",
+    "description": "Role selection description.",
+    "sha256": "e92f23d4934965e0bdedacb16ce581063b69781536611b950bfecf0e7f4b93f0",
+    "git_blob": "2b301ffb6ef75b9d36650c545a11af0921ab4ad5"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Role",
+      "explorer-description",
+      "0"
+    ],
+    "path": "role/explorer-description/0.md",
+    "description": "Role selection description.",
+    "sha256": "d0fdd6e9d14908e22374c9cb6a1e7d4fa05c55682a98a193cc71b1ac31025efc",
+    "git_blob": "a65e8e839dcacaac26e5386699940702f5624ae1"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Role",
+      "read-demanding-description",
+      "0"
+    ],
+    "path": "role/read-demanding-description/0.md",
+    "description": "Role selection description.",
+    "sha256": "ffe0f415df6528d851f897044832fa83719109277d7fe407289ded24245c69a1",
+    "git_blob": "01bb9bc992505e94b7831e85f74029b70eced72e"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Role",
+      "read-ordinary-description",
+      "0"
+    ],
+    "path": "role/read-ordinary-description/0.md",
+    "description": "Role selection description.",
+    "sha256": "590f23383539a6a4f0173533ef2c2ab0bae6f00fc13f0e263bc083161db4e3bd",
+    "git_blob": "c0ea36acbf6a897a47f51321b14ec23eff4637e0"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Role",
+      "read-trivial-description",
+      "0"
+    ],
+    "path": "role/read-trivial-description/0.md",
+    "description": "Role selection description.",
+    "sha256": "f7debe18b48d3266dbe33148ae59aed8e3a364477c5c70654a207804ad6e5a1e",
+    "git_blob": "26f17b37aefdc94905b7e48081270a08e5a00f92"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Role",
+      "tester-description",
+      "0"
+    ],
+    "path": "role/tester-description/0.md",
+    "description": "Role selection description.",
+    "sha256": "ba789dd68268cfdf9f8054605426314a4c1c90a10d131e1ac67840c6fe6512bb",
+    "git_blob": "1faf884241c209de07f93fafde471d4ef3e38c4b"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Role",
+      "worker-description",
+      "0"
+    ],
+    "path": "role/worker-description/0.md",
+    "description": "Role selection description.",
+    "sha256": "80addfaea1b74725502d0c1e3af8b42cfa1ab0c37e1b565944f00a9735adb5b4",
+    "git_blob": "340cda847ae6d595256822ad840ab4beb91a2d54"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Role",
+      "write-demanding-description",
+      "0"
+    ],
+    "path": "role/write-demanding-description/0.md",
+    "description": "Role selection description.",
+    "sha256": "1e1cb2c2416557df8fb2977d496c8c7c9df9f4928f58bf6e4032e59b0eb183fb",
+    "git_blob": "30b1eb4345ea798a03075c110d82c9460d49de8d"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Role",
+      "write-ordinary-description",
+      "0"
+    ],
+    "path": "role/write-ordinary-description/0.md",
+    "description": "Role selection description.",
+    "sha256": "29df3e701ac333bd57ecd87fb93b630a6262e6791d1a9a6dbc668408c9a0a85f",
+    "git_blob": "fe91cb5567e39215bad1b9efffdf38e1f6ae5807"
+  },
+  {
+    "repository": "mind-belief",
+    "identity": [
+      "Role",
+      "write-trivial-description",
+      "0"
+    ],
+    "path": "role/write-trivial-description/0.md",
+    "description": "Role selection description.",
+    "sha256": "a245bc5085f2d8eeedaa870aee5c69eb3924ac9b427ea246529601c24797c12c",
+    "git_blob": "acbbeae1649932bb4b64d0b88afade2f4e905446"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "book-page-procedure",
+      "0"
+    ],
+    "path": "role/book-page-procedure/0.md",
+    "description": "book page procedure.",
+    "sha256": "7fdb6f12d79e67f371e4a3c6a47414eff5a552c8df33c56b029872b488876ae4",
+    "git_blob": "ccfc0b65635f147056d208424e895893ed4452b6"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "book-publishing-procedure",
+      "0"
+    ],
+    "path": "role/book-publishing-procedure/0.md",
+    "description": "book publishing procedure.",
+    "sha256": "1cd3f162aab3f7fec79a58892c0348fd551b359a8194c2e8acca828b4fd6a47f",
+    "git_blob": "94626806bfb9ebf9d3c25f02faedf7df4128ce7d"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "book-reader-description",
+      "0"
+    ],
+    "path": "role/book-reader-description/0.md",
+    "description": "book reader description.",
+    "sha256": "b56cfecbe0d08c70908649d5e8ef4df76c5142c1475e8ddf78bea40666c961d8",
+    "git_blob": "e0707e045a1b63bcb18c161547674c4a55ebc7f5"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "book-reader-procedure",
+      "0"
+    ],
+    "path": "role/book-reader-procedure/0.md",
+    "description": "book reader procedure.",
+    "sha256": "9facd904f269e29309e6539b93a367bb9d4741a8b8d0cadc17a1bf7a770109f4",
+    "git_blob": "b1b789ba4dc38622965f0357e05c128fa671f53e"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "comment-relay",
+      "0"
+    ],
+    "path": "role/comment-relay/0.md",
+    "description": "Relay the living's comments on the named books.",
+    "sha256": "e02b85d0ce7bdaa8e4257270c465a1e3ebdd19015a2a9c69f05299b3f7f2b82b",
+    "git_blob": "b27f52f6db93483dd82c8a567ba8529c0f3f3af6"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "comment-relay-description",
+      "0"
+    ],
+    "path": "role/comment-relay-description/0.md",
+    "description": "comment relay description.",
+    "sha256": "07abedaa19490d3a8cb86bf45f3faebc0bc29c404d75c3d18edc4a6d43734349",
+    "git_blob": "910bfe3bb237c2779170ee2c7685f3e682d83996"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "comment-watch",
+      "0"
+    ],
+    "path": "role/comment-watch/0.md",
+    "description": "comment watch.",
+    "sha256": "abdc6d146d6bfe027ca5db30cde001981692dd4e63df6eb8c60955853786e2f5",
+    "git_blob": "c3e93123dbd15be63e61bbba79bf1a4872c71bd4"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "contextualizer-description",
+      "0"
+    ],
+    "path": "role/contextualizer-description/0.md",
+    "description": "contextualizer description.",
+    "sha256": "a9365f69ddc7060ae4e4c8a584c01ec909d6510212d97fa05474132125d05dd5",
+    "git_blob": "23498e6b03d61f56b87a9c878f300e7b71309f85"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "general-instructions",
+      "0"
+    ],
+    "path": "role/general-instructions/0.md",
+    "description": "general instructions.",
+    "sha256": "923ba7167d5d7c635a6781bf34a0b2582dea9e7479a11bc5702866f77966ebac",
+    "git_blob": "a1ad8560394df01216d0be7b7bccce00ef5d5fa6"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "illustrator-description",
+      "0"
+    ],
+    "path": "role/illustrator-description/0.md",
+    "description": "illustrator description.",
+    "sha256": "06877bf9d04df588491b53b027c2268a1e407e54e188ce56544364b07dd51d4e",
+    "git_blob": "7ba5d96196df0e079b0c5cbd5b6468882be5da5e"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "illustrator-faithfulness",
+      "0"
+    ],
+    "path": "role/illustrator-faithfulness/0.md",
+    "description": "illustrator faithfulness.",
+    "sha256": "86a81ac5bdfbce193c21445f6a47d9ccc01e675f9ca9e572c9706d7645aad5c5",
+    "git_blob": "f482f36b47eb053d91ac34bc3b6052f7b06ddf53"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "illustrator-svg",
+      "0"
+    ],
+    "path": "role/illustrator-svg/0.md",
+    "description": "illustrator svg.",
+    "sha256": "66ace3858513e869cd600026531ed55c43088041322ba6ae2da526dfe9645142",
+    "git_blob": "0acd39bb9c4f7117029e40772af4851239a701ac"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "psyche-core-tertiary",
+      "0"
+    ],
+    "path": "role/psyche-core-tertiary/0.md",
+    "description": "psyche core tertiary.",
+    "sha256": "db839e3d77cf228750130d8443b17d3f54ee64d1309576750f82b0e935cc7264",
+    "git_blob": "1baade5024317bac49eeb70d12a36f9dd7f7041a"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "psyche-core-tertiary-description",
+      "0"
+    ],
+    "path": "role/psyche-core-tertiary-description/0.md",
+    "description": "psyche core tertiary description.",
+    "sha256": "6f245e0d2235c80a9d6febe184f329171dea2ae5dcad4d09346376c670bd370d",
+    "git_blob": "ea303034d969635073e0c84f861178e87cb8f61f"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "scripter",
+      "0"
+    ],
+    "path": "role/scripter/0.md",
+    "description": "scripter.",
+    "sha256": "277be111deba22d0e17edaf51bfcfbaacbb3e9a99bfd77a4821b6856d6b8cec3",
+    "git_blob": "e5d85be352f0ab1f2010ef7ae536455a1ee99cb4"
+  },
+  {
+    "repository": "field-belief",
+    "identity": [
+      "Role",
+      "scripter-description",
+      "0"
+    ],
+    "path": "role/scripter-description/0.md",
+    "description": "scripter description.",
+    "sha256": "eeb618a89f8a601a01a6104481a97c95462d7eea2763e41e4cf13311de7e98e7",
+    "git_blob": "7a683c7a040844562d0fd92018fa41a0bdcd4457"
+  }
+]

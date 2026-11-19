@@ -1,7 +1,9 @@
+use curriculum::registry::IdentityText;
 mod support;
 use curriculum::{generated::*, registry::SkillRegistry, roles};
 use signal_curriculum_nexus::*;
 use std::fs;
+use support::identity;
 fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
     let roots = [base.join("psyche"), base.join("mind"), base.join("field")];
     for root in &roots {
@@ -30,12 +32,10 @@ fn fixture(base: &std::path::Path) -> (SkillRegistry, Roles, RoleSelection) {
             model_id: ModelId("sonnet".into()),
             effort: Effort::Medium,
             permission: Permission::Unrestricted,
-            description_module: DescriptionModule(ModuleIdentity(
-                "role:illustrator-description:0".into(),
-            )),
+            description_module: DescriptionModule(identity("role:illustrator-description:0")),
             context_modules: ContextModules(vec![
-                ModuleIdentity("role:illustrator-svg:0".into()),
-                ModuleIdentity("compensation:illustration:0".into()),
+                identity("role:illustrator-svg:0"),
+                identity("compensation:illustration:0"),
             ]),
             role_tools: RoleTools::Explicit(vec![]),
             role_callers: RoleCallers::Only(vec![CallerMetaflow {
@@ -90,8 +90,7 @@ fn inline_paths_missing_ambiguous_roles_and_invalid_caller_tool_data_refuse() {
         "role:missing:0",
     ] {
         let mut d = data.clone();
-        d.role_definition_vector[0].context_modules =
-            ContextModules(vec![ModuleIdentity(value.into())]);
+        d.role_definition_vector[0].context_modules = ContextModules(vec![identity(value)]);
         assert!(roles::compose(&registry, &d, &selection).is_err());
     }
     let mut d = data.clone();
@@ -120,14 +119,14 @@ fn a_role_naming_a_module_the_belief_repositories_lack_is_refused_naming_the_mod
     d.role_definition_vector[0]
         .context_modules
         .0
-        .push(ModuleIdentity("knowledge:book-making:0".into()));
+        .push(identity("knowledge:book-making:0"));
     assert_eq!(
         roles::compose(&registry, &d, &selection).unwrap_err(),
         "missing module knowledge:book-making:0"
     );
     let mut d = data;
     d.role_definition_vector[0].description_module =
-        DescriptionModule(ModuleIdentity("role:absent-description:0".into()));
+        DescriptionModule(identity("role:absent-description:0"));
     assert_eq!(
         roles::compose(&registry, &d, &selection).unwrap_err(),
         "missing module role:absent-description:0"
@@ -141,4 +140,108 @@ fn write_source(
     let path = path.as_ref();
     fs::create_dir_all(path.parent().unwrap())?;
     fs::write(path, contents)
+}
+
+#[test]
+fn role_binding_composes_all_actual_spans_once_with_actual_provenance() {
+    let tmp = tempfile::tempdir().unwrap();
+    let roots = [
+        tmp.path().join("psyche"),
+        tmp.path().join("mind"),
+        tmp.path().join("field"),
+    ];
+    for root in &roots {
+        fs::create_dir_all(root).unwrap();
+        fs::write(root.join("modules.datom"), "[]\n").unwrap();
+    }
+    write_source(roots[2].join("descriptions/0.md"), "Description.").unwrap();
+    write_source(roots[2].join("descriptions/0-2.md"), "Second.").unwrap();
+    write_source(roots[2].join("context/1.md"), "Single.").unwrap();
+    write_source(roots[2].join("context/0-2.md"), "Span.").unwrap();
+    fs::write(
+        roots[2].join("modules.datom"),
+        "[ { { Role description Single.0 } «descriptions/0.md» }
+  { { Role description Span.{ 0 2 } } «descriptions/0-2.md» }
+  { { Role context Single.1 } «context/1.md» }
+  { { Role context Span.{ 0 2 } } «context/0-2.md» } ]\n",
+    )
+    .unwrap();
+    let registry = SkillRegistry::from_context_repositories(
+        &roots,
+        &["a".repeat(40), "b".repeat(40), "c".repeat(40)],
+    )
+    .unwrap();
+    let roles = Roles {
+        role_definition_vector: vec![RoleDefinition {
+            role_name: RoleName("witness".into()),
+            surface: Surface::CodexAgent,
+            model_id: ModelId("luna".into()),
+            effort: Effort::Medium,
+            permission: Permission::Unrestricted,
+            description_module: DescriptionModule(identity("role:description:0")),
+            context_modules: ContextModules(vec![identity("role:context:1")]),
+            role_tools: RoleTools::Explicit(vec![]),
+            role_callers: RoleCallers::Only(vec![CallerMetaflow {
+                first_string: "Mind".into(),
+                second_string: "Curriculum".into(),
+                third_string: "Tertiary".into(),
+            }]),
+        }],
+    };
+    let result = roles::compose(
+        &registry,
+        &roles,
+        &RoleSelection {
+            role_name: RoleName("witness".into()),
+            surface: Surface::CodexAgent,
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        result
+            .context_provenance_vector
+            .iter()
+            .map(|module| module.module_identity.identity_text().unwrap())
+            .collect::<Vec<_>>(),
+        [
+            "role:description:0",
+            "role:description:0-2",
+            "role:context:1",
+            "role:context:0-2"
+        ]
+    );
+    assert_eq!(result.description_text.0, "Description.\n\nSecond.");
+    assert!(
+        result
+            .context_text
+            .0
+            .contains("Module IDs: role:context:1, role:context:0-2")
+    );
+    assert_eq!(result.context_text.0.matches("Span.").count(), 1);
+}
+
+#[test]
+fn inventory_is_independent_while_role_refuses_duplicate_execution_metadata() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (_, data, selection) = fixture(tmp.path());
+    let roots = [
+        tmp.path().join("psyche"),
+        tmp.path().join("mind"),
+        tmp.path().join("field"),
+    ];
+    fs::write(
+        roots[2].join("role/illustrator-description/0.md"),
+        "---\ndescription: first\ndescription: second\n---\nBody.\n",
+    )
+    .unwrap();
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
+    assert_eq!(registry.listed_modules().unwrap().len(), 4);
+    let verbose = registry.listed_modules_verbose().unwrap_err().to_string();
+    assert!(
+        verbose.contains("role:illustrator-description:0")
+            && verbose.contains("role/illustrator-description/0.md")
+    );
+    let error = roles::compose(&registry, &data, &selection).unwrap_err();
+    assert!(error.contains("duplicate frontmatter key"), "{error}");
 }

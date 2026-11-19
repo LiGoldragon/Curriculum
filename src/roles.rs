@@ -1,7 +1,7 @@
 //! Role metadata contains IDs only. Authored text is resolved by the same registry.
 use crate::{
     generated::{RoleDefinition, Roles},
-    registry::{SkillRegistry, valid_id, valid_segment},
+    registry::{valid_id, valid_segment, IdentityText, SkillRegistry},
     startup_metadata::sha256,
 };
 use signal_curriculum_nexus::{
@@ -27,7 +27,8 @@ pub fn validate(roles: &Roles) -> Result<(), String> {
         }
         let mut ids = std::collections::BTreeSet::new();
         for id in std::iter::once(&role.description_module.0).chain(&role.context_modules.0) {
-            if !valid_id(&id.0) || !ids.insert(id) {
+            let text = id.identity_text().map_err(|_| "invalid role module ID")?;
+            if !valid_id(&text) || !ids.insert(text) {
                 return Err("invalid or duplicate role module ID".into());
             }
         }
@@ -104,12 +105,21 @@ pub fn compose(
         .ok_or("unknown role/surface")?;
     let ids: Vec<String> = std::iter::once(&role.description_module.0)
         .chain(&role.context_modules.0)
-        .map(|id| id.0.clone())
-        .collect();
-    // Deliberately exact: no dependency closure, universal module or ambient file.
+        .map(|id| id.identity_text())
+        .collect::<Result<Vec<_>, _>>()?;
+    // Deliberately binding-only: no dependency closure, universal module or
+    // ambient file. A numeric binding can select several actual modules.
     let modules = registry
         .resolved_exact_sources(&ids)
         .map_err(|e| e.to_string())?;
+    let description_identities = registry
+        .resolved_exact_sources(std::slice::from_ref(
+            &role.description_module.0.identity_text()?,
+        ))
+        .map_err(|e| e.to_string())?
+        .into_iter()
+        .map(|module| module.module_identity.identity_text())
+        .collect::<Result<std::collections::BTreeSet<_>, _>>()?;
     let target = match role.surface {
         Surface::ClaudeAgent => Target::Claude,
         Surface::CodexAgent => Target::Codex,
@@ -119,20 +129,44 @@ pub fn compose(
         .iter()
         .map(|m| crate::context_render::render(&target, &m.string))
         .collect::<Result<_, _>>()?;
-    let description_text = rendered[0].clone();
+    let description_text = modules
+        .iter()
+        .zip(&rendered)
+        .filter(|(module, _)| {
+            module
+                .module_identity
+                .identity_text()
+                .map(|id| description_identities.contains(&id))
+                .unwrap_or(false)
+        })
+        .map(|(_, body)| body.as_str())
+        .collect::<Vec<_>>()
+        .join("\n\n");
+    let context_modules = modules
+        .iter()
+        .zip(&rendered)
+        .filter(|(module, _)| {
+            module
+                .module_identity
+                .identity_text()
+                .map(|id| !description_identities.contains(&id))
+                .unwrap_or(false)
+        })
+        .collect::<Vec<_>>();
     let mut context_text = format!(
         "These are your skills, given here; do not reload them.\n\nModule IDs: {}\n",
-        role.context_modules
-            .0
+        context_modules
             .iter()
-            .map(|id| id.0.as_str())
-            .collect::<Vec<_>>()
+            .map(|(module, _)| module.module_identity.identity_text())
+            .collect::<Result<Vec<_>, _>>()?
             .join(", ")
     );
-    for (module, body) in modules.iter().zip(&rendered).skip(1) {
+    for (module, body) in context_modules {
         context_text.push_str(&format!(
             "\n<!-- module: {} -->\n{}\n<!-- end-module: {} -->\n",
-            module.module_identity.0, body, module.module_identity.0
+            module.module_identity.identity_text()?,
+            body,
+            module.module_identity.identity_text()?
         ));
     }
     let provenance = modules

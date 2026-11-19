@@ -1,6 +1,6 @@
 [package]
 name = "curriculum"
-version = "0.1.0"
+version = "0.3.1"
 edition = "2024"
 rust-version = "1.89"
 license = "MIT OR Apache-2.0"
@@ -25,9 +25,9 @@ path = "src/nexus_main.rs"
 [dependencies]
 sha2 = "=0.10.9"
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "09a0526", features = ["rkyv"], optional = true }
-nexus = { git = "https://github.com/LiGoldragon/nexus", rev = "ec097e315a3b0b99bc215a72f6c3f6d8b2b060cf" }
+nexus = { git = "https://github.com/LiGoldragon/nexus", rev = "69946db066bb70bdbc1fd7dbf5e6c88dcf05c363" }
 # The wire contract: Input, Output and the Answering capabilities.
-signal-curriculum-nexus = { git = "https://github.com/LiGoldragon/signal-curriculum-nexus", rev = "4202d8b" }
+signal-curriculum-nexus = { git = "https://github.com/LiGoldragon/signal-curriculum-nexus", rev = "31b3ac5796eadee2d7fdcd267ee3cea926f1f46c" }
 protos = { git = "https://github.com/LiGoldragon/protos", rev = "c93b598", optional = true }
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 thiserror = "2"

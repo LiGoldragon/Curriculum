@@ -50,7 +50,15 @@ pub fn render(target: &Target, body: &str) -> Result<String, String> {
             return Err("unsupported context template directive".into());
         }
         if conditions.iter().all(|(selected, _)| *selected) {
-            if line.contains("{{") || line.contains("}}") {
+            if line.split("{{").skip(1).any(|candidate| {
+                let Some((name, _)) = candidate.split_once("}}") else {
+                    return false;
+                };
+                let mut name = name.trim().bytes();
+                name.next()
+                    .is_some_and(|first| first.is_ascii_alphabetic() || first == b'_')
+                    && name.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
+            }) {
                 return Err(
                     "unresolved context variable; no caller-inline substitution is allowed".into(),
                 );

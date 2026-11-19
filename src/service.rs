@@ -1,11 +1,13 @@
 use crate::{
     memory::SkillMemory,
-    registry::{ExpandsSkills, SkillRegistry, SourceConfiguration},
+    registry::{
+        ExpandsSkills, IdentityText, ModuleIdentityConversion, SkillRegistry, SourceConfiguration,
+    },
 };
 use nexus::{Admission, Changed, MemoryHandle, Nexus, Operating, Remembering, Signaling};
 use signal_curriculum_nexus::{
-    Answerable, Answering, Input, ModuleIdentity, Output, ResolvedModule, RoleComposition,
-    RoleSelection, StartupComposition, StartupSelection,
+    Answerable, Answering, Input, Module, ModuleDescription, ModuleIdentity, Output,
+    ResolvedModule, RoleComposition, RoleSelection, StartupComposition, StartupSelection,
 };
 use std::path::PathBuf;
 
@@ -50,19 +52,32 @@ pub struct Curriculum {
 }
 
 impl Answering for Curriculum {
+    fn modules(&self) -> Result<Vec<Module>, Output> {
+        self.registry
+            .listed_modules()
+            .map_err(|e| Output::Rejected(e.to_string()))
+    }
+
+    fn modules_verbose(&self) -> Result<Vec<ModuleDescription>, Output> {
+        self.registry
+            .listed_modules_verbose()
+            .map_err(|e| Output::Rejected(e.to_string()))
+    }
+
     fn resolve_skills(
         &self,
         module_identity_vector: &Vec<ModuleIdentity>,
     ) -> Result<Vec<ModuleIdentity>, Output> {
-        self.registry
-            .expand_skills(&identities(module_identity_vector))
-            .map(|skills| {
-                skills
-                    .into_iter()
-                    .map(|skill| ModuleIdentity(skill.name))
-                    .collect()
-            })
-            .map_err(|e| Output::Rejected(e.to_string()))
+        let identities = identities(module_identity_vector).map_err(Output::Rejected)?;
+        let skills = self
+            .registry
+            .expand_skills(&identities)
+            .map_err(|e| Output::Rejected(e.to_string()))?;
+        skills
+            .into_iter()
+            .map(|skill| skill.name.as_str().module_identity())
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(Output::Rejected)
     }
 
     fn resolve_sources(
@@ -70,7 +85,7 @@ impl Answering for Curriculum {
         module_identity_vector: &Vec<ModuleIdentity>,
     ) -> Result<Vec<ResolvedModule>, Output> {
         self.registry
-            .resolved_sources(&identities(module_identity_vector))
+            .resolved_sources(&identities(module_identity_vector).map_err(Output::Rejected)?)
             .map_err(|e| Output::Rejected(e.to_string()))
     }
 
@@ -113,8 +128,8 @@ impl Operating<SkillMemory> for CurriculumOperation {
 }
 
 /// The registry names a module by its identity's text.
-fn identities(ids: &[ModuleIdentity]) -> Vec<String> {
-    ids.iter().map(|ModuleIdentity(id)| id.clone()).collect()
+fn identities(ids: &[ModuleIdentity]) -> Result<Vec<String>, String> {
+    ids.iter().map(|id| id.identity_text()).collect()
 }
 
 pub struct CurriculumSignal;
@@ -177,21 +192,32 @@ impl Nexus for CurriculumNexus {
 
 #[cfg(test)]
 mod tests {
-    use signal_curriculum_nexus::{Input, ModuleIdentity, Output};
+    use signal_curriculum_nexus::{
+        Input, ModuleIdentity, ModuleKind, ModuleSubject, Output, Version, Versions,
+    };
 
     use super::CurriculumSignal;
     use nexus::Signaling;
 
+    fn identity(kind: ModuleKind, subject: &str) -> ModuleIdentity {
+        ModuleIdentity {
+            module_kind: kind,
+            module_subject: ModuleSubject(subject.into()),
+            versions: Versions::Single(Version(0)),
+        }
+    }
+
     #[test]
     fn signal_decodes_and_answers_only_archived_types() {
-        let input = Input::ResolveSkills(vec![ModuleIdentity("knowledge:main-flow:0".into())]);
+        let input = Input::ResolveSkills(vec![identity(ModuleKind::Knowledge, "main-flow")]);
         let encoded = rkyv::to_bytes::<rkyv::rancor::Error>(&input).expect("archive input");
         assert_eq!(CurriculumSignal.decode(&encoded), Some(input));
         assert_eq!(
-            CurriculumSignal.answer(Output::SkillsResolved(vec![ModuleIdentity(
-                "spirit:core:0".into()
+            CurriculumSignal.answer(Output::SkillsResolved(vec![identity(
+                ModuleKind::Spirit,
+                "core"
             )])),
-            Output::SkillsResolved(vec![ModuleIdentity("spirit:core:0".into())])
+            Output::SkillsResolved(vec![identity(ModuleKind::Spirit, "core")])
         );
     }
 }

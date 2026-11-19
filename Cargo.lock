@@ -79,7 +79,7 @@ dependencies = [
 
 [[package]]
 name = "curriculum"
-version = "0.1.0"
+version = "0.3.1"
 dependencies = [
  "datom-codec",
  "ethos-zero",
@@ -400,7 +400,7 @@ dependencies = [
 [[package]]
 name = "nexus"
 version = "0.5.0"
-source = "git+https://github.com/LiGoldragon/nexus?rev=ec097e315a3b0b99bc215a72f6c3f6d8b2b060cf#ec097e315a3b0b99bc215a72f6c3f6d8b2b060cf"
+source = "git+https://github.com/LiGoldragon/nexus?rev=69946db066bb70bdbc1fd7dbf5e6c88dcf05c363#69946db066bb70bdbc1fd7dbf5e6c88dcf05c363"
 dependencies = [
  "kameo",
  "rkyv",
@@ -592,8 +592,8 @@ dependencies = [
 
 [[package]]
 name = "signal-curriculum-nexus"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-curriculum-nexus?rev=4202d8b#4202d8bade73179be646b588498ae55e5687d1e8"
+version = "0.3.0"
+source = "git+https://github.com/LiGoldragon/signal-curriculum-nexus?rev=31b3ac5796eadee2d7fdcd267ee3cea926f1f46c#31b3ac5796eadee2d7fdcd267ee3cea926f1f46c"
 dependencies = [
  "datom-codec",
  "ethos-zero",

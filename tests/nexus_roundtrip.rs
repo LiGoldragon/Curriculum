@@ -59,13 +59,13 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     write_source(roots[0].join("intent/seat/0.md"), "INTENT_BODY").unwrap();
     write_source(
         roots[2].join("compensation/illustration/0.md"),
-        "---\ndescription: instruction\ndependencies: []\nplacement: user\n---\nEXACT_USER_BODY",
+        "---\ndescription: instruction\ndependencies: []\nplacement: user\n---\nEXACT_USER_BODY\n{\"message\":{\"usage\":{\"input_tokens\":2}}}\n",
     )
     .unwrap();
     let roles = base.join("roles.datom");
     write_source(
         &roles,
-        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted role:book-description:0 [ spirit:core:0 intent:seat:0 compensation:illustration:0 ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
+        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted { Role book-description Single.0 } [ { Spirit core Single.0 } { Intent seat Single.0 } { Compensation illustration Single.0 } ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
     )
     .unwrap();
     for root in &roots {
@@ -109,7 +109,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     }
     let response = invoke(
         &runtime,
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core:0 intent:seat:0 ] [ compensation:illustration:0 ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ { Compensation illustration Single.0 } ] [] }",
     );
     assert!(
         response.status.success(),
@@ -119,23 +119,31 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let text = String::from_utf8(response.stdout).unwrap();
     assert!(text.starts_with("StartupComposed."));
     assert!(text.contains("EXACT_USER_BODY"));
+    assert!(text.contains(r#"{"message":{"usage":{"input_tokens":2}}}"#));
     assert!(text.contains("field-belief"));
-    let sources = invoke(&runtime, "ResolveSources.[ compensation:illustration:0 ]");
+    let sources = invoke(
+        &runtime,
+        "ResolveSources.[ { Compensation illustration Single.0 } ]",
+    );
     assert!(sources.status.success());
     let source_text = String::from_utf8_lossy(&sources.stdout);
     assert!(source_text.contains("compensation/illustration/0.md"));
-    let psyche_sources = invoke(&runtime, "ResolveSources.[ intent:seat:0 ]");
+    let psyche_sources = invoke(&runtime, "ResolveSources.[ { Intent seat Single.0 } ]");
     assert!(psyche_sources.status.success());
     assert!(String::from_utf8_lossy(&psyche_sources.stdout).contains(&current_psyche_revision));
     let role = invoke(&runtime, "ComposeRole.{ book ClaudeAgent }");
     assert!(role.status.success());
     assert!(String::from_utf8_lossy(&role.stdout).contains("EXACT_USER_BODY"));
+    assert!(
+        String::from_utf8_lossy(&role.stdout)
+            .contains(r#"{"message":{"usage":{"input_tokens":2}}}"#)
+    );
     for old in [
         "RebuildSkills",
         "CheckSkills",
         "EditSkills.{ [] [] [] }",
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core:0 intent:seat:0 ] [ «/tmp/arbitrary.md» ] [] }",
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core:0 intent:seat:0 ] [ «inline prompt text» ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ «/tmp/arbitrary.md» ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ «inline prompt text» ] [] }",
     ] {
         assert!(!invoke(&runtime, old).status.success(), "accepted {old}");
     }
@@ -148,7 +156,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     .unwrap();
     let changed = invoke(
         &runtime,
-        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ spirit:core:0 intent:seat:0 ] [ compensation:illustration:0 ] [] }",
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ { Compensation illustration Single.0 } ] [] }",
     );
     assert!(
         changed.status.success(),
@@ -164,6 +172,39 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let changed_role_text = String::from_utf8(changed_role.stdout).unwrap();
     assert!(changed_role_text.contains("CHANGED_SOURCE"));
     assert!(!changed_role_text.contains("EXACT_USER_BODY"));
+    write_source(
+        roots[2].join("compensation/illustration/0.md"),
+        "{{ missing_variable }}",
+    )
+    .unwrap();
+    for request in [
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ { Compensation illustration Single.0 } ] [] }",
+        "ComposeRole.{ book ClaudeAgent }",
+    ] {
+        let refused = invoke(&runtime, request);
+        assert!(!refused.status.success());
+        let diagnostic = String::from_utf8(refused.stderr).unwrap();
+        assert!(
+            diagnostic.contains("unresolved context variable"),
+            "{diagnostic}"
+        );
+        // The default CLI presents a refusal on stderr. Read the wire itself
+        // to assert its typed shape independently of that presentation.
+        use datom_codec::{Actualizing, Budget, Potential};
+        use protos::ReaderBudget;
+        let input = Potential::<signal_curriculum_nexus::Input>::from(request)
+            .actualize(&mut Budget {
+                remaining: 1_048_576,
+                reader: ReaderBudget::try_from(1_048_576).unwrap(),
+                depth: 0,
+                maximum_depth: 1024,
+            })
+            .unwrap();
+        let output = signal_reply(&socket, &input);
+        assert!(
+            matches!(output, signal_curriculum_nexus::Output::Rejected(reason) if reason.contains("unresolved context variable"))
+        );
+    }
 }
 
 fn write_source(
@@ -173,4 +214,22 @@ fn write_source(
     let path = path.as_ref();
     fs::create_dir_all(path.parent().unwrap())?;
     fs::write(path, contents)
+}
+
+fn signal_reply(
+    socket: &std::path::Path,
+    input: &signal_curriculum_nexus::Input,
+) -> signal_curriculum_nexus::Output {
+    use std::io::{Read, Write};
+    let mut stream = std::os::unix::net::UnixStream::connect(socket).unwrap();
+    let request = rkyv::to_bytes::<rkyv::rancor::Error>(input).unwrap();
+    stream
+        .write_all(&u32::try_from(request.len()).unwrap().to_be_bytes())
+        .unwrap();
+    stream.write_all(&request).unwrap();
+    let mut length = [0; 4];
+    stream.read_exact(&mut length).unwrap();
+    let mut reply = vec![0; u32::from_be_bytes(length) as usize];
+    stream.read_exact(&mut reply).unwrap();
+    rkyv::from_bytes::<signal_curriculum_nexus::Output, rkyv::rancor::Error>(&reply).unwrap()
 }
