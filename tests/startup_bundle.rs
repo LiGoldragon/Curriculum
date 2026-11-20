@@ -130,6 +130,80 @@ fn composes_all_selected_text_in_memory_once_with_exact_hashes_and_placement() {
         outcome
     );
 }
+
+#[test]
+fn claude_and_codex_modules_start_with_descriptions_and_keep_rendered_body_bytes() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (roots, registry, mut selection) = fixture(tmp.path());
+    let mut expected = std::collections::BTreeMap::new();
+    for (index, module) in registry.listed_modules().unwrap().into_iter().enumerate() {
+        let id = module.module_identity.identity_text().unwrap();
+        let source = fs::read_to_string(&module.module_file.0).unwrap();
+        let (metadata, body) = match source.strip_prefix("---\n") {
+            Some(rest) => rest.split_once("\n---\n").unwrap(),
+            None => ("", source.as_str()),
+        };
+        let (scalar, description) = match index {
+            0 => (
+                r#""Quoted \"head\".""#.to_owned(),
+                "Quoted \"head\".".to_owned(),
+            ),
+            1 => (
+                "Folded\n  description.".to_owned(),
+                "Folded description.".to_owned(),
+            ),
+            _ => (
+                format!("Description for {id}."),
+                format!("Description for {id}."),
+            ),
+        };
+        let body = if id == "compensation:user00:0" {
+            "{% if claude %}\nCLAUDE\n{% else %}\nCODEX\n{% endif %}\n```json\n{\"nested\":{\"value\":1}}\n```\n"
+        } else {
+            body
+        };
+        fs::write(
+            &module.module_file.0,
+            format!("---\ndescription: {scalar}\n{metadata}\n---\n{body}"),
+        )
+        .unwrap();
+        expected.insert(id, (description, body.to_owned()));
+    }
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
+    for (target, target_body) in [(Target::Claude, "CLAUDE"), (Target::Codex, "CODEX")] {
+        selection.target = target;
+        let composed = startup::compose(&registry, &tmp.path().join("flows"), &selection).unwrap();
+        assert_eq!(composed.context_provenance_vector.len(), expected.len());
+        for row in &composed.context_provenance_vector {
+            let id = row.module_identity.identity_text().unwrap();
+            let (description, body) = &expected[&id];
+            let rendered_body = if id == "compensation:user00:0" {
+                format!("{target_body}\n```json\n{{\"nested\":{{\"value\":1}}}}\n```\n")
+            } else {
+                body.clone()
+            };
+            let interior = format!("{description}\n\n{rendered_body}");
+            let text = match row.startup_placement {
+                StartupPlacement::System => &composed.system_text.0,
+                StartupPlacement::User => &composed.user_text.0,
+            };
+            let segment =
+                format!("\n<!-- module: {id} -->\n{interior}\n<!-- end-module: {id} -->\n");
+            assert_eq!(text.matches(&segment).count(), 1, "{id}");
+            assert_eq!(row.rendered_sha256.0, digest(&interior), "{id}");
+            assert_eq!(row.body_sha256.0, digest(body), "{id}");
+        }
+        assert_eq!(
+            composed.system_payload_sha256.0,
+            digest(&composed.system_text.0)
+        );
+        assert_eq!(
+            composed.user_payload_sha256.0,
+            digest(&composed.user_text.0)
+        );
+    }
+}
 #[test]
 fn caller_paths_inline_text_unknown_duplicates_wrong_placement_and_changed_sources_refuse() {
     let tmp = tempfile::tempdir().unwrap();
