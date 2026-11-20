@@ -5,8 +5,8 @@ use signal_curriculum_nexus::Target;
 pub(crate) fn render_module(target: &Target, source: &str) -> Result<String, String> {
     let body = crate::startup_metadata::instructions(source)?;
     let rendered_body = render(target, body)?;
-    let description = crate::startup_metadata::description(source)?;
-    if description.is_empty() {
+    let description = render(target, &crate::startup_metadata::description(source)?)?;
+    if description.trim().is_empty() {
         Ok(rendered_body)
     } else {
         Ok(format!("{description}\n\n{rendered_body}"))

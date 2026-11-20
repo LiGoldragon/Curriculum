@@ -67,7 +67,7 @@ pub(crate) fn declared_placement(source: &str) -> &str {
 
 /// The bounded scalar forms used by authored description frontmatter.
 /// Quoted scalars occupy one line; plain continuation lines fold with spaces.
-/// This does not interpret YAML documents, collections, or block scalars.
+/// Block scalars are decoded separately, preserving their line structure.
 enum DescriptionScalar {
     Plain(String),
     Quoted(String),
@@ -199,7 +199,8 @@ pub(crate) fn description(source: &str) -> Result<String, String> {
     let (header, _) = framed_source(source)?;
     let mut owner = None;
     let mut found: Option<DescriptionScalar> = None;
-    for line in header.lines() {
+    let mut lines = header.split('\n').peekable();
+    while let Some(line) = lines.next() {
         let trimmed = line.trim();
         if trimmed.is_empty() || trimmed.starts_with('#') {
             continue;
@@ -226,7 +227,11 @@ pub(crate) fn description(source: &str) -> Result<String, String> {
         if found.is_some() {
             return Err("duplicate description".into());
         }
-        found = Some(DescriptionScalar::parse(raw)?);
+        found = Some(if raw.trim_start().starts_with(['>', '|']) {
+            DescriptionScalar::Quoted(crate::description_block::decode(raw, &mut lines)?)
+        } else {
+            DescriptionScalar::parse(raw)?
+        });
     }
     Ok(found.map(DescriptionScalar::into_text).unwrap_or_default())
 }

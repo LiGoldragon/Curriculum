@@ -144,7 +144,7 @@ fn verbose_listing_refuses_ambiguous_or_malformed_description_scalars() {
 }
 
 #[test]
-fn verbose_refuses_empty_and_populated_block_scalar_indicators_and_modifiers() {
+fn verbose_decodes_empty_and_populated_block_scalar_indicators_and_modifiers() {
     for indicator in [
         ">", "|", ">-", ">+", "|-", "|+", ">2", "|2", ">2-", ">-2", "|2+", "|+2",
     ] {
@@ -168,10 +168,19 @@ fn verbose_refuses_empty_and_populated_block_scalar_indicators_and_modifiers() {
                 "vision:topic:0"
             );
             assert!(listed[0].module_file.0.ends_with("vision/topic/0.md"));
-            let error = registry.listed_modules_verbose().unwrap_err().to_string();
-            assert!(
-                error.contains("vision:topic:0") && error.contains("vision/topic/0.md"),
-                "{indicator}: {error}"
+            let expected = if continuation.is_empty() {
+                ""
+            } else if indicator.contains('-') {
+                "content"
+            } else {
+                "content\n"
+            };
+            assert_eq!(
+                registry.listed_modules_verbose().unwrap()[0]
+                    .description_text
+                    .0,
+                expected,
+                "{indicator}"
             );
         }
     }

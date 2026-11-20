@@ -8,6 +8,7 @@ pub mod service;
 
 pub use registry::{ExpandsSkills, RegistryError, ResolvedSkill, SkillEntry, SkillRegistry};
 
+mod description_block;
 pub mod startup;
 mod startup_metadata;
 

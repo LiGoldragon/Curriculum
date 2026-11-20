@@ -204,6 +204,116 @@ fn claude_and_codex_modules_start_with_descriptions_and_keep_rendered_body_bytes
         );
     }
 }
+
+fn compose_description_case(raw: &str, target: Target) -> Result<StartupComposition, String> {
+    let tmp = tempfile::tempdir().unwrap();
+    let (roots, _, mut selection) = fixture(tmp.path());
+    write_source(
+        roots[2].join("compensation/user00/0.md"),
+        format!("---\ndescription: {raw}\nplacement: user\n---\nBODY\n"),
+    )
+    .unwrap();
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
+    selection.target = target;
+    startup::compose(&registry, &tmp.path().join("flows"), &selection)
+}
+
+fn assert_description_interior(result: &StartupComposition, interior: &str) {
+    let id = "compensation:user00:0";
+    let segment = format!("\n<!-- module: {id} -->\n{interior}\n<!-- end-module: {id} -->\n");
+    assert_eq!(result.user_text.0.matches(&segment).count(), 1);
+    let row = result
+        .context_provenance_vector
+        .iter()
+        .find(|row| row.module_identity.identity_text().unwrap() == id)
+        .unwrap();
+    assert_eq!(row.rendered_sha256.0, digest(interior));
+    assert_eq!(row.body_sha256.0, digest("BODY\n"));
+    assert_eq!(result.user_payload_sha256.0, digest(&result.user_text.0));
+}
+
+#[test]
+fn whitespace_only_descriptions_have_no_head() {
+    for target in [Target::Claude, Target::Codex] {
+        for raw in [r#"" ""#, r#""\t\n  ""#, "'   '", "   ", "|\n  \n  "] {
+            let result = compose_description_case(raw, target.clone()).unwrap();
+            assert_description_interior(&result, "BODY\n");
+        }
+    }
+}
+
+#[test]
+fn block_descriptions_decode_yaml_folding_indentation_and_chomping() {
+    // Expected values follow YAML 1.2.2 section 8.1, not this implementation.
+    let cases = [
+        (">\n  folded\n  text", "folded text\n"),
+        (">-\n  folded\n  text\n", "folded text"),
+        (">+\n  folded\n  text\n\n", "folded text\n\n\n"),
+        ("|\n  literal\n  text\n", "literal\ntext\n"),
+        ("|-\n  literal\n  text", "literal\ntext"),
+        ("|+\n  literal\n  text\n\n", "literal\ntext\n\n\n"),
+        (
+            ">2- # header comment\n  first\n    indented\n  last",
+            "first\n  indented\nlast",
+        ),
+        (
+            "|2-\n    extra indentation\n  # content",
+            "  extra indentation\n# content",
+        ),
+        (
+            ">-\n\n  first\n\n  second\n  third",
+            "\nfirst\nsecond third",
+        ),
+        (
+            ">-\n  first\n\n    indented\n\n  last",
+            "first\n\n  indented\n\nlast",
+        ),
+        (
+            "|\n  # content, not a comment\n  trailing  ",
+            "# content, not a comment\ntrailing  \n",
+        ),
+    ];
+    for target in [Target::Claude, Target::Codex] {
+        for (raw, decoded) in cases {
+            let result = compose_description_case(raw, target.clone()).unwrap();
+            assert_description_interior(&result, &format!("{decoded}\n\nBODY\n"));
+        }
+    }
+}
+
+#[test]
+fn descriptions_use_body_target_rendering_and_refusals() {
+    let conditional = r#""{% if claude %}\nClaude head\n{% else %}\nCodex head\n{% endif %}""#;
+    for (target, expected) in [
+        (Target::Claude, "Claude head\n"),
+        (Target::Codex, "Codex head\n"),
+    ] {
+        let result = compose_description_case(conditional, target.clone()).unwrap();
+        assert_description_interior(&result, &format!("{expected}\n\nBODY\n"));
+        for (raw, error) in [
+            (r#""{{ name }}""#, "unresolved context variable"),
+            (
+                r#""{% unknown %}""#,
+                "unsupported context template directive",
+            ),
+            (r#""{% if claude %}""#, "unterminated context template"),
+        ] {
+            assert!(
+                compose_description_case(raw, target.clone())
+                    .unwrap_err()
+                    .contains(error)
+            );
+        }
+        let omitted =
+            compose_description_case(r#""{% if pi %}\nOmitted\n{% endif %}""#, target.clone())
+                .unwrap();
+        assert_description_interior(&omitted, "BODY\n");
+        let raw =
+            compose_description_case(r#""{% raw %}\n{{ name }}\n{% endraw %}""#, target).unwrap();
+        assert_description_interior(&raw, "{{ name }}\n\n\nBODY\n");
+    }
+}
 #[test]
 fn caller_paths_inline_text_unknown_duplicates_wrong_placement_and_changed_sources_refuse() {
     let tmp = tempfile::tempdir().unwrap();
