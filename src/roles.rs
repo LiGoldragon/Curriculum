@@ -1,7 +1,7 @@
 //! Role metadata contains IDs only. Authored text is resolved by the same registry.
 use crate::{
     generated::{RoleDefinition, Roles},
-    registry::{valid_id, valid_segment, IdentityText, SkillRegistry},
+    registry::{IdentityText, SkillRegistry, valid_id, valid_segment},
     startup_metadata::sha256,
 };
 use signal_curriculum_nexus::{
@@ -125,9 +125,10 @@ pub fn compose(
         Surface::CodexAgent => Target::Codex,
         Surface::PiAgent => Target::Pi,
     };
-    let rendered: Vec<String> = modules
+    let sources = registry.resolve_exact(&ids).map_err(|e| e.to_string())?;
+    let rendered: Vec<String> = sources
         .iter()
-        .map(|m| crate::context_render::render(&target, &m.string))
+        .map(|source| crate::context_render::render_module(&target, &source.body))
         .collect::<Result<_, _>>()?;
     let description_text = modules
         .iter()

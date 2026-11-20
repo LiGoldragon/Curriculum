@@ -1,5 +1,18 @@
 //! Existing target/raw syntax, now strict about malformed and unknown directives.
 use signal_curriculum_nexus::Target;
+
+/// The complete interior of a composed module, shared by both producers.
+pub(crate) fn render_module(target: &Target, source: &str) -> Result<String, String> {
+    let body = crate::startup_metadata::instructions(source)?;
+    let rendered_body = render(target, body)?;
+    let description = crate::startup_metadata::description(source)?;
+    if description.is_empty() {
+        Ok(rendered_body)
+    } else {
+        Ok(format!("{description}\n\n{rendered_body}"))
+    }
+}
+
 pub fn render(target: &Target, body: &str) -> Result<String, String> {
     let mut output = String::new();
     let mut conditions = Vec::<(bool, bool)>::new();

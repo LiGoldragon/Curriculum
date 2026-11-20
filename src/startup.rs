@@ -2,7 +2,7 @@
 //! Callers supply module IDs and a metaflow address, never paths or text.
 use crate::{
     registry::{ExpandsSkills, IdentityText, SkillRegistry},
-    startup_metadata::{description, instructions, sha256},
+    startup_metadata::sha256,
 };
 use signal_curriculum_nexus::{
     ContextProvenance, FlowId, RecordsPayloadSha256, RecordsText, RenderedSha256,
@@ -77,17 +77,10 @@ pub fn compose(
                 source.name
             ));
         }
-        let body = instructions(&source.body)?;
         let is_system = system_module(&source.name);
         let output = if is_system { &mut system } else { &mut user };
         let ordinal = output.len() as i64;
-        let rendered_body = crate::context_render::render(&selection.target, body)?;
-        let description = description(&source.body)?;
-        let rendered = if description.is_empty() {
-            rendered_body
-        } else {
-            format!("{description}\n\n{rendered_body}")
-        };
+        let rendered = crate::context_render::render_module(&selection.target, &source.body)?;
         let rendered_sha256 = RenderedSha256(sha256(rendered.as_bytes()));
         output.push((source.name, rendered));
         provenance.push(ContextProvenance {

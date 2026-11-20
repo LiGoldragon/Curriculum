@@ -1,6 +1,7 @@
 use curriculum::registry::IdentityText;
 mod support;
 use curriculum::{generated::*, registry::SkillRegistry, roles};
+use sha2::{Digest, Sha256};
 use signal_curriculum_nexus::*;
 use std::fs;
 use support::identity;
@@ -79,6 +80,92 @@ fn role_uses_only_selected_authored_ids_and_preserves_policy_through_wire() {
         outcome
     );
     assert!(!tmp.path().join(".claude").exists());
+}
+
+#[test]
+fn role_modules_share_description_heads_and_exact_hashes_on_claude_and_codex() {
+    let tmp = tempfile::tempdir().unwrap();
+    let (_, mut data, mut selection) = fixture(tmp.path());
+    let root = tmp.path().join("field");
+    let description_body = "Draw a figure of the same idea.";
+    let context_body = "AUTHORED_RULES\n";
+    let target_body = "{% if claude %}\nCLAUDE\n{% else %}\nCODEX\n{% endif %}\n```json\n{\"nested\":{\"value\":1}}\n```\n";
+    for (path, description, body) in [
+        (
+            "role/illustrator-description/0.md",
+            "Role selection.",
+            description_body,
+        ),
+        ("role/illustrator-svg/0.md", "Rendering.", target_body),
+        (
+            "compensation/illustration/0.md",
+            "Illustration rules.",
+            context_body,
+        ),
+    ] {
+        fs::write(
+            root.join(path),
+            format!("---\ndescription: {description}\n---\n{body}"),
+        )
+        .unwrap();
+    }
+    let roots = [tmp.path().join("psyche"), tmp.path().join("mind"), root];
+    let registry =
+        support::registry(&roots, &["a".repeat(40), "b".repeat(40), "c".repeat(40)]).unwrap();
+    let digest = |text: &str| format!("{:x}", Sha256::digest(text.as_bytes()));
+    for (surface, selected) in [
+        (Surface::ClaudeAgent, "CLAUDE"),
+        (Surface::CodexAgent, "CODEX"),
+    ] {
+        data.role_definition_vector[0].surface = surface.clone();
+        selection.surface = surface;
+        let result = roles::compose(&registry, &data, &selection).unwrap();
+        let selected_body = format!("{selected}\n```json\n{{\"nested\":{{\"value\":1}}}}\n```\n");
+        let expected = [
+            (
+                "role:illustrator-description:0",
+                "Role selection.",
+                description_body,
+                description_body,
+            ),
+            (
+                "role:illustrator-svg:0",
+                "Rendering.",
+                target_body,
+                selected_body.as_str(),
+            ),
+            (
+                "compensation:illustration:0",
+                "Illustration rules.",
+                context_body,
+                context_body,
+            ),
+        ];
+        assert_eq!(result.context_provenance_vector.len(), expected.len());
+        for (row, (id, description, authored_body, rendered_body)) in
+            result.context_provenance_vector.iter().zip(expected)
+        {
+            assert_eq!(row.module_identity.identity_text().unwrap(), id);
+            let interior = format!("{description}\n\n{rendered_body}");
+            if id == "role:illustrator-description:0" {
+                assert_eq!(result.description_text.0, interior);
+            } else {
+                let segment =
+                    format!("\n<!-- module: {id} -->\n{interior}\n<!-- end-module: {id} -->\n");
+                assert_eq!(result.context_text.0.matches(&segment).count(), 1, "{id}");
+            }
+            assert_eq!(row.rendered_sha256.0, digest(&interior), "{id}");
+            assert_eq!(row.body_sha256.0, digest(authored_body), "{id}");
+        }
+        assert_eq!(
+            result.description_payload_sha256.0,
+            digest(&result.description_text.0)
+        );
+        assert_eq!(
+            result.context_payload_sha256.0,
+            digest(&result.context_text.0)
+        );
+    }
 }
 #[test]
 fn inline_paths_missing_ambiguous_roles_and_invalid_caller_tool_data_refuse() {
