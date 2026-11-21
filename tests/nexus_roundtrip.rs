@@ -42,6 +42,12 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         write_source(root.join(".git/HEAD"), format!("{revision}\n")).unwrap();
     }
     fs::create_dir(roots[1].join("role")).unwrap();
+    fs::create_dir(roots[1].join("notion")).unwrap();
+    write_source(
+        roots[1].join("notion/role-witness/0.md"),
+        "NOTION_WIRE_BODY",
+    )
+    .unwrap();
     write_source(
         roots[1].join("role/book-description/0.md"),
         "Publish a current book.",
@@ -65,7 +71,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let roles = base.join("roles.datom");
     write_source(
         &roles,
-        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted { Role book-description Single.0 } [ { Spirit core Single.0 } { Intent seat Single.0 } { Compensation illustration Single.0 } ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
+        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted { Role book-description Single.0 } [ { Spirit core Single.0 } { Intent seat Single.0 } { Compensation illustration Single.0 } { Notion role-witness Single.0 } ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
     )
     .unwrap();
     for root in &roots {
@@ -138,6 +144,36 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         String::from_utf8_lossy(&role.stdout)
             .contains(r#"{"message":{"usage":{"input_tokens":2}}}"#)
     );
+    let stage = base.join("role-projection");
+    let packet_path = ".claude/agents/book.md";
+    let project = |destinations: &str| {
+        Command::new(env!("CARGO_BIN_EXE_curriculum-project"))
+            .arg(format!(
+                "ProjectRoles.{{ {} {} [ {destinations} ] }}",
+                socket.display(),
+                stage.display()
+            ))
+            .output()
+            .unwrap()
+    };
+    let book = format!("{{ {{ book ClaudeAgent }} {packet_path} }}");
+    let projected = project(&book);
+    assert!(
+        projected.status.success(),
+        "{}",
+        String::from_utf8_lossy(&projected.stdout)
+    );
+    assert_eq!(projected.stdout, b"RolesProjected.1\n");
+    let inventory_path = "skills/generated-role-outputs.datom";
+    let provenance_path = "skills/generated-role-provenance.datom";
+    let packet = fs::read_to_string(stage.join(packet_path)).unwrap();
+    let inventory = fs::read_to_string(stage.join(inventory_path)).unwrap();
+    let provenance = fs::read_to_string(stage.join(provenance_path)).unwrap();
+    assert!(packet.contains("NOTION_WIRE_BODY"));
+    assert!(inventory.contains(packet_path));
+    assert!(provenance.contains("notion:role-witness:0"));
+    assert!(provenance.contains(&"b".repeat(40)));
+
     for old in [
         "RebuildSkills",
         "CheckSkills",
@@ -172,6 +208,27 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let changed_role_text = String::from_utf8(changed_role.stdout).unwrap();
     assert!(changed_role_text.contains("CHANGED_SOURCE"));
     assert!(!changed_role_text.contains("EXACT_USER_BODY"));
+    let refused_batch = project(&format!(
+        "{book} {{ {{ missing ClaudeAgent }} .claude/agents/missing.md }}"
+    ));
+    assert!(!refused_batch.status.success());
+    assert!(String::from_utf8_lossy(&refused_batch.stdout).starts_with("ProjectionRejected."));
+    assert_eq!(fs::read_to_string(stage.join(packet_path)).unwrap(), packet);
+    assert_eq!(
+        fs::read_to_string(stage.join(inventory_path)).unwrap(),
+        inventory
+    );
+    assert_eq!(
+        fs::read_to_string(stage.join(provenance_path)).unwrap(),
+        provenance
+    );
+    assert!(!stage.join(".claude/agents/missing.md").exists());
+    assert!(project(&book).status.success());
+    assert!(
+        fs::read_to_string(stage.join(packet_path))
+            .unwrap()
+            .contains("CHANGED_SOURCE")
+    );
     write_source(
         roots[2].join("compensation/illustration/0.md"),
         "{{ missing_variable }}",
