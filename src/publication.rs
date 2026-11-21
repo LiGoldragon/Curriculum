@@ -19,7 +19,7 @@ use tokio::{
 use crate::{
     client::{BudgetedActualizing, ClientError, DatomFaulting, PresentsOutput},
     publication_types::{
-        Admission, AdmissionConfiguration, Announcement, PublicationStored, Refusal,
+        Admission, AdmissionConfiguration, Announcement, Publication, PublicationDigest, Refusal,
     },
 };
 
@@ -118,7 +118,7 @@ impl Listener {
         if text.len() > TEXT_BUDGET {
             return Admission::Refused(Refusal::Invalid);
         }
-        let Some(Announcement::PublicationStored(stored)) =
+        let Some(Announcement::PublicationReceived(publication)) =
             std::str::from_utf8(text).ok().and_then(|text| {
                 Potential::<Announcement>::from(text)
                     .actualize_with_limit(TEXT_BUDGET as i64)
@@ -127,27 +127,27 @@ impl Listener {
         else {
             return Admission::Refused(Refusal::Invalid);
         };
-        if !stored.matches_digest() {
+        let Some(digest) = publication.digest() else {
             return Admission::Refused(Refusal::Invalid);
-        }
-        match record(&self.admissions, &stored) {
-            Ok(()) => Admission::Accepted(stored.publication_digest),
+        };
+        match record(&self.admissions, &publication, &digest) {
+            Ok(()) => Admission::Accepted(digest),
             Err(_) => Admission::Refused(Refusal::Unavailable),
         }
     }
 }
 
 trait Identifiable {
-    fn matches_digest(&self) -> bool;
+    fn digest(&self) -> Option<PublicationDigest>;
 }
 
-impl Identifiable for PublicationStored {
-    fn matches_digest(&self) -> bool {
-        let stream = &self.publication.publication_stream;
+impl Identifiable for Publication {
+    fn digest(&self) -> Option<PublicationDigest> {
+        let stream = &self.publication_stream;
         let repository = &stream.repository_name.0;
         let reference = &stream.reference_name.0;
-        let old = &self.publication.first_object_id.0;
-        let new = &self.publication.second_object_id.0;
+        let old = &self.first_object_id.0;
+        let new = &self.second_object_id.0;
         let valid_segment = |segment: &str| {
             !segment.is_empty()
                 && segment
@@ -168,24 +168,31 @@ impl Identifiable for PublicationStored {
             || !valid_id(old)
             || !valid_id(new)
         {
-            return false;
+            return None;
         }
         // The transport digest is over the already-landed flat canonical
         // record. The local event carries the typed stream as one value.
         let canonical = format!("{{ {repository} {reference} {old} {new} }}\n");
-        self.publication_digest.0 == format!("{:x}", Sha256::digest(canonical.as_bytes()))
+        Some(PublicationDigest(format!(
+            "{:x}",
+            Sha256::digest(canonical.as_bytes())
+        )))
     }
 }
 
-fn record(directory: &Path, stored: &PublicationStored) -> io::Result<()> {
-    let target = directory.join(format!("{}.datom", stored.publication_digest.0));
+fn record(
+    directory: &Path,
+    publication: &Publication,
+    digest: &PublicationDigest,
+) -> io::Result<()> {
+    let target = directory.join(format!("{}.datom", digest.0));
     let serial = NEXT_TEMPORARY.fetch_add(1, Ordering::Relaxed);
     let temporary = directory.join(format!(".admitting-{}-{serial}", std::process::id()));
     let mut file = OpenOptions::new()
         .write(true)
         .create_new(true)
         .open(&temporary)?;
-    let bytes = stored.datom_text();
+    let bytes = publication.datom_text();
     let result = (|| {
         file.write_all(bytes.as_bytes())?;
         file.sync_all()?;
@@ -209,7 +216,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn admits_exact_publication_once_and_refuses_mismatching_digest() {
+    fn derives_the_digest_admits_once_and_refuses_an_invalid_publication() {
         let storage = tempfile::tempdir().unwrap();
         let listener = Listener {
             socket: storage.path().join("admissions.sock"),
@@ -222,12 +229,10 @@ mod tests {
         let flat = format!("{{ sample/belief refs/heads/main {old} {new} }}\n");
         let digest = format!("{:x}", Sha256::digest(flat.as_bytes()));
         let event = |new: &str| {
-            format!(
-                "PublicationStored.{{ {digest} {{ {{ sample/belief refs/heads/main }} {old} {new} }} }}\n"
-            )
+            format!("PublicationReceived.{{ {{ sample/belief refs/heads/main }} {old} {new} }}\n")
         };
         assert!(matches!(
-            listener.admit(event(&"c".repeat(40)).as_bytes()),
+            listener.admit(event(&"z".repeat(40)).as_bytes()),
             Admission::Refused(Refusal::Invalid)
         ));
         assert_eq!(fs::read_dir(storage.path()).unwrap().count(), 0);

@@ -11,8 +11,7 @@ Library
   ObjectId.String
   Publication.{ PublicationStream ObjectId ObjectId }
   PublicationDigest.String
-  PublicationStored.{ PublicationDigest Publication }
-  Announcement.[ PublicationStored ]
+  Announcement.[ PublicationReceived.Publication ]
   Admission.[ Accepted.PublicationDigest Refused.Refusal ]
   Refusal.[ Untrusted Invalid Unavailable ] ]
 []
