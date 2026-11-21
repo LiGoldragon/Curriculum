@@ -15,3 +15,8 @@ mod startup_metadata;
 pub mod context_render;
 pub mod emission;
 pub mod refresh;
+
+#[cfg(feature = "datom")]
+pub mod publication;
+#[cfg(feature = "datom")]
+mod publication_types;

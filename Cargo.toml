@@ -22,6 +22,11 @@ required-features = ["datom"]
 name = "curriculum-nexus"
 path = "src/nexus_main.rs"
 
+[[bin]]
+name = "curriculum-publication"
+path = "src/publication_main.rs"
+required-features = ["datom"]
+
 [dependencies]
 sha2 = "=0.10.9"
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "09a0526", features = ["rkyv"], optional = true }
@@ -31,7 +36,7 @@ signal-curriculum-nexus = { git = "https://github.com/LiGoldragon/signal-curricu
 protos = { git = "https://github.com/LiGoldragon/protos", rev = "c93b598", optional = true }
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 thiserror = "2"
-tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "signal"] }
+tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "signal", "time"] }
 # The build base builds mio with its default log feature everywhere; this crate carries that edge.
 mio = "1"
 

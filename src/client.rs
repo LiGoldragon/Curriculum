@@ -76,13 +76,13 @@ pub trait PresentsOutput {
     fn datom_text(&self) -> String;
 }
 
-impl PresentsOutput for Output {
+impl<T: Datomizable> PresentsOutput for T {
     fn datom_text(&self) -> String {
         self.datomize(vec![]).protosize().textualize()
     }
 }
 
-trait DatomFaulting {
+pub(crate) trait DatomFaulting {
     fn datom_fault(self) -> ClientError;
 }
 
@@ -92,7 +92,7 @@ impl DatomFaulting for datom_codec::Error {
     }
 }
 
-trait BudgetedActualizing<T> {
+pub(crate) trait BudgetedActualizing<T> {
     fn actualize_with_limit(&mut self, limit: i64) -> Result<T, datom_codec::Error>;
 }
 
