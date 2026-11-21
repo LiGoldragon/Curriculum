@@ -24,6 +24,7 @@ use crate::{
 };
 
 const TEXT_BUDGET: usize = 4096;
+const PUBLICATION_WIRE_BUDGET: usize = 256;
 static NEXT_TEMPORARY: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Debug, thiserror::Error)]
@@ -159,6 +160,22 @@ trait Identifiable {
     fn digest(&self) -> Option<PublicationDigest>;
 }
 
+// The SSH record uses the bare Datom representation of a full Git ref.
+fn is_publication_reference(reference: &str) -> bool {
+    reference.strip_prefix("refs/").is_some_and(|suffix| {
+        !suffix.ends_with('.')
+            && !suffix.contains("..")
+            && suffix.split('/').all(|segment| {
+                !segment.is_empty()
+                    && !segment.starts_with('.')
+                    && !segment.ends_with(".lock")
+                    && segment.bytes().all(|byte| {
+                        byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b'-')
+                    })
+            })
+    })
+}
+
 impl Identifiable for Publication {
     fn digest(&self) -> Option<PublicationDigest> {
         let stream = &self.publication_stream;
@@ -181,7 +198,7 @@ impl Identifiable for Publication {
         if !repository
             .split_once('/')
             .is_some_and(|(owner, name)| valid_segment(owner) && valid_segment(name))
-            || reference != "refs/heads/main"
+            || !is_publication_reference(reference)
             || old.len() != new.len()
             || !valid_id(old)
             || !valid_id(new)
@@ -191,6 +208,9 @@ impl Identifiable for Publication {
         // The transport digest is over the already-landed flat canonical
         // record. The local event carries the typed stream as one value.
         let canonical = format!("{{ {repository} {reference} {old} {new} }}\n");
+        if canonical.len() > PUBLICATION_WIRE_BUDGET {
+            return None;
+        }
         Some(PublicationDigest(format!(
             "{:x}",
             Sha256::digest(canonical.as_bytes())
@@ -247,15 +267,15 @@ mod tests {
         let new = "b".repeat(40);
         let flat = format!("{{ sample/belief refs/heads/main {old} {new} }}\n");
         let digest = format!("{:x}", Sha256::digest(flat.as_bytes()));
-        let event = |new: &str| {
-            format!("PublicationReceived.{{ {{ sample/belief refs/heads/main }} {old} {new} }}\n")
+        let event = |reference: &str, new: &str| {
+            format!("PublicationReceived.{{ {{ sample/belief {reference} }} {old} {new} }}\n")
         };
         assert!(matches!(
-            listener.admit(event(&"z".repeat(40)).as_bytes()),
+            listener.admit(event("refs/heads/main", &"z".repeat(40)).as_bytes()),
             Admission::Refused(Refusal::Invalid)
         ));
         assert_eq!(fs::read_dir(storage.path()).unwrap().count(), 0);
-        let request = event(&new);
+        let request = event("refs/heads/main", &new);
         let expected = format!("Accepted.{digest}");
         assert_eq!(listener.admit(request.as_bytes()).datom_text(), expected);
         let admitted = storage.path().join(format!("{digest}.datom"));
@@ -263,5 +283,37 @@ mod tests {
         assert_eq!(listener.admit(request.as_bytes()).datom_text(), expected);
         assert_eq!(fs::read(admitted).unwrap(), initial);
         assert_eq!(fs::read_dir(storage.path()).unwrap().count(), 1);
+
+        for reference in [
+            "HEAD",
+            "refs/heads/",
+            "refs//heads/main",
+            "refs/heads/.hidden",
+            "refs/heads/a..b",
+            "refs/heads/a.lock/branch",
+            "refs/heads/main.",
+            "refs/heads/a:b",
+            &format!("refs/heads/{}", "a".repeat(256)),
+        ] {
+            assert!(
+                matches!(
+                    listener.admit(event(reference, &new).as_bytes()),
+                    Admission::Refused(Refusal::Invalid)
+                ),
+                "{reference}"
+            );
+        }
+        assert_eq!(fs::read_dir(storage.path()).unwrap().count(), 1);
+
+        let reference = "refs/heads/release/v1";
+        let wire = format!("{{ sample/belief {reference} {old} {new} }}\n");
+        let digest = format!("{:x}", Sha256::digest(wire.as_bytes()));
+        assert_eq!(
+            listener
+                .admit(event(reference, &new).as_bytes())
+                .datom_text(),
+            format!("Accepted.{digest}")
+        );
+        assert!(storage.path().join(format!("{digest}.datom")).is_file());
     }
 }
