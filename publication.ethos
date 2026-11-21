@@ -4,7 +4,8 @@ Library
   AdmissionDirectory.String
   ReceiverUserId.Integer
   AdmissionTimeoutMilliseconds.Integer
-  AdmissionConfiguration.{ AdmissionSocket AdmissionDirectory ReceiverUserId AdmissionTimeoutMilliseconds }
+  AdmissionReadinessMarker.String
+  AdmissionConfiguration.{ AdmissionSocket AdmissionDirectory ReceiverUserId AdmissionTimeoutMilliseconds Option<AdmissionReadinessMarker> }
   RepositoryName.String
   ReferenceName.String
   PublicationStream.{ RepositoryName ReferenceName }

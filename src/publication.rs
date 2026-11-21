@@ -41,6 +41,7 @@ struct Listener {
     admissions: PathBuf,
     receiver_uid: u32,
     exchange_timeout: Duration,
+    readiness_marker: Option<PathBuf>,
 }
 
 impl TryFrom<AdmissionConfiguration> for Listener {
@@ -53,7 +54,16 @@ impl TryFrom<AdmissionConfiguration> for Listener {
             u32::try_from(value.receiver_user_id.0).map_err(|_| Error::Configuration)?;
         let milliseconds = u64::try_from(value.admission_timeout_milliseconds.0)
             .map_err(|_| Error::Configuration)?;
-        if !socket.is_absolute() || !admissions.is_absolute() || milliseconds == 0 {
+        let readiness_marker = value
+            .admission_readiness_marker_option
+            .map(|marker| PathBuf::from(marker.0));
+        if !socket.is_absolute()
+            || !admissions.is_absolute()
+            || milliseconds == 0
+            || readiness_marker
+                .as_ref()
+                .is_some_and(|path| !path.is_absolute())
+        {
             return Err(Error::Configuration);
         }
         Ok(Self {
@@ -61,6 +71,7 @@ impl TryFrom<AdmissionConfiguration> for Listener {
             admissions,
             receiver_uid,
             exchange_timeout: Duration::from_millis(milliseconds),
+            readiness_marker,
         })
     }
 }
@@ -88,6 +99,13 @@ pub fn serve(arguments: impl IntoIterator<Item = String>) -> Result<(), Error> {
 impl Listener {
     async fn run(self) -> Result<(), Error> {
         let listener = UnixListener::bind(&self.socket)?;
+        if let Some(marker) = &self.readiness_marker {
+            match OpenOptions::new().write(true).create_new(true).open(marker) {
+                Ok(_) => {}
+                Err(error) if error.kind() == io::ErrorKind::AlreadyExists => {}
+                Err(error) => return Err(error.into()),
+            }
+        }
         loop {
             let (stream, _) = listener.accept().await?;
             let _ = timeout(self.exchange_timeout, self.exchange(stream)).await;
@@ -223,6 +241,7 @@ mod tests {
             admissions: storage.path().to_owned(),
             receiver_uid: 0,
             exchange_timeout: Duration::from_secs(1),
+            readiness_marker: None,
         };
         let old = "a".repeat(40);
         let new = "b".repeat(40);

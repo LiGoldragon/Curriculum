@@ -21,6 +21,10 @@ pub struct ReceiverUserId(pub i64);
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct AdmissionTimeoutMilliseconds(pub i64);
 #[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub struct AdmissionReadinessMarker(pub String);
+#[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub struct AdmissionConfiguration {
@@ -28,6 +32,7 @@ pub struct AdmissionConfiguration {
     pub admission_directory: AdmissionDirectory,
     pub receiver_user_id: ReceiverUserId,
     pub admission_timeout_milliseconds: AdmissionTimeoutMilliseconds,
+    pub admission_readiness_marker_option: std::option::Option<AdmissionReadinessMarker>,
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]

@@ -10,9 +10,11 @@ There is no caller-selected context file, inline prompt, legacy skills directory
 
 The optional `curriculum-publication` binary accepts a local Git publication
 announcement. Build it with the `datom` feature. Its one inline configuration
-Datom is `{ /path/to/socket /path/to/admissions 1001 5000 }`: the socket,
+Datom is `{ /path/to/socket /path/to/admissions 1001 5000 None }`: the socket,
 private admission directory, authorized receiver UID, and exchange timeout in
-milliseconds. The deployment supplies the directories and owns socket
+milliseconds, and an optional readiness marker (`Some./path/to/ready`).
+The listener creates the marker only after successfully binding the socket.
+The deployment supplies the directories and owns socket
 lifecycle. The binary acknowledges an exact publication by digest after
 durable admission. Replaying the same announcement returns the same receipt.
 Admission is the handoff only; it does not project skills or role packets.
