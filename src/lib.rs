@@ -15,3 +15,8 @@ mod startup_metadata;
 pub mod context_render;
 pub mod emission;
 pub mod refresh;
+
+#[cfg(feature = "datom")]
+pub mod projection;
+#[cfg(feature = "datom")]
+mod projection_types;

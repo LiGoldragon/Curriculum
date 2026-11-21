@@ -1,0 +1,21 @@
+Library
+[ :signal_curriculum_nexus:[ RoleSelection Surface RoleName RepositoryName SourceRevision SourceRelativePath
+                             SourceSha256 BodySha256 RenderedSha256 DescriptionPayloadSha256 ContextPayloadSha256 ] ]
+[ ProjectionRequest.[ ProjectRoles.RoleProjectionConfiguration ]
+  ProjectionOutput.[ RolesProjected.Integer
+                     ProjectionRejected.String ]
+  CurriculumSocket.String
+  WorkspaceRoot.String
+  RoleOutputPath.String
+  RoleOutputSha256.String
+  ModuleIdentityText.String
+  RoleProjection.{ RoleSelection RoleOutputPath }
+  RoleProjectionConfiguration.{ CurriculumSocket WorkspaceRoot Vector<RoleProjection> }
+  GeneratedRoleOutputs.{ Vector<RoleOutputPath> }
+  GeneratedRoleOutputDocument.[ GeneratedRoleOutputs ]
+  RoleSourceProvenance.{ ModuleIdentityText RepositoryName SourceRevision SourceRelativePath SourceSha256 BodySha256 RenderedSha256 }
+  RoleOutputProvenance.{ RoleOutputPath RoleName Surface RoleOutputSha256 DescriptionPayloadSha256 ContextPayloadSha256 Vector<RoleSourceProvenance> }
+  GeneratedRoleProvenance.{ Vector<RoleOutputProvenance> }
+  GeneratedRoleProvenanceDocument.[ GeneratedRoleProvenance ] ]
+[]
+[]

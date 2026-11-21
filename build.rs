@@ -10,6 +10,7 @@ fn main() {
         ("curriculum.ethos", "src/generated.rs"),
         ("memory.ethos", "src/memory.rs"),
         ("emission.ethos", "src/emission.rs"),
+        ("projection.ethos", "src/projection_types.rs"),
     ] {
         println!("cargo:rerun-if-changed={source_path}");
         println!("cargo:rerun-if-changed={generated_path}");

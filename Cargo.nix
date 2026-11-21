@@ -315,6 +315,11 @@ rec {
             path = "src/nexus_main.rs";
             requiredFeatures = [ ];
           }
+          {
+            name = "curriculum-project";
+            path = "src/project_main.rs";
+            requiredFeatures = [ "datom" ];
+          }
         ];
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./.; };
         dependencies = [

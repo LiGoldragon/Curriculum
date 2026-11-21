@@ -22,6 +22,11 @@ required-features = ["datom"]
 name = "curriculum-nexus"
 path = "src/nexus_main.rs"
 
+[[bin]]
+name = "curriculum-project"
+path = "src/project_main.rs"
+required-features = ["datom"]
+
 [dependencies]
 sha2 = "=0.10.9"
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "09a0526", features = ["rkyv"], optional = true }
