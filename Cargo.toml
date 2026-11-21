@@ -32,7 +32,7 @@ sha2 = "=0.10.9"
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "09a0526", features = ["rkyv"], optional = true }
 nexus = { git = "https://github.com/LiGoldragon/nexus", rev = "69946db066bb70bdbc1fd7dbf5e6c88dcf05c363" }
 # The wire contract: Input, Output and the Answering capabilities.
-signal-curriculum-nexus = { git = "https://github.com/LiGoldragon/signal-curriculum-nexus", rev = "31b3ac5796eadee2d7fdcd267ee3cea926f1f46c" }
+signal-curriculum-nexus = { git = "https://github.com/LiGoldragon/signal-curriculum-nexus", rev = "0712f352d8e31ea0f8b009fff07a7f62e2d88db9" }
 protos = { git = "https://github.com/LiGoldragon/protos", rev = "c93b598", optional = true }
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 thiserror = "2"

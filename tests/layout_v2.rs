@@ -259,8 +259,9 @@ fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
     }
     let registry = support::registry(&r, &revisions()).unwrap();
     let ids = registry.skill_names().unwrap();
-    assert_eq!(ids.len(), 9);
+    assert_eq!(ids.len(), 10);
     assert!(ids.iter().any(|id| id == "notion:item-8:0"));
+    assert!(ids.iter().any(|id| id == "state:item-9:0"));
     let workspace = temp.path().join("workspace");
     WorkspaceProjector::new(&workspace)
         .write(&registry)
