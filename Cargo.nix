@@ -320,6 +320,11 @@ rec {
             path = "src/publication_main.rs";
             requiredFeatures = [ "datom" ];
           }
+          {
+            name = "curriculum-skill-inventory";
+            path = "src/skill_inventory_main.rs";
+            requiredFeatures = [ ];
+          }
         ];
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./.; };
         dependencies = [

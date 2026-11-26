@@ -11,6 +11,7 @@ pub use registry::{ExpandsSkills, RegistryError, ResolvedSkill, SkillEntry, Skil
 mod description_block;
 pub mod startup;
 mod startup_metadata;
+pub use startup_metadata::{SkillVisibility, module_placement};
 
 pub mod context_render;
 pub mod emission;

@@ -1,9 +1,9 @@
 //! The sole authored module registry: three server-configured repository roots, each holding the modules its modules.datom declares.
 use crate::emission::{Emittable, RefreshOutcome, RefreshProgram};
-use crate::generated::ModuleDeclarations;
+use crate::generated::{ModuleDeclarations, ModulePlacement};
 use crate::refresh::ProcessLauncher;
 use crate::startup_metadata::{
-    declared_placement, description, framed_source, instructions, sha256,
+    SkillVisibility, description, instructions, module_placement, sha256,
 };
 use signal_curriculum_nexus::{
     BodySha256, DeclaredPlacement, Module, ModuleIdentity, ModuleKind, ModuleSubject,
@@ -153,6 +153,7 @@ pub struct SkillEntry {
     pub path: PathBuf,
     pub name: String,
     pub body: String,
+    pub placement: ModulePlacement,
     pub dependencies: Vec<String>,
 }
 pub type ResolvedSkill = SkillEntry;
@@ -469,7 +470,11 @@ impl SkillRegistry {
             revisions: revisions.clone(),
             reports,
         };
-        registry.expand_skills(&registry.skill_names()?)?;
+        // Admission checks the entire authored graph. It does not publish it.
+        registry.expand(
+            &registry.entries.keys().cloned().collect::<Vec<_>>(),
+            Visibility::Validation,
+        )?;
         Ok(registry)
     }
     /// The declarations that put no module in the registry, as reported when the sources were read.
@@ -484,7 +489,7 @@ impl SkillRegistry {
             if !seen_bindings.insert(id) {
                 return Err(RegistryError::Duplicate(id.clone()));
             }
-            for module in self.resolve_binding(id)? {
+            for module in self.resolve_binding(id, Visibility::Public)? {
                 if seen_modules.insert(module.name.clone()) {
                     resolved.push(module.clone());
                 }
@@ -512,6 +517,7 @@ impl SkillRegistry {
     pub fn listed_modules(&self) -> Result<Vec<Module>, RegistryError> {
         self.entries
             .values()
+            .filter(|skill| skill.placement.is_public_skill())
             .map(|skill| {
                 if canonical(&skill.path)? != skill.path
                     || fs::read(&skill.path).map_err(|e| invalid(&skill.path, e))?
@@ -542,6 +548,7 @@ impl SkillRegistry {
     ) -> Result<Vec<signal_curriculum_nexus::ModuleDescription>, RegistryError> {
         self.entries
             .values()
+            .filter(|skill| skill.placement.is_public_skill())
             .map(|skill| {
                 if canonical(&skill.path)? != skill.path
                     || fs::read(&skill.path).map_err(|e| invalid(&skill.path, e))?
@@ -606,7 +613,7 @@ impl SkillRegistry {
                     .to_string_lossy()
                     .into_owned(),
             ),
-            declared_placement: DeclaredPlacement(declared_placement(&skill.body).into()),
+            declared_placement: DeclaredPlacement(skill.placement.public_placement().into()),
             source_sha256: SourceSha256(sha256(skill.body.as_bytes())),
             body_sha256: BodySha256(sha256(text.as_bytes())),
             string: text.to_owned(),
@@ -616,6 +623,7 @@ impl SkillRegistry {
     fn visit(
         &self,
         identity: &str,
+        visibility: Visibility,
         visiting: &mut BTreeSet<String>,
         seen: &mut BTreeSet<String>,
         output: &mut Vec<ResolvedSkill>,
@@ -631,13 +639,13 @@ impl SkillRegistry {
             .get(identity)
             .ok_or_else(|| RegistryError::Missing(identity.into()))?;
         for dependency in &source.dependencies {
-            for actual in self.resolve_binding(dependency)? {
+            for actual in self.resolve_binding(dependency, visibility)? {
                 // A numeric binding can incidentally contain the span module
                 // that declares it. That candidate is already being visited;
                 // a dependency naming the actual identity itself remains a
                 // genuine cycle, and every other candidate is traversed.
                 if actual.name != identity {
-                    self.visit(&actual.name, visiting, seen, output)?;
+                    self.visit(&actual.name, visibility, visiting, seen, output)?;
                 } else if dependency == identity {
                     return Err(RegistryError::Cycle(identity.into()));
                 }
@@ -650,12 +658,35 @@ impl SkillRegistry {
     }
 }
 
+#[derive(Clone, Copy)]
+enum Visibility {
+    Public,
+    Validation,
+}
+
+impl Visibility {
+    fn admits(self, module: &SkillEntry) -> bool {
+        match self {
+            Self::Public => module.placement.is_public_skill(),
+            Self::Validation => true,
+        }
+    }
+}
+
 trait ResolvesBindings {
-    fn resolve_binding(&self, binding: &str) -> Result<Vec<&SkillEntry>, RegistryError>;
+    fn resolve_binding(
+        &self,
+        binding: &str,
+        visibility: Visibility,
+    ) -> Result<Vec<&SkillEntry>, RegistryError>;
 }
 
 impl ResolvesBindings for SkillRegistry {
-    fn resolve_binding(&self, binding: &str) -> Result<Vec<&SkillEntry>, RegistryError> {
+    fn resolve_binding(
+        &self,
+        binding: &str,
+        visibility: Visibility,
+    ) -> Result<Vec<&SkillEntry>, RegistryError> {
         let requested = binding
             .parsed_identity()
             .ok_or_else(|| RegistryError::Missing(binding.into()))?;
@@ -663,6 +694,7 @@ impl ResolvesBindings for SkillRegistry {
             return self
                 .entries
                 .get(binding)
+                .filter(|module| visibility.admits(module))
                 .map(|module| vec![module])
                 .ok_or_else(|| RegistryError::Missing(binding.into()));
         }
@@ -672,6 +704,7 @@ impl ResolvesBindings for SkillRegistry {
         let mut modules = self
             .entries
             .values()
+            .filter(|module| visibility.admits(module))
             .filter(|module| {
                 module.name.parsed_identity().is_some_and(|actual| {
                     actual.kind == requested.kind
@@ -694,23 +727,50 @@ pub trait ExpandsSkills {
     fn skill_names(&self) -> Result<Vec<String>, RegistryError>;
     fn actual_skills(&self) -> Vec<ResolvedSkill>;
 }
-impl ExpandsSkills for SkillRegistry {
-    fn expand_skills(&self, roots: &[String]) -> Result<Vec<ResolvedSkill>, RegistryError> {
+impl SkillRegistry {
+    fn expand(
+        &self,
+        roots: &[String],
+        visibility: Visibility,
+    ) -> Result<Vec<ResolvedSkill>, RegistryError> {
         let mut visiting = BTreeSet::new();
         let mut seen = BTreeSet::new();
         let mut output = Vec::new();
         for root in roots {
-            for actual in self.resolve_binding(root)? {
-                self.visit(&actual.name, &mut visiting, &mut seen, &mut output)?;
+            for actual in self.resolve_binding(root, visibility)? {
+                self.visit(
+                    &actual.name,
+                    visibility,
+                    &mut visiting,
+                    &mut seen,
+                    &mut output,
+                )?;
             }
         }
         Ok(output)
     }
-    fn skill_names(&self) -> Result<Vec<String>, RegistryError> {
-        Ok(self.entries.keys().cloned().collect())
+}
+
+impl ExpandsSkills for SkillRegistry {
+    fn expand_skills(&self, roots: &[String]) -> Result<Vec<ResolvedSkill>, RegistryError> {
+        self.expand(roots, Visibility::Public)
     }
+
+    fn skill_names(&self) -> Result<Vec<String>, RegistryError> {
+        Ok(self
+            .entries
+            .values()
+            .filter(|skill| skill.placement.is_public_skill())
+            .map(|skill| skill.name.clone())
+            .collect())
+    }
+
     fn actual_skills(&self) -> Vec<ResolvedSkill> {
-        self.entries.values().cloned().collect()
+        self.entries
+            .values()
+            .filter(|skill| skill.placement.is_public_skill())
+            .cloned()
+            .collect()
     }
 }
 
@@ -1204,7 +1264,7 @@ fn admit(
         ));
     }
     let text = fs::read_to_string(&path).map_err(|e| invalid(&path, e))?;
-    framed_source(&text).map_err(|e| invalid(&path, e))?;
+    let placement = module_placement(&text).map_err(|e| invalid(&path, e))?;
     let dependencies = dependencies(&path, &text)?;
     entries.insert(
         name.clone(),
@@ -1212,6 +1272,7 @@ fn admit(
             path,
             name,
             body: text,
+            placement,
             dependencies,
         },
     );

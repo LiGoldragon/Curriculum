@@ -1,5 +1,8 @@
 //! Conservative flattening: execution metadata is never silently discarded.
+use crate::generated::ModulePlacement;
 use sha2::{Digest, Sha256};
+use signal_curriculum_nexus::RoleName;
+use std::collections::BTreeSet;
 
 pub(crate) fn sha256(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
@@ -42,7 +45,9 @@ pub(crate) fn instructions(source: &str) -> Result<&str, String> {
         continuation = matches!(key, "description" | "dependencies");
         match key {
             "description" | "dependencies" => (),
-            "placement" if matches!(value.trim(), "system" | "user" | "on-demand") => (),
+            "placement" => {
+                parse_placement(value)?;
+            }
             "user-only" | "disable-model-invocation"
                 if matches!(value.trim(), "true" | "false") => {}
             "user-invocable" if value.trim() == "true" => (),
@@ -52,17 +57,74 @@ pub(crate) fn instructions(source: &str) -> Result<&str, String> {
     Ok(body)
 }
 
-/// Empty means the source leaves placement to its explicit consumer contract.
-pub(crate) fn declared_placement(source: &str) -> &str {
-    source
-        .strip_prefix("---\n")
-        .and_then(|s| s.split_once("\n---\n"))
-        .and_then(|(header, _)| {
-            header
-                .lines()
-                .find_map(|line| line.strip_prefix("placement:").map(str::trim))
-        })
-        .unwrap_or("")
+/// Only non-specialist modules may be enumerated, resolved or published as skills.
+pub trait SkillVisibility {
+    fn is_public_skill(&self) -> bool;
+    fn public_placement(&self) -> &'static str;
+}
+
+impl SkillVisibility for ModulePlacement {
+    fn is_public_skill(&self) -> bool {
+        !matches!(self, Self::Specialist(_))
+    }
+
+    fn public_placement(&self) -> &'static str {
+        match self {
+            Self::Unspecified | Self::Specialist(_) => "",
+            Self::SystemPrompt => "system",
+            Self::UserPrompt => "user",
+            Self::OnDemand => "on-demand",
+        }
+    }
+}
+
+/// The declared placement is read only from the source header. A malformed or
+/// duplicate declaration fails closed before any skill can be published.
+pub fn module_placement(source: &str) -> Result<ModulePlacement, String> {
+    let (header, _) = framed_source(source)?;
+    let mut placement = None;
+    for line in header.lines() {
+        let Some((key, value)) = line.split_once(':') else {
+            continue;
+        };
+        if key.trim() != "placement" {
+            continue;
+        }
+        if key != "placement" || placement.is_some() {
+            return Err("invalid or duplicate placement declaration".into());
+        }
+        placement = Some(parse_placement(value)?);
+    }
+    Ok(placement.unwrap_or(ModulePlacement::Unspecified))
+}
+
+fn parse_placement(value: &str) -> Result<ModulePlacement, String> {
+    match value.trim() {
+        "system" => Ok(ModulePlacement::SystemPrompt),
+        "user" => Ok(ModulePlacement::UserPrompt),
+        "on-demand" => Ok(ModulePlacement::OnDemand),
+        value => {
+            let body = value
+                .strip_prefix("Specialist.[")
+                .and_then(|value| value.strip_suffix(']'))
+                .ok_or("invalid declared placement")?;
+            let mut seen = BTreeSet::new();
+            let mut roles = Vec::new();
+            for word in body.split_ascii_whitespace() {
+                if !word.as_bytes().first().is_some_and(u8::is_ascii_alphabetic)
+                    || !word.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
+                    || !seen.insert(word)
+                {
+                    return Err("invalid or duplicate specialist role".into());
+                }
+                roles.push(RoleName(word.to_owned()));
+            }
+            if roles.is_empty() {
+                return Err("a specialist placement must name at least one role".into());
+            }
+            Ok(ModulePlacement::Specialist(roles))
+        }
+    }
 }
 
 /// The bounded scalar forms used by authored description frontmatter.

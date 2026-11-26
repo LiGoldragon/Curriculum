@@ -11,6 +11,16 @@ pub struct ModuleDeclarations(pub std::vec::Vec<signal_curriculum_nexus::Module>
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
+pub enum ModulePlacement {
+    Unspecified,
+    SystemPrompt,
+    UserPrompt,
+    OnDemand,
+    Specialist(std::vec::Vec<signal_curriculum_nexus::RoleName>),
+}
+#[rustfmt::skip]
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub enum SkillDirectory {
     Claude,
     Agents,

@@ -398,3 +398,135 @@ fn dependencies_refuse_old_aliases_and_missing_versions() {
         assert!(support::registry(&r, &revisions()).is_err(), "{dependency}");
     }
 }
+
+#[test]
+fn a_specialist_is_typed_but_not_disclosed_in_a_public_projection_or_source_query() {
+    use curriculum::{
+        SkillVisibility, generated::ModulePlacement, module_placement,
+        registry::workspace::WorkspaceProjector,
+    };
+    use signal_curriculum_nexus::RoleName;
+
+    let private = "---\ndescription: Private fixture\nplacement: Specialist.[ FlowDriver SecondRole ]\n---\nThe protected fixture body.\n";
+    let placed = module_placement(private).unwrap();
+    assert_eq!(
+        placed,
+        ModulePlacement::Specialist(vec![
+            RoleName("FlowDriver".into()),
+            RoleName("SecondRole".into())
+        ])
+    );
+    assert!(!placed.is_public_skill());
+    for malformed in [
+        "placement: Specialist.[ ]",
+        "placement: Specialist.[ One One ]",
+        " placement: Specialist.[ One ]",
+        "placement: Specialist.[ One ]\nplacement: system",
+        "placement: Specialist.[ One, Two ]",
+    ] {
+        assert!(module_placement(&format!("---\n{malformed}\n---\nBody.\n")).is_err());
+    }
+
+    let temp = tempfile::tempdir().unwrap();
+    let r = roots(temp.path());
+    source(
+        &r[0],
+        "knowledge/public/0.md",
+        "---\ndescription: Public fixture\n---\nA normal skill.\n",
+    );
+    source(&r[1], "knowledge/private/0.md", private);
+    source(
+        &r[2],
+        "knowledge/dependency/0.md",
+        "---\ndescription: Public dependency fixture\ndependencies: [ knowledge:private:0 ]\n---\nDepends on a specialist.\n",
+    );
+    let registry = support::registry(&r, &revisions()).unwrap();
+    let private = ["knowledge:private:0".into()];
+    assert!(registry.resolve_exact(&private).is_err());
+    assert!(registry.resolved_exact_sources(&private).is_err());
+    assert!(registry.resolved_sources(&private).is_err());
+    assert!(registry.expand_skills(&private).is_err());
+    assert!(
+        registry
+            .resolved_sources(&["knowledge:dependency:0".into()])
+            .is_err()
+    );
+    assert_eq!(
+        registry.skill_names().unwrap(),
+        ["knowledge:dependency:0", "knowledge:public:0"]
+    );
+    assert_eq!(registry.listed_modules().unwrap().len(), 2);
+    assert_eq!(registry.listed_modules_verbose().unwrap().len(), 2);
+    assert_eq!(
+        registry
+            .resolved_sources(&["knowledge:public:0".into()])
+            .unwrap()[0]
+            .string,
+        "A normal skill.\n"
+    );
+
+    let workspace = temp.path().join("published");
+    fs::create_dir_all(&workspace).unwrap();
+    fs::write(
+        workspace.join("modules"),
+        "knowledge:private:0 old k/private/0.md\n",
+    )
+    .unwrap();
+    let targets = [".claude", ".agents", ".codex", ".pi", ".opencode"];
+    for target in targets {
+        let old = workspace.join(target).join("skills/knowledge:private:0");
+        fs::create_dir_all(&old).unwrap();
+        fs::write(old.join("SKILL.md"), "Previously published fixture").unwrap();
+    }
+    WorkspaceProjector::new(&workspace)
+        .write(&registry)
+        .unwrap();
+    for target in targets {
+        let skills = workspace.join(target).join("skills");
+        assert!(!skills.join("knowledge:private:0").exists());
+        assert!(skills.join("knowledge:public:0/SKILL.md").is_file());
+    }
+    assert!(
+        !fs::read_to_string(workspace.join("modules"))
+            .unwrap()
+            .contains("knowledge:private:0")
+    );
+}
+
+#[test]
+fn public_startup_composition_does_not_grant_a_claimed_specialist_role() {
+    use curriculum::registry::ModuleIdentityConversion;
+    use signal_curriculum_nexus::{
+        CallerMetaflow, StartupSelection, SystemModules, Target, UserModules,
+    };
+    let temp = tempfile::tempdir().unwrap();
+    let r = roots(temp.path());
+    source(&r[0], "spirit/core/0.md", "Public Spirit.\n");
+    source(&r[1], "intent/test/0.md", "Public seat intent.\n");
+    source(
+        &r[1],
+        "knowledge/private/0.md",
+        "---\nplacement: Specialist.[ FlowDriver ]\n---\nSynthetic marker.\n",
+    );
+    let registry = support::registry(&r, &revisions()).unwrap();
+    let mut selection = StartupSelection {
+        caller_metaflow: CallerMetaflow {
+            first_string: "Mind".into(),
+            second_string: "FlowDriver".into(),
+            third_string: "Sol".into(),
+        },
+        target: Target::Codex,
+        system_modules: SystemModules(vec![
+            "spirit:core:0".module_identity().unwrap(),
+            "intent:test:0".module_identity().unwrap(),
+        ]),
+        user_modules: UserModules(vec![]),
+        flow_id_vector: vec![],
+    };
+    assert!(curriculum::startup::compose(&registry, temp.path(), &selection).is_ok());
+    selection
+        .user_modules
+        .0
+        .push("knowledge:private:0".module_identity().unwrap());
+    assert!(curriculum::startup::compose(&registry, temp.path(), &selection).is_err());
+}

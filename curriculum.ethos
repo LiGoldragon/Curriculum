@@ -11,6 +11,7 @@ Library
 [ :signal_curriculum_nexus:[ ModuleIdentity ModuleSubject ModuleKind Version Versions ModuleFile Module
                               RepositoryName SourceRevision RoleName Surface ModelId Effort Permission RoleTools RoleCallers ] ]
 [ ModuleDeclarations.Vector<Module>
+  ModulePlacement.[ Unspecified SystemPrompt UserPrompt OnDemand Specialist.Vector<RoleName> ]
   SkillDirectory.[ Claude Agents Codex Pi OpenCode ]
   DeploymentDestination.String
   RepositoryRevision.{ RepositoryName SourceRevision }
