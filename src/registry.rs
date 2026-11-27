@@ -306,6 +306,11 @@ impl DeclaresModuleIdentity for Module {
 pub fn valid_id(value: &str) -> bool {
     value.parsed_identity().is_some()
 }
+
+/// Whether an admitted module may be projected into startup or role context.
+pub fn is_context_module(module_identity: &ModuleIdentity) -> bool {
+    !matches!(module_identity.module_kind, ModuleKind::State)
+}
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceConfiguration {
     pub roots: [PathBuf; 3],

@@ -133,6 +133,14 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     for (_, body) in state_modules {
         assert!(!text.contains(body), "State entered startup composition");
     }
+    assert!(
+        !invoke(
+            &runtime,
+            "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ { State hosts Single.0 } ] [] }",
+        )
+        .status
+        .success()
+    );
     let modules = invoke(&runtime, "ModulesVerbose");
     assert!(modules.status.success());
     let module_text = String::from_utf8_lossy(&modules.stdout);

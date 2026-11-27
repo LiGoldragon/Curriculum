@@ -191,6 +191,15 @@ fn inline_paths_missing_ambiguous_roles_and_invalid_caller_tool_data_refuse() {
     d.role_definition_vector[0].role_callers = RoleCallers::Only(vec![]);
     assert!(roles::validate(&d).is_err());
     let mut d = data.clone();
+    d.role_definition_vector[0]
+        .context_modules
+        .0
+        .push(identity("state:hosts:0"));
+    assert_eq!(
+        roles::validate(&d).unwrap_err(),
+        "module kind is not role context"
+    );
+    let mut d = data.clone();
     let duplicate = d.role_definition_vector[0].context_modules.0[0].clone();
     d.role_definition_vector[0]
         .context_modules
