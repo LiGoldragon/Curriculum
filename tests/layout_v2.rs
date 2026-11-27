@@ -260,13 +260,19 @@ fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
     }
     let registry = support::registry(&r, &revisions()).unwrap();
     let admitted_ids = registry.skill_names().unwrap();
-    let mut expected_ids = MODULE_KINDS
+    let expected_ids = MODULE_KINDS
         .iter()
         .enumerate()
         .map(|(index, kind)| format!("{}:item-{index}:0", kind.word()))
-        .collect::<Vec<_>>();
-    expected_ids.sort();
-    assert_eq!(admitted_ids, expected_ids);
+        .collect::<std::collections::BTreeSet<_>>();
+    assert!(admitted_ids.windows(2).all(|pair| pair[0] < pair[1]));
+    assert_eq!(
+        admitted_ids
+            .iter()
+            .cloned()
+            .collect::<std::collections::BTreeSet<_>>(),
+        expected_ids
+    );
     assert!(admitted_ids.iter().any(|id| id == "state:item-9:0"));
     let workspace = temp.path().join("workspace");
     WorkspaceProjector::new(&workspace)
