@@ -248,6 +248,7 @@ fn registry_workspace_projection_updates_plain_target_directories() {
 #[test]
 fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
     use curriculum::registry::{MODULE_KINDS, Worded, workspace::WorkspaceProjector};
+    use signal_curriculum_nexus::ModuleKind;
     let temp = tempfile::tempdir().unwrap();
     let r = roots(temp.path());
     for (index, kind) in MODULE_KINDS.iter().enumerate() {
@@ -258,19 +259,29 @@ fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
         );
     }
     let registry = support::registry(&r, &revisions()).unwrap();
-    let ids = registry.skill_names().unwrap();
-    assert_eq!(ids.len(), 9);
-    assert!(ids.iter().any(|id| id == "notion:item-8:0"));
+    let admitted_ids = registry.skill_names().unwrap();
+    let expected_ids = MODULE_KINDS
+        .iter()
+        .enumerate()
+        .map(|(index, kind)| format!("{}:item-{index}:0", kind.word()))
+        .collect::<Vec<_>>();
+    assert_eq!(admitted_ids, expected_ids);
+    assert!(admitted_ids.iter().any(|id| id == "state:item-9:0"));
     let workspace = temp.path().join("workspace");
     WorkspaceProjector::new(&workspace)
         .write(&registry)
         .unwrap();
     let inventory = fs::read_to_string(workspace.join("modules")).unwrap();
     let lines = inventory.lines().collect::<Vec<_>>();
+    assert_eq!(lines.len(), MODULE_KINDS.len() - 1);
+    assert!(!lines.iter().any(|line| line.starts_with("state:")));
     let mut sorted = lines.clone();
     sorted.sort();
     assert_eq!(lines, sorted);
-    for id in ids {
+    for id in admitted_ids
+        .into_iter()
+        .filter(|id| !id.starts_with(&format!("{}:", ModuleKind::State.word())))
+    {
         for (surface, marker) in [
             (".claude/skills", "claude"),
             (".agents/skills", "codex"),
