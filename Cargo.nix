@@ -320,6 +320,11 @@ rec {
             path = "src/publication_main.rs";
             requiredFeatures = [ "datom" ];
           }
+          {
+            name = "curriculum-context-export";
+            path = "src/context_export_main.rs";
+            requiredFeatures = [ "datom" ];
+          }
         ];
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./.; };
         dependencies = [

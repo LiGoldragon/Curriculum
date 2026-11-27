@@ -27,6 +27,11 @@ name = "curriculum-publication"
 path = "src/publication_main.rs"
 required-features = ["datom"]
 
+[[bin]]
+name = "curriculum-context-export"
+path = "src/context_export_main.rs"
+required-features = ["datom"]
+
 [dependencies]
 sha2 = "=0.10.9"
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "09a0526", features = ["rkyv"], optional = true }
@@ -53,6 +58,11 @@ tempfile = "3"
 [[test]]
 name = "nexus_roundtrip"
 path = "tests/nexus_roundtrip.rs"
+required-features = ["datom"]
+
+[[test]]
+name = "context_export"
+path = "tests/context_export.rs"
 required-features = ["datom"]
 
 [lints.rust]
