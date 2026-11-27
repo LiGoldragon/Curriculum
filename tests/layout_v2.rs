@@ -260,11 +260,12 @@ fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
     }
     let registry = support::registry(&r, &revisions()).unwrap();
     let admitted_ids = registry.skill_names().unwrap();
-    let expected_ids = MODULE_KINDS
+    let mut expected_ids = MODULE_KINDS
         .iter()
         .enumerate()
         .map(|(index, kind)| format!("{}:item-{index}:0", kind.word()))
         .collect::<Vec<_>>();
+    expected_ids.sort();
     assert_eq!(admitted_ids, expected_ids);
     assert!(admitted_ids.iter().any(|id| id == "state:item-9:0"));
     let workspace = temp.path().join("workspace");
