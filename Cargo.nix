@@ -316,6 +316,11 @@ rec {
             requiredFeatures = [ ];
           }
           {
+            name = "curriculum-project";
+            path = "src/project_main.rs";
+            requiredFeatures = [ "datom" ];
+          }
+          {
             name = "curriculum-publication";
             path = "src/publication_main.rs";
             requiredFeatures = [ "datom" ];

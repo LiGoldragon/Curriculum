@@ -23,6 +23,11 @@ name = "curriculum-nexus"
 path = "src/nexus_main.rs"
 
 [[bin]]
+name = "curriculum-project"
+path = "src/project_main.rs"
+required-features = ["datom"]
+
+[[bin]]
 name = "curriculum-publication"
 path = "src/publication_main.rs"
 required-features = ["datom"]

@@ -59,17 +59,20 @@ impl RunsClient for CurriculumClient {
             return Err(ClientError::Arguments);
         }
         let input = actualize_request(argument)?;
-        let request = rkyv::to_bytes::<rkyv::rancor::Error>(&input)
-            .map_err(|error| ClientError::Encode(error.to_string()))?;
-        let socket = socket_path();
-        let mut stream = UnixStream::connect(&socket).map_err(|source| ClientError::Connect {
-            path: socket,
-            source,
-        })?;
-        write_frame(&mut stream, &request)?;
-        let response = read_frame(&mut stream)?;
-        rkyv::from_bytes::<Output, rkyv::rancor::Error>(&response).map_err(|_| ClientError::Decode)
+        exchange(&socket_path(), &input)
     }
+}
+
+pub(crate) fn exchange(socket: &std::path::Path, input: &Input) -> Result<Output, ClientError> {
+    let request = rkyv::to_bytes::<rkyv::rancor::Error>(input)
+        .map_err(|error| ClientError::Encode(error.to_string()))?;
+    let mut stream = UnixStream::connect(socket).map_err(|source| ClientError::Connect {
+        path: socket.to_owned(),
+        source,
+    })?;
+    write_frame(&mut stream, &request)?;
+    let response = read_frame(&mut stream)?;
+    rkyv::from_bytes::<Output, rkyv::rancor::Error>(&response).map_err(|_| ClientError::Decode)
 }
 
 pub trait PresentsOutput {
@@ -122,14 +125,14 @@ fn socket_path() -> PathBuf {
         .join("curriculum.sock")
 }
 
-fn write_frame(stream: &mut UnixStream, frame: &[u8]) -> io::Result<()> {
+pub(crate) fn write_frame(stream: &mut UnixStream, frame: &[u8]) -> io::Result<()> {
     let length = u32::try_from(frame.len()).map_err(|_| io::Error::other("frame too large"))?;
     stream.write_all(&length.to_be_bytes())?;
     stream.write_all(frame)?;
     stream.flush()
 }
 
-fn read_frame(stream: &mut UnixStream) -> io::Result<Vec<u8>> {
+pub(crate) fn read_frame(stream: &mut UnixStream) -> io::Result<Vec<u8>> {
     let mut length = [0; 4];
     stream.read_exact(&mut length)?;
     let mut frame = vec![0; u32::from_be_bytes(length) as usize];
