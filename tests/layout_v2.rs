@@ -248,7 +248,6 @@ fn registry_workspace_projection_updates_plain_target_directories() {
 #[test]
 fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
     use curriculum::registry::{MODULE_KINDS, Worded, workspace::WorkspaceProjector};
-    use signal_curriculum_nexus::ModuleKind;
     let temp = tempfile::tempdir().unwrap();
     let r = roots(temp.path());
     for (index, kind) in MODULE_KINDS.iter().enumerate() {
@@ -280,15 +279,12 @@ fn registry_projection_covers_all_module_kinds_and_harness_surfaces() {
         .unwrap();
     let inventory = fs::read_to_string(workspace.join("modules")).unwrap();
     let lines = inventory.lines().collect::<Vec<_>>();
-    assert_eq!(lines.len(), MODULE_KINDS.len() - 1);
-    assert!(!lines.iter().any(|line| line.starts_with("state:")));
+    assert_eq!(lines.len(), MODULE_KINDS.len());
+    assert!(lines.iter().any(|line| line.starts_with("state:item-9:0 ")));
     let mut sorted = lines.clone();
     sorted.sort();
     assert_eq!(lines, sorted);
-    for id in admitted_ids
-        .into_iter()
-        .filter(|id| !id.starts_with(&format!("{}:", ModuleKind::State.word())))
-    {
+    for id in admitted_ids {
         for (surface, marker) in [
             (".claude/skills", "claude"),
             (".agents/skills", "codex"),

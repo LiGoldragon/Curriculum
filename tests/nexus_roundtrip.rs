@@ -74,7 +74,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let roles = base.join("roles.datom");
     write_source(
         &roles,
-        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted { Role book-description Single.0 } [ { Spirit core Single.0 } { Intent seat Single.0 } { Compensation illustration Single.0 } ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } ] }",
+        "Roles.{ [ { book ClaudeAgent sonnet Medium Unrestricted { Role book-description Single.0 } [ { Spirit core Single.0 } { Intent seat Single.0 } { Compensation illustration Single.0 } ] Explicit.[ Read Bash Agent Artifact ArtifactComments ] Any } { statebook ClaudeAgent sonnet Medium Unrestricted { Role book-description Single.0 } [ { Spirit core Single.0 } { Intent seat Single.0 } { State hosts Single.0 } ] Explicit.[ Read ] Any } ] }",
     )
     .unwrap();
     for root in &roots {
@@ -133,13 +133,23 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     for (_, body) in state_modules {
         assert!(!text.contains(body), "State entered startup composition");
     }
+    let state_user = invoke(
+        &runtime,
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ { State hosts Single.0 } ] [] }",
+    );
+    assert!(state_user.status.success());
+    let state_user_text = String::from_utf8(state_user.stdout).unwrap();
+    assert!(state_user_text.contains("EXACT_HOSTS_STATE"));
+    assert!(state_user_text.contains("field-pattern"));
+    assert!(state_user_text.contains("state/hosts/0.md"));
+    let state_system = invoke(
+        &runtime,
+        "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } { State hosts Single.0 } ] [] [] }",
+    );
+    assert!(!state_system.status.success());
     assert!(
-        !invoke(
-            &runtime,
-            "ComposeStartup.{ { Field Publisher Quaternary } Claude [ { Spirit core Single.0 } { Intent seat Single.0 } ] [ { State hosts Single.0 } ] [] }",
-        )
-        .status
-        .success()
+        String::from_utf8_lossy(&state_system.stderr)
+            .contains("module has the wrong startup placement: state:hosts:0")
     );
     let modules = invoke(&runtime, "ModulesVerbose");
     assert!(modules.status.success());
@@ -179,6 +189,9 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     for (_, body) in state_modules {
         assert!(!role_text.contains(body), "State entered role composition");
     }
+    let state_role = invoke(&runtime, "ComposeRole.{ statebook ClaudeAgent }");
+    assert!(state_role.status.success());
+    assert!(String::from_utf8_lossy(&state_role.stdout).contains("EXACT_HOSTS_STATE"));
     assert!(
         String::from_utf8_lossy(&role.stdout)
             .contains(r#"{"message":{"usage":{"input_tokens":2}}}"#)

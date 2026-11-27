@@ -1,7 +1,7 @@
 //! Role metadata contains IDs only. Authored text is resolved by the same registry.
 use crate::{
     generated::{RoleDefinition, Roles},
-    registry::{IdentityText, SkillRegistry, is_context_module, valid_id, valid_segment},
+    registry::{IdentityText, SkillRegistry, valid_id, valid_segment},
     startup_metadata::sha256,
 };
 use signal_curriculum_nexus::{
@@ -27,9 +27,6 @@ pub fn validate(roles: &Roles) -> Result<(), String> {
         }
         let mut ids = std::collections::BTreeSet::new();
         for id in std::iter::once(&role.description_module.0).chain(&role.context_modules.0) {
-            if !is_context_module(id) {
-                return Err("module kind is not role context".into());
-            }
             let text = id.identity_text().map_err(|_| "invalid role module ID")?;
             if !valid_id(&text) || !ids.insert(text) {
                 return Err("invalid or duplicate role module ID".into());

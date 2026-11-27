@@ -307,10 +307,6 @@ pub fn valid_id(value: &str) -> bool {
     value.parsed_identity().is_some()
 }
 
-/// Whether an admitted module may be projected into startup or role context.
-pub fn is_context_module(module_identity: &ModuleIdentity) -> bool {
-    !matches!(module_identity.module_kind, ModuleKind::State)
-}
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceConfiguration {
     pub roots: [PathBuf; 3],
@@ -726,8 +722,7 @@ impl ExpandsSkills for SkillRegistry {
 /// second skill repository or follows generated symlinks.
 pub mod workspace {
     use super::{
-        ExpandsSkills, IdentityText, ModuleIdentityConversion, RegistryError, ResolvedSkill,
-        SkillRegistry, invalid, is_context_module, sha256,
+        ExpandsSkills, IdentityText, RegistryError, ResolvedSkill, SkillRegistry, invalid, sha256,
     };
     use crate::generated::{
         DeploymentDestination, ProjectionCandidate, PublishedContentDigest,
@@ -896,21 +891,8 @@ pub mod workspace {
             registry: &SkillRegistry,
         ) -> Result<ProjectionCandidate, RegistryError> {
             fs::create_dir_all(&self.root).map_err(|e| invalid(&self.root, e))?;
-            let skills = registry
-                .actual_skills()
-                .into_iter()
-                .filter(|skill| {
-                    skill
-                        .name
-                        .as_str()
-                        .module_identity()
-                        .is_ok_and(|identity| is_context_module(&identity))
-                })
-                .collect::<Vec<_>>();
-            let ids = skills
-                .iter()
-                .map(|skill| skill.name.clone())
-                .collect::<Vec<_>>();
+            let ids = registry.skill_names()?;
+            let skills = registry.actual_skills();
             let modules = skills
                 .iter()
                 .cloned()
