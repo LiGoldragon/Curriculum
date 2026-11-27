@@ -20,6 +20,7 @@ pub fn identity(text: &str) -> signal_curriculum_nexus::ModuleIdentity {
         "role" => signal_curriculum_nexus::ModuleKind::Role,
         "raw" => signal_curriculum_nexus::ModuleKind::Raw,
         "notion" => signal_curriculum_nexus::ModuleKind::Notion,
+        "state" => signal_curriculum_nexus::ModuleKind::State,
         _ => return invalid_identity(text),
     };
     let Some(subject) = fields.next() else {

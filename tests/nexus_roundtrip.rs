@@ -62,6 +62,15 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
         "---\ndescription: instruction\ndependencies: []\nplacement: user\n---\nEXACT_USER_BODY\n{\"message\":{\"usage\":{\"input_tokens\":2}}}\n",
     )
     .unwrap();
+    let state_modules = [
+        ("astra-staffing", "EXACT_ASTRA_STAFFING_STATE"),
+        ("hosts", "EXACT_HOSTS_STATE"),
+        ("openai-abundance", "EXACT_OPENAI_ABUNDANCE_STATE"),
+        ("timeline", "EXACT_TIMELINE_STATE"),
+    ];
+    for (subject, body) in state_modules {
+        write_source(roots[2].join(format!("state/{subject}/0.md")), body).unwrap();
+    }
     let roles = base.join("roles.datom");
     write_source(
         &roles,
@@ -121,6 +130,30 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     assert!(text.contains("EXACT_USER_BODY"));
     assert!(text.contains(r#"{"message":{"usage":{"input_tokens":2}}}"#));
     assert!(text.contains("field-pattern"));
+    for (_, body) in state_modules {
+        assert!(!text.contains(body), "State entered startup composition");
+    }
+    let modules = invoke(&runtime, "ModulesVerbose");
+    assert!(modules.status.success());
+    let module_text = String::from_utf8_lossy(&modules.stdout);
+    assert!(module_text.starts_with("ModulesVerbose."));
+    assert_eq!(module_text.matches("State").count(), state_modules.len());
+    for (subject, _) in state_modules {
+        assert!(module_text.contains(subject));
+    }
+    for (subject, body) in state_modules {
+        let state = invoke(
+            &runtime,
+            &format!("ResolveSources.[ {{ State {subject} Single.0 }} ]"),
+        );
+        assert!(state.status.success());
+        assert!(String::from_utf8_lossy(&state.stdout).contains(body));
+    }
+    assert!(
+        !invoke(&runtime, "ResolveSources.[ { State absent Single.0 } ]")
+            .status
+            .success()
+    );
     let sources = invoke(
         &runtime,
         "ResolveSources.[ { Compensation illustration Single.0 } ]",
@@ -133,7 +166,11 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     assert!(String::from_utf8_lossy(&psyche_sources.stdout).contains(&current_psyche_revision));
     let role = invoke(&runtime, "ComposeRole.{ book ClaudeAgent }");
     assert!(role.status.success());
-    assert!(String::from_utf8_lossy(&role.stdout).contains("EXACT_USER_BODY"));
+    let role_text = String::from_utf8_lossy(&role.stdout);
+    assert!(role_text.contains("EXACT_USER_BODY"));
+    for (_, body) in state_modules {
+        assert!(!role_text.contains(body), "State entered role composition");
+    }
     assert!(
         String::from_utf8_lossy(&role.stdout)
             .contains(r#"{"message":{"usage":{"input_tokens":2}}}"#)
