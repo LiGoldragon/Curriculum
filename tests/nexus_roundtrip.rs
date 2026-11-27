@@ -31,9 +31,9 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     let stdout_path = base.join("nexus.stdout");
     let stderr_path = base.join("nexus.stderr");
     let roots = [
-        base.join("psyche-belief"),
-        base.join("mind-belief"),
-        base.join("field-belief"),
+        base.join("psyche-pattern"),
+        base.join("mind-pattern"),
+        base.join("field-pattern"),
     ];
     for (index, root) in roots.iter().enumerate() {
         fs::create_dir(root).unwrap();
@@ -120,7 +120,7 @@ fn native_nexus_composes_by_ids_and_refuses_retired_paths_and_inline_prose() {
     assert!(text.starts_with("StartupComposed."));
     assert!(text.contains("EXACT_USER_BODY"));
     assert!(text.contains(r#"{"message":{"usage":{"input_tokens":2}}}"#));
-    assert!(text.contains("field-belief"));
+    assert!(text.contains("field-pattern"));
     let sources = invoke(
         &runtime,
         "ResolveSources.[ { Compensation illustration Single.0 } ]",

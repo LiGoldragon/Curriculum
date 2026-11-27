@@ -1,4 +1,4 @@
-; Curriculum's one external call: the program that brings the three belief
+; Curriculum's one external call: the program that brings the three pattern
 ; checkouts to their origin mains before the registry is read.
 Emission
 []

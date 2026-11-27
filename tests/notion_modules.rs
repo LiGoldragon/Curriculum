@@ -135,7 +135,7 @@ fn notions_resolve_with_spans_and_compose_as_knowledge_with_actual_provenance() 
         .filter(|row| row.module_identity.module_kind == ModuleKind::Notion)
     {
         assert_eq!(row.startup_placement, StartupPlacement::User);
-        assert_eq!(row.repository_name.0, "mind-belief");
+        assert_eq!(row.repository_name.0, "mind-pattern");
         assert_eq!(row.source_revision.0, "b".repeat(40));
         assert_eq!(
             row.source_sha256.0,
@@ -200,7 +200,13 @@ fn exact_authored_notions_and_flow_span_resolve_from_frozen_source_cohort() {
             .iter()
             .find(|item| item.module_identity.identity_text().unwrap() == columns[2])
             .unwrap();
-        assert_eq!(found.repository_name.0, columns[0]);
+        let active_repository = match columns[0] {
+            "psyche-belief" => "psyche-pattern",
+            "mind-belief" => "mind-pattern",
+            "field-belief" => "field-pattern",
+            other => other,
+        };
+        assert_eq!(found.repository_name.0, active_repository);
         assert_eq!(found.source_revision.0, columns[1]);
         assert_eq!(found.source_relative_path.0, columns[3]);
         assert_eq!(found.source_sha256.0, columns[4]);

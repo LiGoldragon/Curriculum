@@ -594,7 +594,7 @@ impl SkillRegistry {
         Ok(ResolvedModule {
             module_identity,
             repository_name: RepositoryName(
-                ["psyche-belief", "mind-belief", "field-belief"][i].into(),
+                ["psyche-pattern", "mind-pattern", "field-pattern"][i].into(),
             ),
             source_revision: SourceRevision(self.revisions[i].clone()),
             source_root: SourceRoot(self.roots[i].to_string_lossy().into_owned()),
