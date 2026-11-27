@@ -109,7 +109,10 @@ fn parse(arguments: impl IntoIterator<Item = String>) -> Result<(PathBuf, [Sourc
             revision: revision.clone(),
         });
     }
-    Ok((output, sources.try_into().expect("three sources")))
+    let sources = sources
+        .try_into()
+        .map_err(|_| "internal source cardinality differs from three".to_owned())?;
+    Ok((output, sources))
 }
 
 fn plan(sources: &[Source; 3]) -> Result<Vec<CopyPlan>, String> {
@@ -149,7 +152,8 @@ fn plan(sources: &[Source; 3]) -> Result<Vec<CopyPlan>, String> {
             };
             let relative = source
                 .strip_prefix(root)
-                .map_err(|_| format!("admitted file escaped its source: {}", source.display()))?;
+                .map_err(|_| format!("admitted file escaped its source: {}", source.display()))?
+                .to_owned();
             if relative.as_os_str().is_empty()
                 || relative
                     .components()
@@ -160,7 +164,7 @@ fn plan(sources: &[Source; 3]) -> Result<Vec<CopyPlan>, String> {
                     relative.display()
                 ));
             }
-            let relative_destination = Path::new(&sources[*index].name).join(relative);
+            let relative_destination = Path::new(&sources[*index].name).join(&relative);
             let relative_text = relative_destination.to_str().ok_or_else(|| {
                 format!(
                     "admitted path is not UTF-8: {}",
@@ -183,7 +187,7 @@ fn plan(sources: &[Source; 3]) -> Result<Vec<CopyPlan>, String> {
                 identity,
                 revision: sources[*index].revision.clone(),
                 source,
-                source_relative: relative.to_owned(),
+                source_relative: relative,
                 relative_destination,
             })
         })
